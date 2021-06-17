@@ -57,6 +57,7 @@ target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
     TESTS=0
     SDRAM_MPU_INIT
     IM_DEBUG=1
+    DISABLE_WATCHDOG
 )
 
 
