@@ -33,7 +33,8 @@ target_sources( ${CMAKE_PROJECT_NAME} PRIVATE ${SRC_FILES} )
 # Include directories
 target_include_directories( ${CMAKE_PROJECT_NAME} PRIVATE
     platform/CMSIS
-    drivers
+    platform/include
+    platform/include/drivers
 )
 # User defines
 target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
