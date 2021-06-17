@@ -79,3 +79,37 @@ set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
+
+
+#############################
+# Binary commands for generate binary file
+#############################
+# Set tools
+set(CMAKE_OBJCOPY ${TOOLCHAIN_BIN_DIR}/${TOOLCHAIN}-objcopy${TOOLCHAIN_EXT})
+set(CMAKE_OBJDUMP ${TOOLCHAIN_BIN_DIR}/${TOOLCHAIN}-objdump${TOOLCHAIN_EXT})
+set(CMAKE_SIZE ${TOOLCHAIN_BIN_DIR}/${TOOLCHAIN}-size${TOOLCHAIN_EXT})
+
+# Print section sizes
+function(print_section_sizes TARGET)
+    set(TARGET_OUT ${TARGET}${CMAKE_EXECUTABLE_SUFFIX_CXX})
+    add_custom_command(TARGET ${TARGET} POST_BUILD COMMAND ${CMAKE_SIZE} ${TARGET_OUT})
+endfunction()
+
+# Create binary file
+function(create_binary_output TARGET TYPE)
+    if( ${TYPE} STREQUAL "bin")
+        SET(OBJTYPE "binary")
+    elseif( ${TYPE} STREQUAL "srec")
+        SET(OBJTYPE "srec")
+    elseif( ${TYPE} STREQUAL "hex")
+        SET(OBJTYPE "hex")
+    else()
+        message(FATAL_ERROR "Unknown output format ${TYPE}") 
+    endif()
+    set(TARGET_OUT ${TARGET}${CMAKE_EXECUTABLE_SUFFIX_CXX})
+    add_custom_target(${TARGET}.${TYPE}
+    ALL DEPENDS ${TARGET} 
+    COMMAND ${CMAKE_OBJCOPY} -O${OBJTYPE} ${TARGET_OUT} ${TARGET}.${TYPE}
+    COMMENT "Generating ${TARGET}.${TYPE}"
+    )
+endfunction()
