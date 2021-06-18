@@ -93,8 +93,8 @@ typedef struct _boot_data_ {
   uint32_t placeholder;		  /* placehoder to make even 0x10 size */
 }BOOT_DATA_T;
 
-#define FLASH_BASE            0x20000000
-#define FLASH_END             0x20070000
+#define FLASH_BASE            0x80000000
+#define FLASH_END             0x80400000
 #define SCLK 1
 
 #define DCD_ADDRESS           0
