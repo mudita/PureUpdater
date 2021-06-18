@@ -1,5 +1,5 @@
 #include <errno.h>
-#include <console/console.h>
+#include <hal/console.h>
 
 _ssize_t _write(int fd, const char *buf, size_t nbyte) 
 {

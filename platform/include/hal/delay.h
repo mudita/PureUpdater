@@ -1,0 +1,16 @@
+#pragma once
+
+#include <stdio.h>
+#include <stdint.h>
+
+/** Initialize submodule delay */
+void delay_init( void );
+
+/** Get jiffies in ms when timer start */
+uint32_t get_jiffiess( void );
+
+/** Sleep amount time of milisecons
+ * @param delay Amount delay of the ms
+ */
+void msleep(uint32_t delay);
+

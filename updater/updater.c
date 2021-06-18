@@ -1,17 +1,12 @@
-#include <console/console.h>
-#include <fsl_rtwdog.h>
-#include <boot/pin_mux.h>
-#include <boot/clock_config.h>
+#include <hal/sysinit.h>
+#include <hal/delay.h>
+#include <stdio.h>
 
 int main()
-{   
-    BOARD_InitBootloaderPins();
-    RTWDOG_Disable(RTWDOG);
-    RTWDOG_Deinit(RTWDOG);
-    BOARD_InitBootClocks();
-    debug_console_init();
+{   sysinit_setup();
     for(;;) {
-        debug_console_write("Ala ma kota\r\n", 13);
+        printf("Nowy lepszy sprzet %lu\r\n", get_jiffiess());
+        msleep(1000);
     }
     return 0;
 }

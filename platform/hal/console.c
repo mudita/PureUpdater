@@ -1,4 +1,4 @@
-#include <console/console.h>
+#include <hal/console.h>
 #include <fsl_common.h>
 #include <fsl_lpuart.h>
 #include <fsl_edma.h>
