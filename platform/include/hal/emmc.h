@@ -3,6 +3,10 @@
 
 // Forward decl
 struct _mmc_card;
+/** Enable the clocks in the emmc card 
+ * @return error
+ */
+void emmc_enable(void);
 
 /** Initialize emmc card subsystem
  * @return error code
