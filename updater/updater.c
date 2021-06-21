@@ -19,8 +19,9 @@ int main()
     // Try to initialize EINK
     eink_init();
     eink_clear_log();
-    eink_log( "Dzien dobry to moj log", true); 
-    eink_log( "A to kolejna linia", true); 
+    eink_log( "Dzien dobry to moj log", false); 
+    eink_log( "A to kolejna linia", false); 
+    eink_log_refresh();
     
     for(;;) {
         printf("test lepszego sprzetu %lu\n", get_jiffiess());

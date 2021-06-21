@@ -25,7 +25,7 @@ typedef enum eink_align_mode
 
 /** Initialize eink display
  */
-void eink_init( void );
+void eink_init(void);
 
 /** Display char at selected position
  * @param xpos X axis position
@@ -54,9 +54,13 @@ void eink_refresh_text( uint16_t x, uint16_t y, uint16_t w, uint16_t h );
  * @param text Text for display
  * @param interactive True if interactive refreshing enabled
  */
-void eink_log(const char *text, bool interactive);
+void eink_log(const char *text, bool flush);
+
+/** Flush log into the display
+ */
+void eink_log_refresh();
 
 /** Clear eink log console
  */
-void eink_clear_log( void );
+void eink_clear_log(void);
 

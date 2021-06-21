@@ -18,7 +18,7 @@
 
 static unsigned char eink_bmp_buf[2 + (BOARD_EINK_DISPLAY_RES_X*BOARD_EINK_DISPLAY_RES_Y/8)];
 static char eink_text_buf[EINK_MAX_LINES][EINK_LINE_LEN + 1];
-static int  eink_num_lines;     // Number of lines currently in buffer
+static int eink_num_lines;     // Number of lines currently in buffer
 
 /**
  * @brief  Draws a character on LCD.
@@ -169,14 +169,13 @@ void eink_refresh_text(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
     EinkDisplayImage (x, y, w, h, eink_bmp_buf);
 }
 
-void eink_log(const char *text, bool interactive) 
+void eink_log(const char *text, bool flush) 
 {
-    int i = 0;
     if ((text == NULL) || (text[0] == 0))
         return;
 
     /* Scroll text up */
-    for (i = (EINK_MAX_LINES - 1); i > 0; --i) {
+    for (int i = (EINK_MAX_LINES - 1); i > 0; --i) {
         if (eink_text_buf[i-1][0] == 0)
             continue;
         memset(eink_text_buf[i], ' ', EINK_LINE_LEN - 1);
@@ -187,15 +186,21 @@ void eink_log(const char *text, bool interactive)
     memset(eink_text_buf[0], ' ', EINK_LINE_LEN);
     strncpy(eink_text_buf[0], text, EINK_LINE_LEN);
     eink_text_buf[0][EINK_LINE_LEN] = '\0';
+    if(flush) {
+        eink_log_refresh();
+    }
+}
+
+void eink_log_refresh()
+{
     const eink_font_t *fnt = eink_get_font();
-    i = 1;
-    while ((eink_text_buf[i-1][0] != 0) && (i < EINK_MAX_LINES)) {
-        if (interactive)
-            eink_display_string_at(fnt->width, BOARD_EINK_DISPLAY_RES_Y - (i * fnt->height), eink_text_buf[i - 1], EINK_LEFT_MODE);
+    int i = 1;
+    while ((eink_text_buf[i - 1][0] != 0) && (i < EINK_MAX_LINES))
+    {
+        eink_display_string_at(fnt->width, BOARD_EINK_DISPLAY_RES_Y - (i * fnt->height), eink_text_buf[i - 1], EINK_LEFT_MODE);
         i++;
     }
-    if (interactive)
-        eink_refresh_text( 0, 0, BOARD_EINK_DISPLAY_RES_Y, BOARD_EINK_DISPLAY_RES_X );
+    eink_refresh_text(0, 0, BOARD_EINK_DISPLAY_RES_Y, BOARD_EINK_DISPLAY_RES_X);
 }
 
 void eink_clear_log(void) 
