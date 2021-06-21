@@ -19,14 +19,9 @@ void sysinit_setup(void)
     debug_console_init();
     emmc_enable();
     delay_init();
+    //TODO temporary
     PrintSystemClocks();
-    printf("Before EMMC init\n");
-#if 1
-    msleep(1000);
     if( emmc_init() ) {
-        printf("Unable to init EMMC card\n");
-    } else {
-        printf("EMMC init card success\n");
+        printf("Fatal: Unable to init EMMC card\n");
     }
-#endif
 }
