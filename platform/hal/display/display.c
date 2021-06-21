@@ -18,6 +18,7 @@
 
 static unsigned char eink_bmp_buf[2 + (BOARD_EINK_DISPLAY_RES_X*BOARD_EINK_DISPLAY_RES_Y/8)];
 static char eink_text_buf[EINK_MAX_LINES][EINK_LINE_LEN + 1];
+static int  eink_num_lines;     // Number of lines currently in buffer
 
 /**
  * @brief  Draws a character on LCD.
@@ -160,14 +161,15 @@ void eink_display_string_at(uint16_t xpos, uint16_t ypos, const char *text, eink
 
 }
 
-void eink_refresh_text( uint16_t x, uint16_t y, uint16_t w, uint16_t h ) {
+void eink_refresh_text(uint16_t x, uint16_t y, uint16_t w, uint16_t h) 
+{
 
     eink_bmp_buf[0] = EinkDataStartTransmission1;
     eink_bmp_buf[1] = 0;
     EinkDisplayImage (x, y, w, h, eink_bmp_buf);
 }
 
-void eink_log(const char *text, bool check_interactive) 
+void eink_log(const char *text, bool interactive) 
 {
     int i = 0;
     if ((text == NULL) || (text[0] == 0))
@@ -188,28 +190,26 @@ void eink_log(const char *text, bool check_interactive)
     const eink_font_t *fnt = eink_get_font();
     i = 1;
     while ((eink_text_buf[i-1][0] != 0) && (i < EINK_MAX_LINES)) {
-        if (check_interactive)
+        if (interactive)
             eink_display_string_at(fnt->width, BOARD_EINK_DISPLAY_RES_Y - (i * fnt->height), eink_text_buf[i - 1], EINK_LEFT_MODE);
         i++;
     }
-    if (check_interactive)
+    if (interactive)
         eink_refresh_text( 0, 0, BOARD_EINK_DISPLAY_RES_Y, BOARD_EINK_DISPLAY_RES_X );
 }
 
-void eink_clear_log( void ) 
+void eink_clear_log(void) 
 {
     memset(eink_text_buf, 0x00, sizeof(eink_text_buf));
 }
 
-void eink_init( void ) 
+void eink_init(void) 
 {
     int i;
-
     //fill white screen table
     eink_bmp_buf[0] = EinkDataStartTransmission1;
     eink_bmp_buf[1] = 0x00;
     for (i = 0; i < (480*600/8); i++)
         eink_bmp_buf[2 + i] = 0xFF;
-
     EinkInitialize(Eink1Bpp);
 }

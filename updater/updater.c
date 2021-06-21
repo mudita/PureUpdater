@@ -18,7 +18,7 @@ int main()
 
     // Try to initialize EINK
     eink_init();
-     eink_clear_log();
+    eink_clear_log();
     eink_log( "Dzien dobry to moj log", true); 
     eink_log( "A to kolejna linia", true); 
     
