@@ -7,32 +7,26 @@
  * @details More detailed information related to this code.
  */
 
-#ifndef SOURCE_DISPLAY_H_
-#define SOURCE_DISPLAY_H_
+#pragma once
 
-#include <stdio.h>
+#include <stdint.h>
 
 /**
   * @brief  LCD drawing Line alignment mode definitions
   */
-typedef enum
+typedef enum eink_align_mode
 {
-  CENTER_MODE             = 0x01,    /*!< Center mode */
-  RIGHT_MODE              = 0x02,    /*!< Right mode  */
-  LEFT_MODE               = 0x03     /*!< Left mode   */
+  EINK_CENTER_MODE             = 0x01,    /*!< Center mode */
+  EINK_RIGHT_MODE              = 0x02,    /*!< Right mode  */
+  EINK_LEFT_MODE               = 0x03     /*!< Left mode   */
 
-} Text_AlignModeTypdef;
-#define BSP_EINK_YES    1
-#define BSP_EINK_NO     0
+} eink_align_mode_t;
 
-void BSP_EINK_DisplayChar(uint16_t Xpos, uint16_t Ypos, uint8_t Ascii);
-void BSP_EINK_DisplayStringAt(uint16_t Xpos, uint16_t Ypos, char *Text, Text_AlignModeTypdef Mode);
-void BSP_EINK_Refresh_Text( uint16_t X, uint16_t Y, uint16_t W, uint16_t H );
-void BSP_EINK_Log(char *Text, uint8_t checkInteractive);
-void BSP_EINK_Clear_Log( void );
-void BSP_EINK_Display_Init( void ) ;
-void BSP_EINK_InteractiveMode(uint8_t enable);
-uint8_t BSP_EINK_Ask_User(char *text);
-uint8_t BSP_EINK_User_Menu(char *text);
 
-#endif /* SOURCE_DISPLAY_H_ */
+
+void eink_display_char(uint16_t xpos, uint16_t ypos, uint8_t ascii);
+void eink_display_string_at(uint16_t xpos, uint16_t ypos, char *text, eink_align_mode_t mode);
+void eink_refresh_text( uint16_t x, uint16_t y, uint16_t w, uint16_t h );
+void eink_log(char *text, uint8_t check_interactive);
+void eink_clear_log( void );
+void eink_init( void ) ;

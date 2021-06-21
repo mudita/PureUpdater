@@ -16,10 +16,8 @@
 #define EINK_LINE_LEN   (BOARD_EINK_DISPLAY_RES_X / 17 - 2)
 #define EINK_MAX_LINES  (BOARD_EINK_DISPLAY_RES_Y / 24)
 
-static unsigned char EINK_BUFFER_1BPP[2 + (BOARD_EINK_DISPLAY_RES_X*BOARD_EINK_DISPLAY_RES_Y/8)];
-static char EINK_Text_Buffer[EINK_MAX_LINES][EINK_LINE_LEN + 1];
-
-static void DrawChar(uint16_t Xpos, uint16_t Ypos, const uint8_t *c);
+static unsigned char eink_bmp_buf[2 + (BOARD_EINK_DISPLAY_RES_X*BOARD_EINK_DISPLAY_RES_Y/8)];
+static char eink_text_buf[EINK_MAX_LINES][EINK_LINE_LEN + 1];
 
 /**
  * @brief  Draws a character on LCD.
@@ -27,16 +25,16 @@ static void DrawChar(uint16_t Xpos, uint16_t Ypos, const uint8_t *c);
  * @param  Ypos: Start column address
  * @param  c: Pointer to the character data
  */
-static void DrawChar(uint16_t Xpos, uint16_t Ypos, const uint8_t *c)
+static void draw_char(uint16_t xpos, uint16_t ypos, const uint8_t *c)
 {
     uint32_t i = 0, j = 0;
     uint16_t height, width;
     uint8_t  offset;
     uint8_t  *pchar;
     uint32_t line;
-
-    height = Font24.Height;
-    width  = Font24.Width;
+    const eink_font_t* fnt = eink_get_font();
+    height = fnt->height;
+    width  = fnt->width;
 
     offset =  8 *((width + 7)/8) -  width ;
 
@@ -63,20 +61,20 @@ static void DrawChar(uint16_t Xpos, uint16_t Ypos, const uint8_t *c)
 
         for (j = 0; j < width; j++)
         {
-            int _byte = ((BOARD_EINK_DISPLAY_RES_X - Xpos - j) * BOARD_EINK_DISPLAY_RES_Y + (BOARD_EINK_DISPLAY_RES_Y - Ypos)) / 8;
-            int _bit = 7 - (((BOARD_EINK_DISPLAY_RES_X - Xpos - j) * BOARD_EINK_DISPLAY_RES_Y + (BOARD_EINK_DISPLAY_RES_Y - Ypos)) % 8);
+            int _byte = ((BOARD_EINK_DISPLAY_RES_X - xpos - j) * BOARD_EINK_DISPLAY_RES_Y + (BOARD_EINK_DISPLAY_RES_Y - ypos)) / 8;
+            int _bit = 7 - (((BOARD_EINK_DISPLAY_RES_X - xpos - j) * BOARD_EINK_DISPLAY_RES_Y + (BOARD_EINK_DISPLAY_RES_Y - ypos)) % 8);
             if(line & (1 << (width- j + offset- 1)))
             {
                 //BSP_LCD_DrawPixel((Xpos + j), Ypos, DrawProp[ActiveLayer].TextColor);
-                EINK_BUFFER_1BPP[2 + _byte] &= ~(1<<_bit);
+                eink_bmp_buf[2 + _byte] &= ~(1<<_bit);
             }
             else
             {
                 //BSP_LCD_DrawPixel((Xpos + j), Ypos, DrawProp[ActiveLayer].BackColor);
-                EINK_BUFFER_1BPP[2 + _byte] |= (1<<_bit);
+                eink_bmp_buf[2 + _byte] |= (1<<_bit);
             }
         }
-        Ypos++;
+        ypos++;
     }
 }
 
@@ -87,9 +85,10 @@ static void DrawChar(uint16_t Xpos, uint16_t Ypos, const uint8_t *c)
  * @param  Ascii: Character ascii code
  *           This parameter must be a number between Min_Data = 0x20 and Max_Data = 0x7E
  */
-void BSP_EINK_DisplayChar(uint16_t Xpos, uint16_t Ypos, uint8_t Ascii)
+void eink_display_char(uint16_t Xpos, uint16_t Ypos, uint8_t Ascii)
 {
-    DrawChar(Xpos, Ypos, &Font24.table[(Ascii-' ') * Font24.Height * ((Font24.Width + 7) / 8)]);
+    const eink_font_t *fnt = eink_get_font();
+    draw_char(Xpos, Ypos, &fnt->table[(Ascii-' ') * fnt->height * ((fnt->width + 7) / 8)]);
 }
 
 /**
@@ -103,38 +102,39 @@ void BSP_EINK_DisplayChar(uint16_t Xpos, uint16_t Ypos, uint8_t Ascii)
  *            @arg  RIGHT_MODE
  *            @arg  LEFT_MODE
  */
-void BSP_EINK_DisplayStringAt(uint16_t Xpos, uint16_t Ypos, char *Text, Text_AlignModeTypdef Mode)
+void eink_display_string_at(uint16_t xpos, uint16_t ypos, char *text, eink_align_mode_t mode)
 {
     uint16_t refcolumn = 1, i = 0;
     uint32_t size = 0, xsize = 0;
-    char  *ptr = Text;
+    char  *ptr = text;
 
     /* Get the text size */
     while (*ptr++) size ++ ;
 
+    const eink_font_t* fnt = eink_get_font();
     /* Characters number per line */
-    xsize = (BOARD_EINK_DISPLAY_RES_X/Font24.Width);
+    xsize = (BOARD_EINK_DISPLAY_RES_X/fnt->width);
 
-    switch (Mode)
+    switch (mode)
     {
-        case CENTER_MODE:
+        case EINK_CENTER_MODE:
         {
-            refcolumn = Xpos + ((xsize - size)* Font24.Width) / 2;
+            refcolumn = xpos + ((xsize - size)* fnt->width) / 2;
             break;
         }
-        case LEFT_MODE:
+        case EINK_LEFT_MODE:
         {
-            refcolumn = Xpos;
+            refcolumn = xpos;
             break;
         }
-        case RIGHT_MODE:
+        case EINK_RIGHT_MODE:
         {
-            refcolumn = - Xpos + ((xsize - size)*Font24.Width);
+            refcolumn = - xpos + ((xsize - size)*fnt->width);
             break;
         }
         default:
         {
-            refcolumn = Xpos;
+            refcolumn = xpos;
             break;
         }
     }
@@ -146,28 +146,28 @@ void BSP_EINK_DisplayStringAt(uint16_t Xpos, uint16_t Ypos, char *Text, Text_Ali
     }
 
     /* Send the string character by character on LCD */
-    while ((*Text != 0) & (((BOARD_EINK_DISPLAY_RES_X - (i*Font24.Width)) & 0xFFFF) >= Font24.Width))
+    while ((*text != 0) & (((BOARD_EINK_DISPLAY_RES_X - (i*fnt->width)) & 0xFFFF) >= fnt->width))
     {
         /* Display one character on LCD */
-        BSP_EINK_DisplayChar(refcolumn, Ypos, (uint8_t)*Text);
+        eink_display_char(refcolumn, ypos, (uint8_t)*text);
         /* Decrement the column position by 16 */
-        refcolumn += Font24.Width;
+        refcolumn += fnt->width;
 
         /* Point on the next character */
-        Text++;
+        text++;
         i++;
     }
 
 }
 
-void BSP_EINK_Refresh_Text( uint16_t X, uint16_t Y, uint16_t W, uint16_t H ) {
+void eink_refresh_text( uint16_t X, uint16_t Y, uint16_t W, uint16_t H ) {
 
-    EINK_BUFFER_1BPP[0] = EinkDataStartTransmission1;
-    EINK_BUFFER_1BPP[1] = 0;
-    EinkDisplayImage (X, Y, W, H, EINK_BUFFER_1BPP);
+    eink_bmp_buf[0] = EinkDataStartTransmission1;
+    eink_bmp_buf[1] = 0;
+    EinkDisplayImage (X, Y, W, H, eink_bmp_buf);
 }
 
-void BSP_EINK_Log(char *Text, uint8_t checkInteractive) {
+void eink_log(char *Text, uint8_t checkInteractive) {
     int i = 0;
     const int interactiveMode = 1;
     if ((Text == NULL) || (Text[0] == 0))
@@ -178,40 +178,42 @@ void BSP_EINK_Log(char *Text, uint8_t checkInteractive) {
 
     /* Scroll text up */
     for (i = (EINK_MAX_LINES - 1); i > 0; --i) {
-        if (EINK_Text_Buffer[i-1][0] == 0)
+        if (eink_text_buf[i-1][0] == 0)
             continue;
-        memset(EINK_Text_Buffer[i], ' ', EINK_LINE_LEN - 1);
-        memcpy(EINK_Text_Buffer[i], EINK_Text_Buffer[i-1], strlen(EINK_Text_Buffer[i-1]));
-        EINK_Text_Buffer[i][EINK_LINE_LEN] = 0;
+        memset(eink_text_buf[i], ' ', EINK_LINE_LEN - 1);
+        memcpy(eink_text_buf[i], eink_text_buf[i-1], strlen(eink_text_buf[i-1]));
+        eink_text_buf[i][EINK_LINE_LEN] = 0;
     }
 
-    memset(EINK_Text_Buffer[0], ' ', EINK_LINE_LEN);
-    memcpy(EINK_Text_Buffer[0], Text, strlen(Text));
-    EINK_Text_Buffer[0][EINK_LINE_LEN] = 0;
-
+    memset(eink_text_buf[0], ' ', EINK_LINE_LEN);
+    memcpy(eink_text_buf[0], Text, strlen(Text));
+    eink_text_buf[0][EINK_LINE_LEN] = 0;
+    const eink_font_t *fnt = eink_get_font();
     i = 1;
-    while ((EINK_Text_Buffer[i-1][0] != 0) && (i < EINK_MAX_LINES)) {
+    while ((eink_text_buf[i-1][0] != 0) && (i < EINK_MAX_LINES)) {
         if ((checkInteractive) && (interactiveMode == 1))
-            BSP_EINK_DisplayStringAt(Font24.Width, BOARD_EINK_DISPLAY_RES_Y - (i * Font24.Height), EINK_Text_Buffer[i - 1], LEFT_MODE);
+            eink_display_string_at(fnt->width, BOARD_EINK_DISPLAY_RES_Y - (i * fnt->height), eink_text_buf[i - 1], EINK_LEFT_MODE);
         i++;
     }
     if ((checkInteractive) && (interactiveMode == 1))
-        BSP_EINK_Refresh_Text( 0, 0, BOARD_EINK_DISPLAY_RES_Y, BOARD_EINK_DISPLAY_RES_X );
+        eink_refresh_text( 0, 0, BOARD_EINK_DISPLAY_RES_Y, BOARD_EINK_DISPLAY_RES_X );
 
 }
 
-void BSP_EINK_Clear_Log( void ) {
-    memset(EINK_Text_Buffer, 0x00, sizeof(EINK_Text_Buffer));
+void eink_clear_log( void ) 
+{
+    memset(eink_text_buf, 0x00, sizeof(eink_text_buf));
 }
 
-void BSP_EINK_Display_Init( void ) {
+void eink_init( void ) 
+{
     int i;
 
     //fill white screen table
-    EINK_BUFFER_1BPP[0] = EinkDataStartTransmission1;
-    EINK_BUFFER_1BPP[1] = 0x00;
+    eink_bmp_buf[0] = EinkDataStartTransmission1;
+    eink_bmp_buf[1] = 0x00;
     for (i = 0; i < (480*600/8); i++)
-        EINK_BUFFER_1BPP[2 + i] = 0xFF;
+        eink_bmp_buf[2 + i] = 0xFF;
 
     EinkInitialize(Eink1Bpp);
 }

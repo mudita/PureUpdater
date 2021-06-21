@@ -17,11 +17,11 @@ int main()
     printf("Read status %li\n",MMC_ReadBlocks(emmc_card(),buffer,0,1));
 
     // Try to initialize EINK
-    BSP_EINK_Display_Init();
+    eink_init();
     printf("Tick #1\n");
-     BSP_EINK_Clear_Log();
+     eink_clear_log();
     printf("Tick #2\n");
-    BSP_EINK_Log(
+    eink_log(
      "Dzien dobry to moj log nr 2",
       true
     ); 

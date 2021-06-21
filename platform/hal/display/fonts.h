@@ -35,100 +35,28 @@
   ******************************************************************************
   */
 
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __FONTS_H
-#define __FONTS_H
+#pragma once
 
 #ifdef __cplusplus
  extern "C" {
 #endif
 
-/* Includes ------------------------------------------------------------------*/
 #include <stdint.h>
 
-/** @addtogroup Utilities
-  * @{
-  */
-  
-/** @addtogroup STM32_EVAL
-  * @{
-  */ 
 
-/** @addtogroup Common
-  * @{
-  */
-
-/** @addtogroup FONTS
-  * @{
-  */ 
-
-/** @defgroup FONTS_Exported_Types
-  * @{
-  */ 
-typedef struct _tFont
+typedef struct eink_font
 {    
   const uint8_t *table;
-  const uint16_t Width;
-  const uint16_t Height;
+  const uint16_t width;
+  const uint16_t height;
   
-} sFONT;
+} eink_font_t;
 
-extern const sFONT Font24;
-extern sFONT Font20;
-extern sFONT Font16;
-extern const sFONT Font12;
-extern sFONT Font8;
-/**
-  * @}
-  */ 
 
-/** @defgroup FONTS_Exported_Constants
-  * @{
-  */ 
-#define LINE(x) ((x) * (((sFONT *)BSP_LCD_GetFont())->Height))
-
-/**
-  * @}
-  */ 
-
-/** @defgroup FONTS_Exported_Macros
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-/** @defgroup FONTS_Exported_Functions
-  * @{
-  */ 
-/**
-  * @}
-  */
+const eink_font_t* eink_get_font(void);
 
 #ifdef __cplusplus
 }
 #endif
   
-#endif /* __FONTS_H */
  
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */ 
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */      
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
