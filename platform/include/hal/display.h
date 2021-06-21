@@ -10,6 +10,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdbool.h>
 
 /**
   * @brief  LCD drawing Line alignment mode definitions
@@ -25,8 +26,8 @@ typedef enum eink_align_mode
 
 
 void eink_display_char(uint16_t xpos, uint16_t ypos, uint8_t ascii);
-void eink_display_string_at(uint16_t xpos, uint16_t ypos, char *text, eink_align_mode_t mode);
+void eink_display_string_at(uint16_t xpos, uint16_t ypos, const char *text, eink_align_mode_t mode);
 void eink_refresh_text( uint16_t x, uint16_t y, uint16_t w, uint16_t h );
-void eink_log(char *text, uint8_t check_interactive);
+void eink_log(const char *text, bool check_interactive);
 void eink_clear_log( void );
 void eink_init( void ) ;

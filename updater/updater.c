@@ -18,14 +18,9 @@ int main()
 
     // Try to initialize EINK
     eink_init();
-    printf("Tick #1\n");
      eink_clear_log();
-    printf("Tick #2\n");
-    eink_log(
-     "Dzien dobry to moj log nr 2",
-      true
-    ); 
-    printf("Tick #3\n");
+    eink_log( "Dzien dobry to moj log", true); 
+    eink_log( "A to kolejna linia", true); 
     
     for(;;) {
         printf("test lepszego sprzetu %lu\n", get_jiffiess());

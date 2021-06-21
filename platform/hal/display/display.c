@@ -102,11 +102,11 @@ void eink_display_char(uint16_t Xpos, uint16_t Ypos, uint8_t Ascii)
  *            @arg  RIGHT_MODE
  *            @arg  LEFT_MODE
  */
-void eink_display_string_at(uint16_t xpos, uint16_t ypos, char *text, eink_align_mode_t mode)
+void eink_display_string_at(uint16_t xpos, uint16_t ypos, const char *text, eink_align_mode_t mode)
 {
     uint16_t refcolumn = 1, i = 0;
     uint32_t size = 0, xsize = 0;
-    char  *ptr = text;
+    const char  *ptr = text;
 
     /* Get the text size */
     while (*ptr++) size ++ ;
@@ -160,44 +160,40 @@ void eink_display_string_at(uint16_t xpos, uint16_t ypos, char *text, eink_align
 
 }
 
-void eink_refresh_text( uint16_t X, uint16_t Y, uint16_t W, uint16_t H ) {
+void eink_refresh_text( uint16_t x, uint16_t y, uint16_t w, uint16_t h ) {
 
     eink_bmp_buf[0] = EinkDataStartTransmission1;
     eink_bmp_buf[1] = 0;
-    EinkDisplayImage (X, Y, W, H, eink_bmp_buf);
+    EinkDisplayImage (x, y, w, h, eink_bmp_buf);
 }
 
-void eink_log(char *Text, uint8_t checkInteractive) {
+void eink_log(const char *text, bool check_interactive) 
+{
     int i = 0;
-    const int interactiveMode = 1;
-    if ((Text == NULL) || (Text[0] == 0))
+    if ((text == NULL) || (text[0] == 0))
         return;
-
-    if (strlen(Text) > EINK_LINE_LEN)
-        Text[EINK_LINE_LEN - 1] = 0;
 
     /* Scroll text up */
     for (i = (EINK_MAX_LINES - 1); i > 0; --i) {
         if (eink_text_buf[i-1][0] == 0)
             continue;
         memset(eink_text_buf[i], ' ', EINK_LINE_LEN - 1);
-        memcpy(eink_text_buf[i], eink_text_buf[i-1], strlen(eink_text_buf[i-1]));
+        strncpy( eink_text_buf[i], eink_text_buf[i-1], EINK_LINE_LEN);
         eink_text_buf[i][EINK_LINE_LEN] = 0;
     }
 
     memset(eink_text_buf[0], ' ', EINK_LINE_LEN);
-    memcpy(eink_text_buf[0], Text, strlen(Text));
-    eink_text_buf[0][EINK_LINE_LEN] = 0;
+    strncpy(eink_text_buf[0], text, EINK_LINE_LEN);
+    eink_text_buf[0][EINK_LINE_LEN] = '\0';
     const eink_font_t *fnt = eink_get_font();
     i = 1;
     while ((eink_text_buf[i-1][0] != 0) && (i < EINK_MAX_LINES)) {
-        if ((checkInteractive) && (interactiveMode == 1))
+        if (check_interactive)
             eink_display_string_at(fnt->width, BOARD_EINK_DISPLAY_RES_Y - (i * fnt->height), eink_text_buf[i - 1], EINK_LEFT_MODE);
         i++;
     }
-    if ((checkInteractive) && (interactiveMode == 1))
+    if (check_interactive)
         eink_refresh_text( 0, 0, BOARD_EINK_DISPLAY_RES_Y, BOARD_EINK_DISPLAY_RES_X );
-
 }
 
 void eink_clear_log( void ) 
