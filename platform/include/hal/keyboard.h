@@ -10,6 +10,7 @@ typedef enum kbd_lock_status
 //! Key indentifiers
 typedef enum kbd_key
 {
+    key_kbd_none    = 0,    //! No any events in the kbd queue
 	kbd_key_numeric1 = 31,
     kbd_key_numeric2 = 32,
     kbd_key_numeric3 = 33,
