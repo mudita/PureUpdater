@@ -260,7 +260,7 @@ int blk_priv_scan_partitions(int disk, struct blk_partition** part)
     }
     *part = reallocarray( *part, outparts.nparts, sizeof(blk_partition_t) );
     // Extra info about part size
-    for(size_t p=1; p<32U; ++p) {
+    for(size_t p=1; p<outparts.nparts; ++p) {
         const int erase_siz = read_mbr_lfs_erase_size(mbr_sect,p,diskinfo.sector_size);
         (*part)[p].erase_blk = (erase_siz>0)?(1U << erase_siz):(0);
     }
