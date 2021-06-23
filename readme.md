@@ -65,6 +65,11 @@ HAL provides following functionality:
 
 ## How to build
 
+__WARNING__ Updater binary or test binary can be run via ***Ecoboot*** bootloader like standard OS binary.
+You need to change ***.boot.json*** for run the updater or updater tests.
+
+### updater app
+
 Application can be build for the RT1051 using standard CMAKE file
 ```shell
     mkdir build
@@ -72,14 +77,26 @@ Application can be build for the RT1051 using standard CMAKE file
     cmake -DCMAKE_BUILD_TYPE=Debug ..
     ninja 
 ```
-After build _PureUpdater.bin_ should be generated. 
 
-Updater also has unit test framework which is able to run directly on the RT1051 platform. Tests can be build by invoke target: 
+Then updater catalog will have _PureUpdater_RT.bin_ to be run on rt1051 ready
+
+### tests app - RT1051
+
+Updater also has unit test framework which is able to run directly on the RT1051 platform.
+Tests can be build by invoke target: 
 ```shell 
     cmake tests
 ```
-Test should generate _PureUpdater-test.bin_ binary.
 
+```shell
+    mkdir build
+    cd build
+    cmake -DCMAKE_BUILD_TYPE=Debug ..
+    ninja tests
+```
 
-Updater binary or test binary can be run via ***Ecoboot*** bootloader like standard OS binary.
-You need to change ***.boot.json*** for run the updater or updater tests.
+Then tests catalog will have _PureUpdater-test.bin_ tests to be run on rt1051 ready
+
+### unit tests on PC
+
+Tests which can be written and tested on PC easilly. See: [unittest/README.md](./unittest/README.md)

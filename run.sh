@@ -1,2 +1,10 @@
-build_dir='build'
-arm-none-eabi-gdb "$build_dir/PureUpdater.elf" -x .gdbinit-1051
+#!/usr/bin/env bash
+
+if [[ $1 ]]; then
+    build_dir="$1"
+else
+    build_dir=build/PureUpdater.elf
+fi
+
+echo "arm-none-eabi-gdb "$build_dir" -x .gdbinit-1051"
+arm-none-eabi-gdb "$build_dir" -x .gdbinit-1051
