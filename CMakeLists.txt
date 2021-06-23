@@ -26,6 +26,7 @@ target_compile_options( ${CMAKE_PROJECT_NAME} PRIVATE -Wall -Wextra)
 
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS  
     "updater/*.c*"
+    "updater/**/*.c*"
 )
 
 
