@@ -24,7 +24,18 @@ int main()
     printf("BOOT1 Sector count %lu sector size %lu error %i\n",info.sector_count, info.sector_size, error);
     error = blk_info( blk_disk_handle(blkdev_emmc_user,0), &info );
     printf("USER Sector count %lu sector size %lu error %i\n",info.sector_count, info.sector_size, error);
-
+    // Test for get disc data
+    blk_partition_t* parts;
+    error = blk_get_partitions( blk_disk_handle(blkdev_emmc_user,0), &parts);
+    if(error < 0) {
+        printf("User get partitions error %i\n", error);
+    }  else {
+        printf("Number of partitions %i\n", error);
+        for(int i=0; i<error; ++i ) {
+            printf("Partition %i\n", i);
+            printf("\tStart sector %lu type %u num_sectors %lu\n", parts[i].start_sector, parts[i].type, parts[i].num_sectors);
+        }
+    }
     
     for(;;) {
         kbd_event_t kevt;

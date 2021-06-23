@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 
 //! MBR partition constants
@@ -31,10 +32,10 @@ struct partitions {
 };
 
 // ! For cleanup dynamic resources
-static void cleanup_dynamic_alloc(void *mem)
-{
-    free(mem);
+static void free_clean_up(uint8_t** ptr) {
+  free(*ptr);
 }
+
 
 // TO word
 static inline uint32_t to_word(const uint8_t vec[], size_t offs)
@@ -86,12 +87,16 @@ static int parse_extended(int disk, lba_t lba, blk_size_t count, struct partitio
     unsigned long this_size = count * diskinfo.sector_size;
 
     uint32_t sector_in_buf = UINT32_MAX;
-    uint8_t* sect_buf __attribute__((__cleanup__(cleanup_dynamic_alloc))) = malloc(diskinfo.sector_size);
+    uint8_t* sect_buf __attribute__((__cleanup__(free_clean_up))) = malloc(diskinfo.sector_size);
+    if(!sect_buf) {
+        printf("Unable to allocate memory in parse extended\n");
+        return -ENOMEM;
+    }
 
     size_t try_count = EXT_MAX_NUM_PARTS;
     while (try_count--) {
         if (sector_in_buf != current_sector) {
-            //LOG_INFO("extended parse: Read sector %u\n", unsigned(current_sector));
+            printf("extended parse: Read sector %u\n", (unsigned)current_sector);
             error = blk_read(disk,current_sector,1, sect_buf);
             if (error < 0) break;
             sector_in_buf = current_sector;
@@ -100,7 +105,7 @@ static int parse_extended(int disk, lba_t lba, blk_size_t count, struct partitio
             const uint8_t b1 = sect_buf[mbr_signature_offs];
             const uint8_t b2 = sect_buf[mbr_signature_offs + 1];
             if (b1 != 0x55 || b2 != 0xAA) {
-                //LOG_ERROR("extended_parse: No signature %02x,%02x", b1, b2);
+                printf("extended_parse: No signature %02x,%02x\n", b1, b2);
                 break;
             }
         }
@@ -127,13 +132,11 @@ static int parse_extended(int disk, lba_t lba, blk_size_t count, struct partitio
                 (pnext < lba * diskinfo.sector_size) ||        // going backward
                 (pnext > (lba + count) * diskinfo.sector_size) // outsized
             ) {
-                /*
-                LOG_WARN("Part %d looks strange: current_sector %u offset %u next %u\n",
-                            int(partition_num),
-                            unsigned(current_sector),
-                            unsigned(poffset),
-                            unsigned(pnext));
-                */
+                printf("parse_part_sanity: Part %d looks strange: current_sector %u offset %u next %u\n",
+                            (int)partition_num,
+                            (unsigned)current_sector,
+                            (unsigned)poffset,
+                            (unsigned)pnext);
                 continue;
             }
             parts[partition_num].logical_num = partition_num + 1;
@@ -144,7 +147,7 @@ static int parse_extended(int disk, lba_t lba, blk_size_t count, struct partitio
         }
 
         if (extended_part_num < 0) {
-            //LOG_DEBUG("No more extended partitions");
+            printf("parse_extended_parts: No more extended partitions\n");
             break; /* nothing left to do */
         }
         /* Examine the next extended partition */
@@ -163,13 +166,11 @@ static bool check_partition(const blk_dev_info_t* disk_info, const blk_partition
     if ((poffset + psize > this_size) ||                    // oversized
         (pnext < (uint64_t)part->start_sector * disk_info->sector_size) // going backward
     ) {
-        /*
-        LOG_WARN("Part %d looks strange: start_sector %u offset %u next %u\n",
-                    unsigned(part.mbr_number),
-                    unsigned(part.start_sector),
-                    unsigned(poffset),
-                    unsigned(pnext));
-        */
+        printf("check_partitions: Part %d looks strange: start_sector %u offset %u next %u\n",
+                    (unsigned)part->mbr_num,
+                    (unsigned)part->start_sector,
+                    (unsigned)poffset,
+                    (unsigned)pnext);
         return false;
     }
     return true;
@@ -181,22 +182,38 @@ int blk_priv_scan_partitions(int disk, struct blk_partition** part)
     int ret;
     blk_dev_info_t diskinfo;
     ret = blk_info(disk, &diskinfo);
-    if(ret<0) return ret;
-    uint8_t* mbr_sect __attribute__((__cleanup__(cleanup_dynamic_alloc))) = malloc(diskinfo.sector_size);
-    if(!mbr_sect) return -ENOMEM;
+    if(ret<0) {
+        printf("scan_part: Unable to read disk info error %i\n", ret);
+        return ret;
+    }
+    uint8_t* mbr_sect __attribute__((__cleanup__(free_clean_up))) = malloc(diskinfo.sector_size);
+    if(!mbr_sect) {
+        printf("scan_part: Unable to allocate memory\n");
+        return -ENOMEM;
+    }
 
     ret = blk_read(disk,0,1,mbr_sect);
-    if (ret < 0) 
+    if (ret < 0) {
+        printf("scan_part: Unable to read disk block error %i\n", ret);
         return ret;
+    }
     if (diskinfo.sector_size < min_sector_size)
+    {
+        printf("scan_partitions: Sector size %lu < min_sector size %u\n", 
+            diskinfo.sector_size, min_sector_size);
         return -ENXIO;
+    }
     // Check initial signature
     if ((mbr_sect[mbr_signature_offs] != 0x55) && (mbr_sect[mbr_signature_offs + 1] != 0xAA))
+    {
+        printf("scan_partitions: Invalid partition signature\n");
         return -ENXIO;
+    }
     /* Copy the 4 partition records into partitions */
     blk_partition_t root_part[num_parts];
     read_partitions(mbr_sect, root_part, num_parts);
     // Add not extended partitions
+    *part = reallocarray( *part, MAX_NUM_PARTS, sizeof(blk_partition_t) );
     struct partitions outparts = { *part, 1};
     for(size_t i=0; i<num_parts; ++i)
     {
@@ -225,5 +242,6 @@ int blk_priv_scan_partitions(int disk, struct blk_partition** part)
                 return ret;
         }
     }
+    *part = reallocarray( *part, outparts.nparts, sizeof(blk_partition_t) );
     return outparts.nparts;
 }

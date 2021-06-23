@@ -5,6 +5,7 @@
 #include <drivers/sdmmc/fsl_mmc.h>
 #include <drivers/sdmmc/fsl_sdmmc_host.h>
 #include <errno.h>
+#include <stdio.h>
 
 
 #define BLKDEV_FIRST_PART 1 //! First logical partition
@@ -80,10 +81,11 @@ int blk_initialize(void)
         disk->parts = calloc(1,sizeof(blk_partition_t));
         disk->hwdrv = disk_hardware_init(i,disk->parts, &disk->sect_size);
         if(!disk->hwdrv) return -EIO;
-        if(0&& i==blkdev_emmc_user) {
+        if(i==blkdev_emmc_user) {
             //! Part scan for user partitions
             int nparts = blk_priv_scan_partitions( blk_disk_handle(i,0), &disk->parts );
             if(nparts<0) return nparts;
+            disk->n_parts = nparts;
         }
     }
     return 0;
@@ -171,7 +173,7 @@ int blk_info( int device, blk_dev_info_t* info )
         return -ENXIO;
     }
     size_t ipart = blk_hwpart(device);
-    if(ctx.disks->n_parts>ipart) {
+    if(ipart>ctx.disks->n_parts) {
         return -ENXIO;
     }
     info->sector_size = ctx.disks[idisk].sect_size;

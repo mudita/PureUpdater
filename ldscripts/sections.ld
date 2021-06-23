@@ -182,7 +182,7 @@ SECTIONS
     } > SRAM_OC
 
     /* Place system stack at the very end of DTCM */
-    _StackSize = 0x1000;
+    _StackSize = 0x10000;
     .stack ORIGIN(SRAM_DTC) + LENGTH(SRAM_DTC) - _StackSize - 0 : ALIGN(4)
     {
         _vStackBase = .;
