@@ -25,6 +25,7 @@ static const size_t min_sector_size    = 512;
 
 static const size_t EXT_MAX_NUM_PARTS = 100;
 static const size_t MAX_NUM_PARTS = EXT_MAX_NUM_PARTS + 4;
+static const size_t MBR_ERASE_BLK_OFFSET = 0x00E0;
 
 struct partitions {
     blk_partition_t *part;
@@ -73,6 +74,21 @@ static bool is_extended(uint8_t type)
 {
     return type == ext_linux_part || type == ext_part || type == ext_win98_part;
 }
+
+// MBR erase size
+static int read_mbr_lfs_erase_size(uint8_t mbr_buf[], int part_no, size_t sect_size)
+{
+    if (part_no <= 0)
+    {
+        return -EINVAL;
+    }
+    if (sect_size <= MBR_ERASE_BLK_OFFSET + part_no)
+    {
+        return -ERANGE;
+    }
+    return mbr_buf[MBR_ERASE_BLK_OFFSET + part_no];
+}
+
 
 //! Parse extended partition
 static int parse_extended(int disk, lba_t lba, blk_size_t count, struct partitions* outparts)
@@ -217,31 +233,36 @@ int blk_priv_scan_partitions(int disk, struct blk_partition** part)
     struct partitions outparts = { *part, 1};
     for(size_t i=0; i<num_parts; ++i)
     {
-        blk_partition_t* part = &root_part[i];
-        if (is_extended(part->type))
+        blk_partition_t* partx = &root_part[i];
+        if (is_extended(partx->type))
             continue;
 
-        if (!check_partition(&diskinfo, part))
+        if (!check_partition(&diskinfo, partx))
             continue;
 
-        if (part->num_sectors)
+        if (partx->num_sectors)
         {
-            part->logical_num = i + 1;
-            part->mbr_num = i + 1;
-            memcpy(&outparts.part[outparts.nparts++], part, sizeof(blk_partition_t));
+            partx->logical_num = i + 1;
+            partx->mbr_num = i + 1;
+            memcpy(&outparts.part[outparts.nparts++], partx, sizeof(blk_partition_t));
             //m_parts.emplace_back(part);
         }
     }
     for (size_t i=0; i<num_parts; ++i)
     {
-        blk_partition_t* part = &root_part[i];
-        if (is_extended(part->type))
+        blk_partition_t* partx = &root_part[i];
+        if (is_extended(partx->type))
         {
-            ret = parse_extended(disk,part->start_sector, part->num_sectors, &outparts);
+            ret = parse_extended(disk,partx->start_sector, partx->num_sectors, &outparts);
             if (ret < 0)
                 return ret;
         }
     }
     *part = reallocarray( *part, outparts.nparts, sizeof(blk_partition_t) );
+    // Extra info about part size
+    for(size_t p=1; p<32U; ++p) {
+        const int erase_siz = read_mbr_lfs_erase_size(mbr_sect,p,diskinfo.sector_size);
+        (*part)[p].erase_blk = (erase_siz>0)?(1U << erase_siz):(0);
+    }
     return outparts.nparts;
 }

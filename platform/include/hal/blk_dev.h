@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stddef.h>
 #include <stdbool.h>
 
 //! Current devices
@@ -29,6 +30,7 @@ typedef struct blk_partition {
     bool bootable;              //! Partition is bootable
     unsigned char boot_unit;    //! 7 bit boot unit field
     unsigned short type;        //! Partition code
+    size_t erase_blk;           //! Extra erase block if present
 } blk_partition_t;
 
 

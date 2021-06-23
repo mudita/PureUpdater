@@ -33,7 +33,7 @@ int main()
         printf("Number of partitions %i\n", error);
         for(int i=0; i<error; ++i ) {
             printf("Partition %i\n", i);
-            printf("\tStart sector %lu type %u num_sectors %lu\n", parts[i].start_sector, parts[i].type, parts[i].num_sectors);
+            printf("\tStart sector %lu type %u num_sectors %lu erase_siz %u\n", parts[i].start_sector, parts[i].type, parts[i].num_sectors, parts[i].erase_blk);
         }
     }
     
