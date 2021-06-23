@@ -61,6 +61,9 @@ target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
     DISABLE_WATCHDOG
 )
 
+target_compile_options(
+    ${CMAKE_PROJECT_NAME} PRIVATE "-Werror"
+)
 
 include(secure-boot)
 
