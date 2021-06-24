@@ -58,6 +58,14 @@ int blk_initialize(void);
  */
 int blk_get_partitions(int device, blk_partition_t** parts);
 
+/** Get single partition on the devic
+ * @param device Major device number
+ * @param parts Pointer to the block partition structures
+ * @return zero on success otherwise error
+ * @note device must be a partition handle not a raw disc
+ */
+int blk_get_partition(int device, blk_partition_t* part);
+
 /** Read block device data 
  * @param device Device identifier
  * @param lba Logical block address

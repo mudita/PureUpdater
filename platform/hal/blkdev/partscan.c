@@ -47,7 +47,7 @@ static inline uint32_t to_word(const uint8_t vec[], size_t offs)
 }
 
 // TO short
-inline uint16_t to_short(const uint8_t vec[], size_t offs)
+static inline uint16_t to_short(const uint8_t vec[], size_t offs)
 {
     const uint8_t* buf = &vec[offs];
     return ((uint16_t)buf[0] << 0U) | ((uint16_t)buf[1] << 8U);

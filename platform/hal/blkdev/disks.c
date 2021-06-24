@@ -89,7 +89,7 @@ int blk_initialize(void)
 
 int blk_get_partitions(int device, blk_partition_t** parts)
 {
-    int idisk = blk_hwdisk(device);
+    const int idisk = blk_hwdisk(device);
     if(idisk>=_blkdev_eot_) {
         return -ENXIO;
     }
@@ -98,6 +98,18 @@ int blk_get_partitions(int device, blk_partition_t** parts)
     }
     return ctx.disks[idisk].n_parts;
 }
+
+int blk_get_partition(int device, blk_partition_t* part)
+{
+    const int ipart = blk_hwpart(device);
+    blk_partition_t *parts;
+    const int nparts = blk_get_partitions(device,&parts);
+    if(ipart>nparts)
+        return -ENOENT;
+    *part = parts[ipart];
+    return 0;
+}
+
 
 int blk_read(int device, lba_t lba, blk_size_t lba_count, void *buf)
 {   
