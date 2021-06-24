@@ -130,7 +130,6 @@ int blk_read(int device, lba_t lba, blk_size_t lba_count, void *buf)
     }
     ret = part_lba_to_disc_lba(idisk,ipart, &lba, lba_count);
     if(ret) return ret;
-
     ret = MMC_ReadBlocks((mmc_card_t*)disk->hwdrv, (uint8_t*)buf, lba, lba_count);
     if( ret != kStatus_Success ) return -EIO;
 

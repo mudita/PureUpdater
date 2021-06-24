@@ -6,6 +6,8 @@
 #include <hal/keyboard.h>
 #include <hal/blk_dev.h>
 #include <ff.h>
+#include <lfs.h>
+#include <prv/tinyvfs/lfs_diskio.h>
 
 static FRESULT scan_files (
     char* path        /* Start node to be scanned (***also used as work area***) */
@@ -85,6 +87,17 @@ int main()
         f_unmount("1:");
         printf("To koniec odmontowuje ...\n");
         free(ffx);
+    }
+    if(1) {
+        struct lfs_config cfg = {};
+        lfs_t lfs = {};
+        int err = vfs_lfs_append_volume(blk_disk_handle(blkdev_emmc_user,3),  &cfg);
+        printf("LFS init status %i\n", err);
+        if( err ) {
+            return EXIT_FAILURE;
+        }
+        err = lfs_mount(&lfs, &cfg);
+        printf("LFS mount status %i\n", err);
     }
    for(;;) {}
     for(;;) {

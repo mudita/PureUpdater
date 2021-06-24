@@ -10,9 +10,10 @@ target_sources(littlefs
         src/bd/lfs_testbd.c
 )
 
+
 #target_compile_definitions(littlefs 
 #    PUBLIC 
-#        LFS_THREADSAFE 
+#        LFS_DEBUG
 #)
 
 target_include_directories(littlefs
