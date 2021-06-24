@@ -46,6 +46,38 @@ static FRESULT scan_files (
     return res;
 }
 
+static int lfs_scan_files ( lfs_t* lfs, char* path)
+{
+    lfs_dir_t lfs_dir;
+    struct lfs_info lfs_info;
+    int res = lfs_dir_open( lfs, &lfs_dir, path);
+    if (res == LFS_ERR_OK)
+    {
+        for (;;)
+        {
+            res = lfs_dir_read(lfs, &lfs_dir, &lfs_info);
+            if (res <= 0)
+                break; /* Break on error or end of dir */
+            if (0 && lfs_info.type == LFS_TYPE_DIR)
+            { /* It is a directory */
+                int i = strlen(path);
+                sprintf(&path[i], "/%s", lfs_info.name);
+                res = lfs_scan_files(lfs, path); /* Enter the directory */
+                if (res <= 0)
+                    break;
+                path[i] = 0;
+            }
+            else
+            { /* It is a file. */
+                printf("%s/%s\n", path, lfs_info.name);
+            }
+        }
+        lfs_dir_close(lfs, &lfs_dir);
+    }
+    printf("Koniec skanowania\n");
+    return res;
+}
+
 int main()
 {   // System initialize
     sysinit_setup();
@@ -97,7 +129,10 @@ int main()
             return EXIT_FAILURE;
         }
         err = lfs_mount(&lfs, &cfg);
+        char scpath[LFS_NAME_MAX+1] = "/";
         printf("LFS mount status %i\n", err);
+        err = lfs_scan_files(&lfs,scpath);
+        printf("Scan finished file error %i\n", err);
     }
    for(;;) {}
     for(;;) {
