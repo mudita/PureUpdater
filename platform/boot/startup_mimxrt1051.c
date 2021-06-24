@@ -41,6 +41,8 @@
 // IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //*****************************************************************************
 
+#include "MIMXRT1051.h"
+
 #if defined(DEBUG)
 #pragma GCC push_options
 #pragma GCC optimize("Og")
@@ -694,7 +696,15 @@ __attribute__((section(".after_vectors.reset"))) void ResetISR(void)
     // Disable interrupts
     __asm volatile("cpsid i");
 
+
+    // Adjust MSP pointer according to the Vector table
+    __set_MSP((uintptr_t)g_pfnVectors[0]);
+    __DSB();
+    __ISB();
+
+    // System Init
     SystemInit();
+
 
     unsigned int LoadAddr, ExeAddr, SectionLen;
     unsigned int *SectionTableAddr;

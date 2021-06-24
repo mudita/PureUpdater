@@ -67,7 +67,7 @@ int blk_disk_handle(uint16_t hwdisk, uint8_t partition)
     return ((int)hwdisk << BLKDEV_DISK_SHIFT) | partition;
 }
 
-
+// Initialize the block device 
 int blk_initialize(void)
 {
     //Currently we are supporting only single emmc disk
@@ -108,7 +108,7 @@ int blk_read(int device, lba_t lba, blk_size_t lba_count, void *buf)
     }
     const struct blk_disk* disk = &ctx.disks[idisk];
     size_t ipart = blk_hwpart(device);
-    if( disk->n_parts>=ipart) {
+    if( ipart > disk->n_parts) {
         return -ENXIO;
     }
 
@@ -138,7 +138,7 @@ int blk_write( int device, lba_t lba, blk_size_t lba_count, const void *buf )
     }
     const struct blk_disk* disk = &ctx.disks[idisk];
     size_t ipart = blk_hwpart(device);
-    if( disk->n_parts>=ipart) {
+    if( ipart > disk->n_parts ) {
         return -ENXIO;
     }
 
@@ -146,6 +146,7 @@ int blk_write( int device, lba_t lba, blk_size_t lba_count, const void *buf )
         ret = MMC_SelectPartition((mmc_card_t*)disk->hwdrv,kMMC_AccessPartitionBoot1);
         if( ret != kStatus_Success ) return -EIO;
     }
+
     ret = part_lba_to_disc_lba(idisk, ipart, &lba, lba_count);
     if(ret) return ret;
 

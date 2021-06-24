@@ -54,6 +54,7 @@ target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
     __MCUXPRESSO
     __USE_CMSIS
     __NEWLIB__
+    __FPU_PRESENT
     SKIP_SYSCLK_INIT
     _HAVE_SQLITE_CONFIG_H
     _GNU_SOURCE

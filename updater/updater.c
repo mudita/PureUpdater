@@ -7,6 +7,42 @@
 #include <hal/blk_dev.h>
 #include <ff.h>
 
+static FRESULT scan_files (
+    char* path        /* Start node to be scanned (***also used as work area***) */
+)
+{
+    FRESULT res;
+    DIR dir;
+    UINT i;
+    static FILINFO fno;
+
+    res = f_opendir(&dir, path); /* Open the directory */
+    if (res == FR_OK)
+    {
+        for (;;)
+        {
+            res = f_readdir(&dir, &fno); /* Read a directory item */
+            if (res != FR_OK || fno.fname[0] == 0)
+                break; /* Break on error or end of dir */
+            if (fno.fattrib & AM_DIR)
+            { /* It is a directory */
+                i = strlen(path);
+                sprintf(&path[i], "/%s", fno.fname);
+                res = scan_files(path); /* Enter the directory */
+                if (res != FR_OK)
+                    break;
+                path[i] = 0;
+            }
+            else
+            { /* It is a file. */
+                printf("%s/%s\n", path, fno.fname);
+            }
+        }
+        f_closedir(&dir);
+    }
+    printf("Koniec skanowania\n");
+    return res;
+}
 
 int main()
 {   // System initialize
@@ -19,6 +55,9 @@ int main()
     // Block device system initalize
     int error = blk_initialize();
     printf("Blk device subsystem init status %i\n",error);
+    if(error) {
+        return EXIT_FAILURE;
+    }
     blk_dev_info_t info = {};
     error = blk_info( blk_disk_handle(blkdev_emmc_boot1,0), &info );
     printf("BOOT1 Sector count %lu sector size %lu error %i\n",info.sector_count, info.sector_size, error);
@@ -36,11 +75,18 @@ int main()
             printf("\tStart sector %lu type %u num_sectors %lu erase_siz %u\n", parts[i].start_sector, parts[i].type, parts[i].num_sectors, parts[i].erase_blk);
         }
     }
-   if(0)
-   { 
-    FATFS ffx;
-    printf("ZZZZZZY MOUNT %i\n", f_mount(&ffx, "1:", 1));
-   }
+    
+    {
+        printf("Before mnt\n");
+        FATFS *ffx = calloc(1, sizeof(FATFS));
+        printf("ZZZZZZY MOUNT %i\n", f_mount(ffx, "1:", 1));
+        int err = scan_files("1:");
+        printf("Scan finished file error %i\n", err);
+        f_unmount("1:");
+        printf("To koniec odmontowuje ...\n");
+        free(ffx);
+    }
+
    for(;;) {}
     for(;;) {
         kbd_event_t kevt;
