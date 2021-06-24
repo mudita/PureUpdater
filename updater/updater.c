@@ -5,12 +5,12 @@
 #include <hal/display.h>
 #include <hal/keyboard.h>
 #include <hal/blk_dev.h>
+#include <ff.h>
 
 
 int main()
 {   // System initialize
     sysinit_setup();
-
     // Try to initialize EINK
     eink_clear_log();
     eink_log( "Dzien dobry to moj log", false); 
@@ -36,7 +36,12 @@ int main()
             printf("\tStart sector %lu type %u num_sectors %lu erase_siz %u\n", parts[i].start_sector, parts[i].type, parts[i].num_sectors, parts[i].erase_blk);
         }
     }
-    
+   if(0)
+   { 
+    FATFS ffx;
+    printf("ZZZZZZY MOUNT %i\n", f_mount(&ffx, "1:", 1));
+   }
+   for(;;) {}
     for(;;) {
         kbd_event_t kevt;
         int err = kbd_read_key( &kevt );

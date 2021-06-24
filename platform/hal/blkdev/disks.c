@@ -15,6 +15,7 @@ struct blk_disk {
     size_t n_parts;                 //! Number of partitions
     void *hwdrv;                    //! Hardware driver pointer
     size_t sect_size;               //! Single sector size
+    size_t erase_group_blks;        //! Erase group blocks
 };
 
 //! Partitions on disc table
@@ -27,15 +28,9 @@ static struct blkdev_context ctx;
 
 
 // Calculate part lba to disc LBA
-static int part_lba_to_disc_lba(int device, lba_t* lba, blk_size_t count)
+static int part_lba_to_disc_lba(int idisk, int ipart, lba_t* lba, blk_size_t count)
 {
-    int hwdisc = blk_hwdisk(device);
-    // Not supported
-    if(hwdisc>0) {
-        return -ENXIO;
-    }
-    int ipart = blk_hwpart(device);
-    const blk_partition_t* part = &ctx.disks[ipart].parts[ipart];
+    const blk_partition_t* part = &ctx.disks[idisk].parts[ipart];
     if( *lba + count > part->num_sectors ) {
         return -ERANGE;
     } else {
@@ -47,7 +42,7 @@ static int part_lba_to_disc_lba(int device, lba_t* lba, blk_size_t count)
 /* Hardware disc initialize 
    first partition is a disc configuation
 */
-static void* disk_hardware_init(int idisk, blk_partition_t* part, size_t* sect_size)
+static void* disk_hardware_init(int idisk, blk_partition_t* part, size_t* sect_size, size_t* erase_grp)
 {
     mmc_card_t* card = emmc_card();
     if(!card) {
@@ -62,6 +57,7 @@ static void* disk_hardware_init(int idisk, blk_partition_t* part, size_t* sect_s
         part->num_sectors = card->bootPartitionBlocks;
     }
     *sect_size = card->blockSize;
+    *erase_grp = card->eraseGroupBlocks;
     return card;
 }
 
@@ -79,7 +75,7 @@ int blk_initialize(void)
         struct blk_disk* disk = &ctx.disks[i];
         disk->n_parts = 0;
         disk->parts = calloc(1,sizeof(blk_partition_t));
-        disk->hwdrv = disk_hardware_init(i,disk->parts, &disk->sect_size);
+        disk->hwdrv = disk_hardware_init(i,disk->parts, &disk->sect_size, &disk->erase_group_blks);
         if(!disk->hwdrv) return -EIO;
         if(i==blkdev_emmc_user) {
             //! Part scan for user partitions
@@ -112,7 +108,7 @@ int blk_read(int device, lba_t lba, blk_size_t lba_count, void *buf)
     }
     const struct blk_disk* disk = &ctx.disks[idisk];
     size_t ipart = blk_hwpart(device);
-    if( disk->n_parts>ipart) {
+    if( disk->n_parts>=ipart) {
         return -ENXIO;
     }
 
@@ -120,7 +116,7 @@ int blk_read(int device, lba_t lba, blk_size_t lba_count, void *buf)
         ret = MMC_SelectPartition((mmc_card_t*)disk->hwdrv,kMMC_AccessPartitionBoot1);
         if( ret != kStatus_Success ) return -EIO;
     }
-    ret = part_lba_to_disc_lba(device, &lba, lba_count);
+    ret = part_lba_to_disc_lba(idisk,ipart, &lba, lba_count);
     if(ret) return ret;
 
     ret = MMC_ReadBlocks((mmc_card_t*)disk->hwdrv, (uint8_t*)buf, lba, lba_count);
@@ -142,7 +138,7 @@ int blk_write( int device, lba_t lba, blk_size_t lba_count, const void *buf )
     }
     const struct blk_disk* disk = &ctx.disks[idisk];
     size_t ipart = blk_hwpart(device);
-    if( disk->n_parts>ipart) {
+    if( disk->n_parts>=ipart) {
         return -ENXIO;
     }
 
@@ -150,7 +146,7 @@ int blk_write( int device, lba_t lba, blk_size_t lba_count, const void *buf )
         ret = MMC_SelectPartition((mmc_card_t*)disk->hwdrv,kMMC_AccessPartitionBoot1);
         if( ret != kStatus_Success ) return -EIO;
     }
-    ret = part_lba_to_disc_lba(device, &lba, lba_count);
+    ret = part_lba_to_disc_lba(idisk, ipart, &lba, lba_count);
     if(ret) return ret;
 
     ret = MMC_WriteBlocks((mmc_card_t*)disk->hwdrv, (const uint8_t*)buf, lba, lba_count);
@@ -177,6 +173,7 @@ int blk_info( int device, blk_dev_info_t* info )
         return -ENXIO;
     }
     info->sector_size = ctx.disks[idisk].sect_size;
+    info->erase_group = ctx.disks[idisk].erase_group_blks;
     info->sector_count = ctx.disks[idisk].parts[ipart].num_sectors;
     return 0;
 }

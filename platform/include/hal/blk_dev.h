@@ -33,6 +33,11 @@ typedef struct blk_partition {
     size_t erase_blk;           //! Extra erase block if present
 } blk_partition_t;
 
+//! MBR partition codes
+enum blk_part_types {
+    blk_part_type_vfat = 0x0b,  //! VFAT partition
+    blk_part_type_lfs  = 0x9e   //! Little fs partition
+};
 
 /** Retrive disk handle based on the disk and partition
  * @param hwdisk hardware disk identifier
@@ -76,6 +81,7 @@ typedef struct blk_dev_info
 {
     blk_size_t sector_size;     //! Sector size
     blk_size_t sector_count;    //! Sector count
+    blk_size_t erase_group;     //! Erase group blocks
 } blk_dev_info_t;
 
 /** Get block device info
