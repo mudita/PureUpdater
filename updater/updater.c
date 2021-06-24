@@ -42,11 +42,10 @@ static FRESULT scan_files (
         }
         f_closedir(&dir);
     }
-    printf("Koniec skanowania\n");
     return res;
 }
 
-static int lfs_scan_files ( lfs_t* lfs, char* path)
+static int lfs_scan_files( lfs_t* lfs, char* path)
 {
     lfs_dir_t lfs_dir;
     struct lfs_info lfs_info;
@@ -58,8 +57,8 @@ static int lfs_scan_files ( lfs_t* lfs, char* path)
             res = lfs_dir_read(lfs, &lfs_dir, &lfs_info);
             if (res <= 0)
                 break; /* Break on error or end of dir */
-            if (0 && lfs_info.type == LFS_TYPE_DIR)
-            { /* It is a directory */
+            if( lfs_info.type == LFS_TYPE_DIR && lfs_info.name[0]!='.' )
+            {
                 int i = strlen(path);
                 sprintf(&path[i], "/%s", lfs_info.name);
                 res = lfs_scan_files(lfs, path); /* Enter the directory */
@@ -74,7 +73,6 @@ static int lfs_scan_files ( lfs_t* lfs, char* path)
         }
         lfs_dir_close(lfs, &lfs_dir);
     }
-    printf("Koniec skanowania\n");
     return res;
 }
 
@@ -109,11 +107,12 @@ int main()
             printf("\tStart sector %lu type %u num_sectors %lu erase_siz %u\n", parts[i].start_sector, parts[i].type, parts[i].num_sectors, parts[i].erase_blk);
         }
     }
-    if(0)
+    if(1)
     {
         printf("Before mnt\n");
         FATFS *ffx = calloc(1, sizeof(FATFS));
-        printf("ZZZZZZY MOUNT %i\n", f_mount(ffx, "1:", 1));
+        char scpath[LFS_NAME_MAX] = "1:";
+        printf("ZZZZZZY MOUNT %i\n", f_mount(ffx,scpath , 1));
         int err = scan_files("1:");
         printf("Scan finished file error %i\n", err);
         f_unmount("1:");
@@ -133,6 +132,8 @@ int main()
         printf("LFS mount status %i\n", err);
         err = lfs_scan_files(&lfs,scpath);
         printf("Scan finished file error %i\n", err);
+        err = lfs_unmount(&lfs);
+        printf("LFS unmount status %i\n", err);
     }
    for(;;) {}
     for(;;) {
