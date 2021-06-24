@@ -1,0 +1,6 @@
+[submodule "thirdparty/fatfs/src"]
+	path = thirdparty/fatfs/src
+	url = ../fatfs
+[submodule "thirdparty/littlefs/src"]
+	path = thirdparty/littlefs/src
+	url = https://github.com/littlefs-project/littlefs.git
