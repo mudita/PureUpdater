@@ -30,6 +30,12 @@ file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS
 
 # Source directories
 target_sources( ${CMAKE_PROJECT_NAME} PRIVATE ${SRC_FILES} )
+
+#Libraries
+target_link_libraries( ${CMAKE_PROJECT_NAME} PRIVATE
+    fatfs
+)
+
 # Include directories
 target_include_directories( ${CMAKE_PROJECT_NAME} PRIVATE
     platform/CMSIS
@@ -95,3 +101,5 @@ if (ENABLE_SECURE_BOOT)
 else()
     create_binary_output( ${CMAKE_PROJECT_NAME} "bin")
 endif()
+
+add_subdirectory( thirdparty )
