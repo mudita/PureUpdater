@@ -1,9 +1,7 @@
-//
-// Created by maciej on 23.06.2021.
-//
+// Copyright (c) 2017-2021, Mudita Sp. z.o.o. All rights reserved.
+// For licensing, see https://github.com/mudita/MuditaOS/LICENSE.md
 
-#ifndef ERROR_H
-#define ERROR_H
+#pragma once
 
 enum e_ecoboot_update_code{
     EcobootSuccess = 0,
@@ -22,5 +20,3 @@ typedef struct update_error_t{
 
 const char *error_str(const enum e_ecoboot_update_code code);
 const char *error_ext_str(const struct update_error_t *handle);
-
-#endif //ERROR_H
