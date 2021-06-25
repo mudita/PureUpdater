@@ -8,6 +8,7 @@
 #include <ff.h>
 #include <lfs.h>
 #include <prv/tinyvfs/lfs_diskio.h>
+#include <hal/tinyvfs.h>
 
 static FRESULT scan_files (
     char* path        /* Start node to be scanned (***also used as work area***) */
