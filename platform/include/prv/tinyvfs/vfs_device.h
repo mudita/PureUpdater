@@ -8,6 +8,7 @@ struct vfs_dir;
 struct vfs_mount;
 struct stat;
 struct statvfs;
+struct dirent;
 
 //! Device filesystem operation structure
 struct vfs_filesystem_ops {
@@ -20,11 +21,11 @@ struct vfs_filesystem_ops {
     int (*truncate)(struct vfs_file *filp, off_t length);
     int (*sync)(struct vfs_file *filp);
     int (*close)(struct vfs_file *filp);
-    int (*fchmod)(struct vfs_file *filp, mode_t mode);
+    //int (*fchmod)(struct vfs_file *filp, mode_t mode);
 
     // Directory operations
     int (*opendir)(struct vfs_dir *dirp, const char *fs_path);
-    int (*readdir)(struct vfs_dir *dirp, struct stat *entry);
+    int (*readdir)(struct vfs_dir *dirp, struct dirent *entry);
     int (*closedir)(struct vfs_dir *dirp);
 
     // Filesystem level operations

@@ -31,6 +31,10 @@ typedef struct vfs_mount_point_desc {
 struct vfs_filesystem_ops;
 struct vfs_mount;
 struct vfs_file;
+struct vfs_dir;
+struct dirent;
+struct stat;
+struct statvfs;
 /** 
  * Initialize the mini virtual file system by the mount points given as an argument
  * @param[in] mnt_desc Mount point table
@@ -69,3 +73,80 @@ int vfs_unmount(struct vfs_mount *mp);
  */
 int vfs_open(struct vfs_file *zfp, const char *file_name, int flags, mode_t mode);
 
+/** VFS close entry
+ * @see man close
+ */
+
+int vfs_close(struct vfs_file *zfp);\
+
+/** VFS read entry
+ * @see man read
+ */
+
+ssize_t vfs_read(struct vfs_file *zfp, void *ptr, size_t size);
+
+
+/** VFS write entry
+ * @see man write
+ */
+ssize_t vfs_write(struct vfs_file *zfp, const void *ptr, size_t size);
+/** VFS seek entry
+ * @see man seek
+ */
+int vfs_seek(struct vfs_file *zfp, off_t offset, int whence);
+/** VFS tell entry
+ * @see man tell 
+ */
+off_t vfs_tell(struct vfs_file *zfp);
+/** VFS truncate entry
+ * @see man truncate 
+ */
+int vfs_truncate(struct vfs_file *zfp, off_t length);
+/** VFS sync entry
+ * @see man sync 
+ */
+int vfs_sync(struct vfs_file *zfp);
+/** VFS opendir entry
+ * @see man opendir 
+ */
+int vfs_opendir(struct vfs_dir *zdp, const char *abs_path);
+/** VFS readdir entry
+ * @see man readdir 
+ */
+int vfs_readdir(struct vfs_dir *zdp, struct dirent *entry);
+/** VFS readdir entry
+ * @see man close dir 
+ */
+int vfs_closedir(struct vfs_dir *zdp);
+
+/** VFS make directory
+ * @see man mkdir
+ */
+int vfs_mkdir(const char *abs_path);
+
+/** VFS unlink
+ * @see man unlink
+ */
+int vfs_unlink(const char *abs_path);
+
+/** VFS rename
+ * @see man rename
+ */
+int vfs_rename(const char *from, const char *to);
+
+/** VFS stat
+ * @see man stat
+ */
+int vfs_stat(const char *abs_path, struct stat *entry);
+
+/** VFS statvfs
+ * @see man stat
+ */
+int vfs_statvfs(const char *abs_path, struct statvfs *stat);
+
+/** Read mount point and its index
+ * @param index Mount point index
+ * @param name Mount point destiantion
+ * @error errno or 0 if success
+ */
+int vfs_readmount(int *index, const char **name);

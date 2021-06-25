@@ -20,8 +20,11 @@ struct vfs_file {
     mode_t mode;      // Structure representing mode flags
 };
 
+struct vfs_mount_entry;
+
 //! Structure representing file
 struct vfs_dir {
-    void *dirp;     //Directory pointer
+    struct vfs_mount_entry *dirp;     //Directory pointer
     const struct vfs_mount *mp;   //Mount point
 };
+
