@@ -70,14 +70,17 @@ int vfs_mount_init( const struct vfs_mount_point_desc mnt_points[], size_t mnt_s
 // Umount and deinit filesystem
 int vfs_unmount_deinit()
 {
-    int ret = 0;
+    if(ctx.num_mps==0) {
+        printf("vfs: Already deinitialized\n");
+        return -EINVAL;
+    }
     for( size_t n=0; n<ctx.num_mps; ++n ) {
         struct vfs_mount *mp = &ctx.mps[n];
         if(mp) {
             const int err = vfs_unmount(mp);
             if (err) {
-                ret = err;
                 printf("vfs: Unable unmount device errno %i\n", err);
+                return err;
             } else {
                 mp = NULL;
             }
@@ -86,5 +89,5 @@ int vfs_unmount_deinit()
     free(ctx.mps);
     ctx.num_mps = 0;
     ctx.mps = NULL;
-    return ret;
+    return 0;
 }
