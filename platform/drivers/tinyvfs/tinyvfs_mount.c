@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <string.h>
+#include <sys/syslimits.h>
 
 //! Module context
 struct vfs_mount_ctx 
@@ -50,6 +52,7 @@ int vfs_mount_init( const struct vfs_mount_point_desc mnt_points[], size_t mnt_s
     for( size_t n=0; n<nitems; ++n ) {
         const vfs_mount_point_desc_t *desc = &mnt_points[n];
         struct vfs_mount *mp = &ctx.mps[n];
+        mp->mnt_point = strndup(desc->mount_point, PATH_MAX);
         const int device = blk_disk_handle( desc->disk, desc->partition );
         const int err = vfs_mount(mp, device);
         if(err) {
@@ -74,6 +77,7 @@ int vfs_unmount_deinit()
             ret = err;
             printf("vfs: Unable unmount device errno %i\n", err);
         }
+        free((void*)mp->mnt_point);
     }
     free(ctx.mps);
     ctx.num_mps = 0;

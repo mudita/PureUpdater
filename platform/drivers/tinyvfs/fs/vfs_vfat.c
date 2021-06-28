@@ -1,4 +1,5 @@
 #include <hal/tinyvfs.h>
+#include <prv/blkdev/blk_dev.h>
 #include <prv/tinyvfs/vfs_priv_data.h>
 #include <ff.h>
 #include <sys/stat.h>
@@ -127,6 +128,46 @@ static void translate_filinfo_to_stat(const FILINFO *fs,struct stat *st)
 	st->st_ctime  = 0;
 }
 
+/** Translate FS path to FF fat path
+ * Function should free memory after use
+ */
+static const char* path_translate(const char* path, const struct vfs_mount *mp)
+{
+	static const char *const root = "/";
+
+	if ((path == NULL) || (mp == NULL)) {
+		return path;
+	}
+	path += mp->mountp_len;
+	path = *path ? path : root;
+
+	//Path contains stripped path
+	const size_t ffat_drive_len = 2;
+	const size_t plen =  strlen(path) + ffat_drive_len +1;
+	char* rstr = malloc(plen);
+	if(!plen) {
+		return NULL;
+	}
+	const int part = blk_hwpart(mp->storage_dev);
+	if(part > 9) {
+		free(rstr);
+		return NULL;
+	}
+	rstr[0] = '0' + part;
+	rstr[1] = ':';
+	strcpy( &rstr[2], path );
+	return rstr;
+}
+
+
+static void _free_clean_up_str(const char ** str)
+{
+	free((void*)*str);
+}
+
+#define AUTO_PATH(var) const char* var __attribute__((__cleanup__(_free_clean_up_str)))
+
+
 static int ffat_open(struct vfs_file *filp, const char *file_name, int flags, int mode)
 {
 	FRESULT res;
@@ -139,7 +180,10 @@ static int ffat_open(struct vfs_file *filp, const char *file_name, int flags, in
 		return -ENOMEM;
 	}
 	fs_mode = translate_flags(mode);
-	res = f_open(filp->filep, &file_name[1], fs_mode);
+	AUTO_PATH(opath) = path_translate(file_name,filp->mp);
+	if(!opath) return -ERANGE;
+
+	res = f_open(filp->filep, opath, fs_mode);
 	if (res != FR_OK) {
 		free(ptr);
 		filp->filep = NULL;
@@ -168,14 +212,18 @@ static int ffat_close(struct vfs_file *filp)
 static int ffat_unlink(struct vfs_mount *mountp, const char *path)
 {
 	FRESULT res;
-	res = f_unlink(&path[1]);
+	AUTO_PATH(opath) = path_translate(path,mountp);
+	if(!opath) return -ERANGE;
+	res = f_unlink(opath);
 	return translate_error(res);
 }
 
 static int ffat_chmod(struct vfs_mount* mountp, const char *path, mode_t mode)
 {
 	FRESULT res;
-	res = f_chmod(&path[1], translate_mode_to_attrib(mode), translate_mode_to_attrib(mode));
+	AUTO_PATH(opath) = path_translate(path,mountp);
+	if(!opath) return -ERANGE;
+	res = f_chmod(opath, translate_mode_to_attrib(mode), translate_mode_to_attrib(mode));
 	return translate_error(res);
 }
 
@@ -184,15 +232,18 @@ static int ffat_rename(struct vfs_mount *mountp, const char *from, const char *t
 	FRESULT err;
 	FILINFO fno;
 
+	AUTO_PATH(ofrom) = path_translate(from,mountp);
+	if(!ofrom) return -ERANGE;
+	AUTO_PATH(oto) = path_translate(to,mountp);
+	if(!oto) return -ERANGE;
 	/* Check if 'to' path exists; remove it if it does */
-	err = f_stat(&to[1], &fno);
+	err = f_stat(oto, &fno);
 	if (err == FR_OK) {
-		err = f_unlink(&to[1]);
+		err = f_unlink(oto);
 		if (err!=FR_OK)
 			return translate_error(err);
 	}
-
-	err = f_rename(&from[1], &to[1]);
+	err = f_rename(ofrom, oto);
 	return translate_error(err);
 }
 
@@ -304,7 +355,9 @@ static int ffat_sync(struct vfs_file *filp)
 static int ffat_mkdir(struct vfs_mount *mountp, const char *path)
 {
 	FRESULT res;
-	res = f_mkdir(&path[1]);
+	AUTO_PATH(opath) = path_translate(path,mountp);
+	if(!opath) return -ERANGE;
+	res = f_mkdir(opath);
 	return translate_error(res);
 }
 
@@ -317,7 +370,9 @@ static int ffat_opendir(struct vfs_dir *dirp, const char *path)
 	} else {
 		return -ENOMEM;
 	}
-	res = f_opendir(dirp->dirp, &path[1]);
+	AUTO_PATH(opath) = path_translate(path,dirp->mp);
+	if(!opath) return -ERANGE;
+	res = f_opendir(dirp->dirp, opath);
 	if (res != FR_OK) {
 		free(ptr);
 		dirp->next_mnt = NULL;
@@ -357,7 +412,9 @@ static int ffat_stat(struct vfs_mount *mountp, const char *path, struct stat *en
 {
 	FRESULT res;
 	FILINFO fno;
-	res = f_stat(&path[1], &fno);
+	AUTO_PATH(opath) = path_translate(path,mountp);
+	if(!opath) return -ERANGE;
+	res = f_stat(opath, &fno);
 	if (res == FR_OK) {
 		translate_filinfo_to_stat(&fno, entry);
 	}
@@ -387,18 +444,36 @@ static int ffat_mount(struct vfs_mount *mountp)
 	if(!mountp->fs_data) {
 		return -ENOMEM;
 	}
-	res = f_mount(mountp->fs_data, &mountp->mnt_point[1], 1);
+	const int part = blk_hwpart(mountp->storage_dev);
+	if(part>9) {
+		return -ERANGE;
+	}
+	char drive_mnt[3];
+	drive_mnt[0] = '0' + part;
+	drive_mnt[1] = ':';
+	drive_mnt[2] = '\0';
+	res = f_mount(mountp->fs_data, drive_mnt, 1);
 	return translate_error(res);
 }
 
 static int ffat_unmount(struct vfs_mount *mountp)
 {
 	FRESULT res;
-	res = f_mount(NULL, &mountp->mnt_point[1], 1);
+	const int part = blk_hwpart(mountp->storage_dev);
+	if(part>9) {
+		return -ERANGE;
+	}
+	char drive_mnt[3];
+	drive_mnt[0] = '0' + part;
+	drive_mnt[1] = ':';
+	drive_mnt[2] = '\0';
+	res = f_mount(NULL, drive_mnt, 1);
 	free(mountp->fs_data);
 	mountp->fs_data = NULL;
 	return translate_error(res);
 }
+
+
 
 
 // VFAT fileystem operations private structure

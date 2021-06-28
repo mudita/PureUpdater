@@ -86,29 +86,45 @@ int main()
     eink_log( "A to kolejna linia", false); 
     eink_log_refresh();
     // Block device system initalize
-    int error = blk_initialize();
-    printf("Blk device subsystem init status %i\n",error);
-    if(error) {
-        return EXIT_FAILURE;
+    if(1) {     // Filesystem test mount 
+        static const vfs_mount_point_desc_t fstab[] = {
+            { .disk = blkdev_emmc_user, .partition = 1, .type = vfs_fs_fat, "/os" },
+            { .disk = blkdev_emmc_user, .partition = 3, .type = vfs_fs_littlefs, "/user" },
+        };
+        int err = vfs_mount_init( fstab, sizeof fstab);
+        printf("VFS subsystem init status %i\n", err);
     }
-    blk_dev_info_t info = {};
-    error = blk_info( blk_disk_handle(blkdev_emmc_boot1,0), &info );
-    printf("BOOT1 Sector count %lu sector size %lu error %i\n",info.sector_count, info.sector_size, error);
-    error = blk_info( blk_disk_handle(blkdev_emmc_user,0), &info );
-    printf("USER Sector count %lu sector size %lu error %i\n",info.sector_count, info.sector_size, error);
-    // Test for get disc data
-    blk_partition_t* parts;
-    error = blk_get_partitions( blk_disk_handle(blkdev_emmc_user,0), &parts);
-    if(error < 0) {
-        printf("User get partitions error %i\n", error);
-    }  else {
-        printf("Number of partitions %i\n", error);
-        for(int i=0; i<error; ++i ) {
-            printf("Partition %i\n", i);
-            printf("\tStart sector %lu type %u num_sectors %lu erase_siz %u\n", parts[i].start_sector, parts[i].type, parts[i].num_sectors, parts[i].erase_blk);
+    if(0)
+    {
+        int error = blk_initialize();
+        printf("Blk device subsystem init status %i\n", error);
+        if (error)
+        {
+            return EXIT_FAILURE;
+        }
+        blk_dev_info_t info = {};
+        error = blk_info(blk_disk_handle(blkdev_emmc_boot1, 0), &info);
+        printf("BOOT1 Sector count %lu sector size %lu error %i\n", info.sector_count, info.sector_size, error);
+        error = blk_info(blk_disk_handle(blkdev_emmc_user, 0), &info);
+        printf("USER Sector count %lu sector size %lu error %i\n", info.sector_count, info.sector_size, error);
+        // Test for get disc data
+        blk_partition_t *parts;
+        error = blk_get_partitions(blk_disk_handle(blkdev_emmc_user, 0), &parts);
+        if (error < 0)
+        {
+            printf("User get partitions error %i\n", error);
+        }
+        else
+        {
+            printf("Number of partitions %i\n", error);
+            for (int i = 0; i < error; ++i)
+            {
+                printf("Partition %i\n", i);
+                printf("\tStart sector %lu type %u num_sectors %lu erase_siz %u\n", parts[i].start_sector, parts[i].type, parts[i].num_sectors, parts[i].erase_blk);
+            }
         }
     }
-    if(1)
+    if(0)
     {
         printf("Before mnt\n");
         FATFS *ffx = calloc(1, sizeof(FATFS));
@@ -120,7 +136,7 @@ int main()
         printf("To koniec odmontowuje ...\n");
         free(ffx);
     }
-    if(1) {
+    if(0) {
         struct lfs_config cfg = {};
         lfs_t lfs = {};
         int err = vfs_lfs_append_volume(blk_disk_handle(blkdev_emmc_user,3),  &cfg);
