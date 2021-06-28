@@ -139,8 +139,13 @@ int vfs_rename(const char *from, const char *to);
  */
 int vfs_stat(const char *abs_path, struct stat *entry);
 
+/** VFS chmod 
+ * @See man chmod
+ */
+int vfs_chmod(const char *abs_path, mode_t mode);
+
 /** VFS statvfs
- * @see man stat
+ * @see man statvfs
  */
 int vfs_statvfs(const char *abs_path, struct statvfs *stat);
 

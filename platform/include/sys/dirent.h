@@ -27,14 +27,15 @@ extern "C" {
 #endif
 	
 	struct dirent {
-		//ino_t	d_ino;
 		unsigned char  d_type;
-		//size_t  d_reclen;
 		char	d_name[NAME_MAX+1];
+		size_t 	d_size;		//File size
 	};
 
 	struct __dirstream;
+#ifndef DIRENT_NO_DIR_STRUCTURE
 	typedef struct __dirstream DIR;
+#endif
 	
 
 #ifdef __cplusplus

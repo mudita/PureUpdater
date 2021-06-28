@@ -382,7 +382,7 @@ int vfs_opendir(struct vfs_dir *dirp, const char *abs_path)
 	if (strcmp(abs_path, "/") == 0) {
 
 		dirp->mp = NULL;
-        dirp->dirp = ctx.fopsl;
+        dirp->next_mnt = ctx.fopsl;
 		return 0;
 	}
     err = fs_get_mnt_point(&me, abs_path, NULL);
@@ -434,7 +434,7 @@ int vfs_readdir(struct vfs_dir *dirp, struct dirent *entry)
 	}
 
 	/* VFS root dir */
-	if (dirp->dirp == NULL) {
+	if (dirp->next_mnt == NULL) {
 		/* No more entries */
 		entry->d_name[0] = 0;
 		return 0;
@@ -444,7 +444,7 @@ int vfs_readdir(struct vfs_dir *dirp, struct dirent *entry)
 	bool found = false;
     struct vfs_mount_entry* next = NULL;
     for( struct vfs_mount_entry *e=ctx.fopsl; e; e=e->next ) {
-		if (e == dirp->dirp) {
+		if (e == dirp->next_mnt) {
 			found = true;
 
 			/* Pull info from current entry */
@@ -466,7 +466,7 @@ int vfs_readdir(struct vfs_dir *dirp, struct dirent *entry)
 		return -ENOENT;
 	}
 
-	dirp->dirp = next;
+	dirp->next_mnt = next;
 	return 0;
 }
 
@@ -477,7 +477,7 @@ int vfs_closedir(struct vfs_dir *dirp)
 
 	if (dirp->mp == NULL) {
 		/* VFS root dir */
-		dirp->dirp = NULL;
+		dirp->next_mnt = NULL;
 		return 0;
 	}
 
