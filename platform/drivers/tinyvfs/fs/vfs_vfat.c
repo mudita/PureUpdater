@@ -467,7 +467,7 @@ static int ffat_unmount(struct vfs_mount *mountp)
 	drive_mnt[0] = '0' + part;
 	drive_mnt[1] = ':';
 	drive_mnt[2] = '\0';
-	res = f_mount(NULL, drive_mnt, 1);
+	res = f_unmount(drive_mnt);
 	free(mountp->fs_data);
 	mountp->fs_data = NULL;
 	return translate_error(res);

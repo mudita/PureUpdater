@@ -91,8 +91,13 @@ int main()
             { .disk = blkdev_emmc_user, .partition = 1, .type = vfs_fs_fat, "/os" },
             { .disk = blkdev_emmc_user, .partition = 3, .type = vfs_fs_littlefs, "/user" },
         };
+        printf("Before device init\n");
         int err = vfs_mount_init( fstab, sizeof fstab);
         printf("VFS subsystem init status %i\n", err);
+        msleep(5000);
+        printf("Before device free\n");
+        err = vfs_unmount_deinit();
+        printf("VFS subsystem free status %i\n", err);
     }
     if(0)
     {

@@ -177,10 +177,17 @@ int vfs_mount(struct vfs_mount *mp, int device)
 	mp->mountp_len = len;
 	mp->fs = fs;
     {
-        struct vfs_mount_entry *curr = ctx.fopsl;
-        while(curr->next) curr = curr->next;
-        curr->next = calloc(1, sizeof(struct vfs_mount_entry));
-        curr->mnt = mp;
+		struct vfs_mount_entry* ins = calloc(1, sizeof(struct vfs_mount_entry));
+		ins->mnt = mp;
+		ins->next = NULL;
+		if(!ctx.fopsl) {
+			ctx.fopsl = ins;
+		} else {
+        	struct vfs_mount_entry *curr = ctx.fopsl;
+			while(curr->next) 
+				curr = curr->next;
+			curr->next = ins;
+		}	
     }
 	return err;
 }
@@ -218,7 +225,9 @@ int vfs_unmount(struct vfs_mount *mp)
         if( c->mnt == mp ) {
             struct vfs_mount_entry* n = c->next;
             free(c);
+			if(c==ctx.fopsl) ctx.fopsl = n;
             c = n;
+			break;
         }
     }
     return err;
