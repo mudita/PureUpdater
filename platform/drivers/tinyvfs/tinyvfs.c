@@ -225,13 +225,13 @@ int vfs_unmount(struct vfs_mount *mp)
 
 
 /* File operations */
-int vfs_open(struct vfs_file *zfp, const char *file_name, int flags, mode_t mode)
+int vfs_open(struct vfs_file *filp, const char *file_name, int flags, mode_t mode)
 {
 	struct vfs_mount *mp;
 
 	/* COpy flags to zfp for use with other fs_ API calls */
-	zfp->flags = flags;
-    zfp->mode = mode;
+	filp->flags = flags;
+    filp->mode = mode;
 
 	if ((file_name == NULL) ||
 			(strlen(file_name) <= 1) || (file_name[0] != '/')) {
@@ -245,10 +245,10 @@ int vfs_open(struct vfs_file *zfp, const char *file_name, int flags, mode_t mode
 		return err;
 	}
 
-	zfp->mp = mp;
+	filp->mp = mp;
 
-	if (zfp->mp->fs->open != NULL) {
-		err = zfp->mp->fs->open(zfp, file_name, flags, mode);
+	if (filp->mp->fs->open != NULL) {
+		err = filp->mp->fs->open(filp, file_name, flags, mode);
 		if (err < 0) {
             printf("vfs: %s File open error %i\n", __PRETTY_FUNCTION__, err);
 			return err;
@@ -259,31 +259,31 @@ int vfs_open(struct vfs_file *zfp, const char *file_name, int flags, mode_t mode
     return err;
 }
 
-int vfs_close(struct vfs_file *zfp)
+int vfs_close(struct vfs_file *filp)
 {
 	int err = -EINVAL;
-	if (zfp->mp == NULL) {
+	if (filp->mp == NULL) {
 		return 0;
 	}
-	if (zfp->mp->fs->close != NULL) {
-		err = zfp->mp->fs->close(zfp);
+	if (filp->mp->fs->close != NULL) {
+		err = filp->mp->fs->close(filp);
 		if (err < 0) {
             printf("vfs: %s File close error %i\n", __PRETTY_FUNCTION__, err);
 			return err;
 		}
 	}
-	zfp->mp = NULL;
+	filp->mp = NULL;
 	return err;
 }
 
-ssize_t vfs_read(struct vfs_file *zfp, void *ptr, size_t size)
+ssize_t vfs_read(struct vfs_file *filp, void *ptr, size_t size)
 {
 	int err = -EINVAL;
-	if (zfp->mp == NULL) {
+	if (filp->mp == NULL) {
 		return -EBADF;
 	}
-	if (zfp->mp->fs->read != NULL) {
-		err = zfp->mp->fs->read(zfp, ptr, size);
+	if (filp->mp->fs->read != NULL) {
+		err = filp->mp->fs->read(filp, ptr, size);
 		if (err < 0) {
             printf("vfs: %s File read error %i\n", __PRETTY_FUNCTION__, err);
 		}
@@ -291,14 +291,14 @@ ssize_t vfs_read(struct vfs_file *zfp, void *ptr, size_t size)
 	return err;
 }
 
-ssize_t vfs_write(struct vfs_file *zfp, const void *ptr, size_t size)
+ssize_t vfs_write(struct vfs_file *filp, const void *ptr, size_t size)
 {
 	int err = -EINVAL;
-	if (zfp->mp == NULL) {
+	if (filp->mp == NULL) {
 		return -EBADF;
 	}
-	if (zfp->mp->fs->write != NULL) {
-		err = zfp->mp->fs->write(zfp, ptr, size);
+	if (filp->mp->fs->write != NULL) {
+		err = filp->mp->fs->write(filp, ptr, size);
 		if (err < 0) {
             printf("vfs: %s File write error %i\n", __PRETTY_FUNCTION__, err);
 		}
@@ -306,14 +306,14 @@ ssize_t vfs_write(struct vfs_file *zfp, const void *ptr, size_t size)
 	return err;
 }
 
-int vfs_seek(struct vfs_file *zfp, off_t offset, int whence)
+int vfs_seek(struct vfs_file *filp, off_t offset, int whence)
 {
 	int err = -ENOTSUP;
-	if (zfp->mp == NULL) {
+	if (filp->mp == NULL) {
 		return -EBADF;
 	}
-	if (zfp->mp->fs->lseek != NULL) {
-		err = zfp->mp->fs->lseek(zfp, offset, whence);
+	if (filp->mp->fs->lseek != NULL) {
+		err = filp->mp->fs->lseek(filp, offset, whence);
 		if (err < 0) {
             printf("vfs: %s File seek error %i\n", __PRETTY_FUNCTION__, err);
 		}
@@ -321,14 +321,14 @@ int vfs_seek(struct vfs_file *zfp, off_t offset, int whence)
 	return err;
 }
 
-off_t vfs_tell(struct vfs_file *zfp)
+off_t vfs_tell(struct vfs_file *filp)
 {
 	int err = -ENOTSUP;
-	if (zfp->mp == NULL) {
+	if (filp->mp == NULL) {
 		return -EBADF;
 	}
-	if (zfp->mp->fs->tell != NULL) {
-		err = zfp->mp->fs->tell(zfp);
+	if (filp->mp->fs->tell != NULL) {
+		err = filp->mp->fs->tell(filp);
 		if (err < 0) {
             printf("vfs: %s File tell error %i\n", __PRETTY_FUNCTION__, err);
 		}
@@ -337,14 +337,14 @@ off_t vfs_tell(struct vfs_file *zfp)
 	return err;
 }
 
-int vfs_truncate(struct vfs_file *zfp, off_t length)
+int vfs_truncate(struct vfs_file *filp, off_t length)
 {
 	int err = -EINVAL;
-	if (zfp->mp == NULL) {
+	if (filp->mp == NULL) {
 		return -EBADF;
 	}
-	if (zfp->mp->fs->truncate != NULL) {
-		err = zfp->mp->fs->truncate(zfp, length);
+	if (filp->mp->fs->truncate != NULL) {
+		err = filp->mp->fs->truncate(filp, length);
 		if (err < 0) {
             printf("vfs: %s File truncate error %i\n", __PRETTY_FUNCTION__, err);
 		}
@@ -352,14 +352,14 @@ int vfs_truncate(struct vfs_file *zfp, off_t length)
 	return err;
 }
 
-int vfs_sync(struct vfs_file *zfp)
+int vfs_sync(struct vfs_file *filp)
 {
 	int err = -EINVAL;
-	if (zfp->mp == NULL) {
+	if (filp->mp == NULL) {
 		return -EBADF;
 	}
-	if (zfp->mp->fs->sync != NULL) {
-		err = zfp->mp->fs->sync(zfp);
+	if (filp->mp->fs->sync != NULL) {
+		err = filp->mp->fs->sync(filp);
 		if (err < 0) {
             printf("vfs: %s File sync error %i\n", __PRETTY_FUNCTION__, err);
 		}
@@ -368,7 +368,7 @@ int vfs_sync(struct vfs_file *zfp)
 }
 
 /* Directory operations */
-int vfs_opendir(struct vfs_dir *zdp, const char *abs_path)
+int vfs_opendir(struct vfs_dir *dirp, const char *abs_path)
 {
     struct vfs_mount* me;
 	int err = -EINVAL;
@@ -381,8 +381,8 @@ int vfs_opendir(struct vfs_dir *zdp, const char *abs_path)
 
 	if (strcmp(abs_path, "/") == 0) {
 
-		zdp->mp = NULL;
-        zdp->dirp = ctx.fopsl;
+		dirp->mp = NULL;
+        dirp->dirp = ctx.fopsl;
 		return 0;
 	}
     err = fs_get_mnt_point(&me, abs_path, NULL);
@@ -390,9 +390,9 @@ int vfs_opendir(struct vfs_dir *zdp, const char *abs_path)
         printf("vfs: %s Mount point not found\n", __PRETTY_FUNCTION__);
 		return err;
 	}
-	zdp->mp = me;
-	if (zdp->mp->fs->opendir != NULL) {
-		err = zdp->mp->fs->opendir(zdp, abs_path);
+	dirp->mp = me;
+	if (dirp->mp->fs->opendir != NULL) {
+		err = dirp->mp->fs->opendir(dirp, abs_path);
 		if (err < 0) {
             printf("vfs: %s Directory open error %i\n", __PRETTY_FUNCTION__, err);
 		}
@@ -401,16 +401,16 @@ int vfs_opendir(struct vfs_dir *zdp, const char *abs_path)
 	return err;
 }
 
-int vfs_readdir(struct vfs_dir *zdp, struct dirent *entry)
+int vfs_readdir(struct vfs_dir *dirp, struct dirent *entry)
 {
-	if (zdp->mp) {
+	if (dirp->mp) {
 		/* Delegate to mounted filesystem */
 		int err = -EINVAL;
 
-		if (zdp->mp->fs->readdir != NULL) {
+		if (dirp->mp->fs->readdir != NULL) {
 			/* Loop until error or not special directory */
 			while (true) {
-				err = zdp->mp->fs->readdir(zdp, entry);
+				err = dirp->mp->fs->readdir(dirp, entry);
 				if (err < 0) {
 					break;
 				}
@@ -434,7 +434,7 @@ int vfs_readdir(struct vfs_dir *zdp, struct dirent *entry)
 	}
 
 	/* VFS root dir */
-	if (zdp->dirp == NULL) {
+	if (dirp->dirp == NULL) {
 		/* No more entries */
 		entry->d_name[0] = 0;
 		return 0;
@@ -444,7 +444,7 @@ int vfs_readdir(struct vfs_dir *zdp, struct dirent *entry)
 	bool found = false;
     struct vfs_mount_entry* next = NULL;
     for( struct vfs_mount_entry *e=ctx.fopsl; e; e=e->next ) {
-		if (e == zdp->dirp) {
+		if (e == dirp->dirp) {
 			found = true;
 
 			/* Pull info from current entry */
@@ -466,30 +466,30 @@ int vfs_readdir(struct vfs_dir *zdp, struct dirent *entry)
 		return -ENOENT;
 	}
 
-	zdp->dirp = next;
+	dirp->dirp = next;
 	return 0;
 }
 
 
-int vfs_closedir(struct vfs_dir *zdp)
+int vfs_closedir(struct vfs_dir *dirp)
 {
 	int err = -EINVAL;
 
-	if (zdp->mp == NULL) {
+	if (dirp->mp == NULL) {
 		/* VFS root dir */
-		zdp->dirp = NULL;
+		dirp->dirp = NULL;
 		return 0;
 	}
 
-	if (zdp->mp->fs->closedir != NULL) {
-		err = zdp->mp->fs->closedir(zdp);
+	if (dirp->mp->fs->closedir != NULL) {
+		err = dirp->mp->fs->closedir(dirp);
 		if (err < 0) {
             printf("vfs: %s Directory close error %i\n", __PRETTY_FUNCTION__, err);
 			return err;
 		}
 	}
 
-	zdp->mp = NULL;
+	dirp->mp = NULL;
 	return err;
 }
 
