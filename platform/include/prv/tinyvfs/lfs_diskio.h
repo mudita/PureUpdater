@@ -3,6 +3,8 @@
 #pragma once
 
 
+struct lfs_config;
+
 /** Append volume to the selected partition block
  * @param[in] blkdev block device for append 
  * @param[out] lfsc Block configuration structure

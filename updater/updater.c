@@ -135,6 +135,7 @@ int main()
         printf("Scan finished file error %i\n", err);
         err = lfs_unmount(&lfs);
         printf("LFS unmount status %i\n", err);
+        vfs_lfs_remove_volume(&cfg);
     }
    for(;;) {}
     for(;;) {

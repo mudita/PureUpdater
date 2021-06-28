@@ -60,8 +60,9 @@ int vfs_register_filesystem(int type, const struct vfs_filesystem_ops *fops);
 /** Mount filesystem 
  *  Mount the selected filesystem;
  * @param  mp Mount point
+ * @param device Device partition for scan the FS
  */
-int vfs_mount(struct vfs_mount *mp);
+int vfs_mount(struct vfs_mount *mp, int device);
 
 /** Umount the selected filesystem
  * @param mp Mount point
@@ -77,7 +78,7 @@ int vfs_open(struct vfs_file *zfp, const char *file_name, int flags, mode_t mode
  * @see man close
  */
 
-int vfs_close(struct vfs_file *zfp);\
+int vfs_close(struct vfs_file *zfp);
 
 /** VFS read entry
  * @see man read
@@ -93,7 +94,7 @@ ssize_t vfs_write(struct vfs_file *zfp, const void *ptr, size_t size);
 /** VFS seek entry
  * @see man seek
  */
-int vfs_seek(struct vfs_file *zfp, off_t offset, int whence);
+ssize_t vfs_seek(struct vfs_file *zfp, off_t offset, int whence);
 /** VFS tell entry
  * @see man tell 
  */

@@ -116,7 +116,7 @@ int vfs_register_filesystem(int type, const struct vfs_filesystem_ops *fops)
 }
 
 
-int vfs_mount(struct vfs_mount *mp)
+int vfs_mount(struct vfs_mount *mp, int device)
 {
 	struct fs_mount_t *itr;
 	const struct vfs_filesystem_ops *fs;
@@ -150,7 +150,8 @@ int vfs_mount(struct vfs_mount *mp)
 			return -EBUSY;
 		}
 	}
-
+	//Assign storage device
+	mp->storage_dev = device;
 	/* Get file system information */
 	fs = fs_type_get(mp->type);
 	if (fs == NULL) {
@@ -306,7 +307,7 @@ ssize_t vfs_write(struct vfs_file *filp, const void *ptr, size_t size)
 	return err;
 }
 
-int vfs_seek(struct vfs_file *filp, off_t offset, int whence)
+ssize_t vfs_seek(struct vfs_file *filp, off_t offset, int whence)
 {
 	int err = -ENOTSUP;
 	if (filp->mp == NULL) {

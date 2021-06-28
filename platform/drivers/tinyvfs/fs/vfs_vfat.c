@@ -11,7 +11,7 @@
 #include <sys/statvfs.h>
 #include <prv/tinyvfs/vfs_device.h>
 #define DIRENT_NO_DIR_STRUCTURE 1
-#include <dirent.h>
+#include <sys/dirent.h>
 
 static int translate_error(int error)
 {
@@ -230,7 +230,7 @@ static ssize_t ffat_write(struct vfs_file *filp, const void *ptr, size_t size)
 	return bw;
 }
 
-static int ffat_seek(struct vfs_file *filp, off_t offset, int whence)
+static ssize_t ffat_seek(struct vfs_file *filp, off_t offset, int whence)
 {
 	FRESULT res = FR_OK;
 	off_t pos;
@@ -255,7 +255,7 @@ static int ffat_seek(struct vfs_file *filp, off_t offset, int whence)
 
 	res = f_lseek(filp->filep, pos);
 
-	return translate_error(res);
+	return res==FR_OK?(ssize_t)f_tell((FIL*)filp->filep):translate_error(res);
 }
 
 static off_t ffat_tell(struct vfs_file *filp)
@@ -383,15 +383,20 @@ static int ffat_statvfs(struct vfs_mount *mountp, const char *path, struct statv
 static int ffat_mount(struct vfs_mount *mountp)
 {
 	FRESULT res;
+	mountp->fs_data = calloc(1, sizeof(FATFS));
+	if(!mountp->fs_data) {
+		return -ENOMEM;
+	}
 	res = f_mount(mountp->fs_data, &mountp->mnt_point[1], 1);
 	return translate_error(res);
-
 }
 
 static int ffat_unmount(struct vfs_mount *mountp)
 {
 	FRESULT res;
 	res = f_mount(NULL, &mountp->mnt_point[1], 1);
+	free(mountp->fs_data);
+	mountp->fs_data = NULL;
 	return translate_error(res);
 }
 
@@ -424,7 +429,7 @@ static const struct vfs_filesystem_ops vfat_fops =
 /** Enable vfat filesystem
  * @return error code
  */
-int vfs_priv_enable_vfat_fileystem(void) 
+int vfs_priv_enable_vfat_filesystem(void) 
 {
 	return vfs_register_filesystem(vfs_fs_fat, &vfat_fops);
 }

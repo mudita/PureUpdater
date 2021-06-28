@@ -16,7 +16,7 @@ struct vfs_filesystem_ops {
     int (*open)(struct vfs_file *filp, const char *fs_path, int flags, int mode);
     ssize_t (*read)(struct vfs_file *filp, void *dest, size_t nbytes);
     ssize_t (*write)(struct vfs_file *filp, const void *src, size_t nbytes);
-    int (*lseek)(struct vfs_file *filp, off_t off, int whence);
+    ssize_t (*lseek)(struct vfs_file *filp, off_t off, int whence);
     off_t (*tell)(struct vfs_file *filp);
     int (*truncate)(struct vfs_file *filp, off_t length);
     int (*sync)(struct vfs_file *filp);
