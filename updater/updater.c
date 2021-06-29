@@ -5,10 +5,16 @@
 #include <hal/display.h>
 #include <hal/keyboard.h>
 #include <hal/blk_dev.h>
-#include <ff.h>
+//#include <ff.h>
 #include <lfs.h>
 #include <prv/tinyvfs/lfs_diskio.h>
+#include <hal/tinyvfs.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <dirent.h>
 
+
+#if 0
 static FRESULT scan_files (
     char* path        /* Start node to be scanned (***also used as work area***) */
 )
@@ -44,6 +50,7 @@ static FRESULT scan_files (
     }
     return res;
 }
+#endif
 
 static int lfs_scan_files( lfs_t* lfs, char* path)
 {
@@ -85,29 +92,91 @@ int main()
     eink_log( "A to kolejna linia", false); 
     eink_log_refresh();
     // Block device system initalize
-    int error = blk_initialize();
-    printf("Blk device subsystem init status %i\n",error);
-    if(error) {
-        return EXIT_FAILURE;
+    if(1) {     // Filesystem test mount 
+        static const vfs_mount_point_desc_t fstab[] = {
+            { .disk = blkdev_emmc_user, .partition = 1, .type = vfs_fs_fat, "/os" },
+            { .disk = blkdev_emmc_user, .partition = 3, .type = vfs_fs_littlefs, "/user" },
+        };
+        printf("Before device init\n");
+        int err = vfs_mount_init( fstab, sizeof fstab);
+        printf("VFS subsystem init status %i\n", err);
+        if(err) for(;;) {};
+        // Try single file on a partition
+
+
+        //msleep(5000);
+        //printf("Before device free\n");
+        //err = vfs_unmount_deinit();
+        //printf("VFS subsystem free status %i\n", err);
+        struct vfs_file fil;
+        err = vfs_open( &fil, "/os/.boot.json", O_RDONLY, 0);
+        printf("VFS open error %i\n", err);
+        char buf[80];
+        err = vfs_read( &fil, buf, sizeof buf);
+        printf("VFS read error %i\n", err);
+        err = vfs_close( &fil );
+        printf("VFS close error %i\n", err);
+        buf[79] = '\0';
+        printf("VFS buf %s\n", buf);
+        // Opendir test
+        struct vfs_dir dir;
+        err = vfs_opendir(&dir, "/user");
+        printf("VFS opendir %i\n", err);
+        for(;;) {
+            struct dirent ent;
+            err = vfs_readdir(&dir,&ent);
+            if(err) {
+                printf("VFS readdir error %i\n", err);
+            }
+            if( ent.d_name[0] == '\0') {
+                break;
+            }
+            printf("Name %s size %u dir %i\n", ent.d_name, ent.d_size, ent.d_type==DT_DIR);
+        }
+        err = vfs_closedir(&dir);
+        printf("Closedir error %i\n", err);
+
+        // Open mudita OS log
+         err = vfs_open( &fil, "/user/MuditaOS.log", O_RDONLY, 0);
+        printf("VFS open error %i\n", err);
+        err = vfs_read( &fil, buf, sizeof buf);
+        printf("VFS read error %i\n", err);
+        err = vfs_close( &fil );
+        printf("VFS close error %i\n", err);
+        buf[79] = '\0';
+        printf("VFS buf log %s\n", buf);
     }
-    blk_dev_info_t info = {};
-    error = blk_info( blk_disk_handle(blkdev_emmc_boot1,0), &info );
-    printf("BOOT1 Sector count %lu sector size %lu error %i\n",info.sector_count, info.sector_size, error);
-    error = blk_info( blk_disk_handle(blkdev_emmc_user,0), &info );
-    printf("USER Sector count %lu sector size %lu error %i\n",info.sector_count, info.sector_size, error);
-    // Test for get disc data
-    blk_partition_t* parts;
-    error = blk_get_partitions( blk_disk_handle(blkdev_emmc_user,0), &parts);
-    if(error < 0) {
-        printf("User get partitions error %i\n", error);
-    }  else {
-        printf("Number of partitions %i\n", error);
-        for(int i=0; i<error; ++i ) {
-            printf("Partition %i\n", i);
-            printf("\tStart sector %lu type %u num_sectors %lu erase_siz %u\n", parts[i].start_sector, parts[i].type, parts[i].num_sectors, parts[i].erase_blk);
+    if(0)
+    {
+        int error = blk_initialize();
+        printf("Blk device subsystem init status %i\n", error);
+        if (error)
+        {
+            return EXIT_FAILURE;
+        }
+        blk_dev_info_t info = {};
+        error = blk_info(blk_disk_handle(blkdev_emmc_boot1, 0), &info);
+        printf("BOOT1 Sector count %lu sector size %lu error %i\n", info.sector_count, info.sector_size, error);
+        error = blk_info(blk_disk_handle(blkdev_emmc_user, 0), &info);
+        printf("USER Sector count %lu sector size %lu error %i\n", info.sector_count, info.sector_size, error);
+        // Test for get disc data
+        blk_partition_t *parts;
+        error = blk_get_partitions(blk_disk_handle(blkdev_emmc_user, 0), &parts);
+        if (error < 0)
+        {
+            printf("User get partitions error %i\n", error);
+        }
+        else
+        {
+            printf("Number of partitions %i\n", error);
+            for (int i = 0; i < error; ++i)
+            {
+                printf("Partition %i\n", i);
+                printf("\tStart sector %lu type %u num_sectors %lu erase_siz %u\n", parts[i].start_sector, parts[i].type, parts[i].num_sectors, parts[i].erase_blk);
+            }
         }
     }
-    if(1)
+#if 0
     {
         printf("Before mnt\n");
         FATFS *ffx = calloc(1, sizeof(FATFS));
@@ -119,7 +188,8 @@ int main()
         printf("To koniec odmontowuje ...\n");
         free(ffx);
     }
-    if(1) {
+#endif
+    if(0) {
         struct lfs_config cfg = {};
         lfs_t lfs = {};
         int err = vfs_lfs_append_volume(blk_disk_handle(blkdev_emmc_user,3),  &cfg);
@@ -134,6 +204,7 @@ int main()
         printf("Scan finished file error %i\n", err);
         err = lfs_unmount(&lfs);
         printf("LFS unmount status %i\n", err);
+        vfs_lfs_remove_volume(&cfg);
     }
    for(;;) {}
     for(;;) {

@@ -7,4 +7,4 @@ struct blk_partition;
  * @param part Partition for resize
  * @return number of partitions or error
  */
-int blk_priv_scan_partitions( int disk, struct blk_partition** part);
+int blk_priv_scan_partitions(int disk, struct blk_partition **part);
