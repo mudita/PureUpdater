@@ -84,18 +84,11 @@ int vfs_unmount_deinit()
     for (size_t n = 0; n < ctx.num_mps; ++n)
     {
         struct vfs_mount *mp = &ctx.mps[n];
-        if (mp)
+        const int err = vfs_unmount(mp);
+        if (err)
         {
-            const int err = vfs_unmount(mp);
-            if (err)
-            {
-                printf("vfs: Unable unmount device errno %i\n", err);
-                return err;
-            }
-            else
-            {
-                mp = NULL;
-            }
+            printf("vfs: Unable unmount device errno %i\n", err);
+            return err;
         }
     }
     free(ctx.mps);
