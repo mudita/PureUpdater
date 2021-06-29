@@ -146,6 +146,7 @@ static int dlfs_open(struct vfs_file *fp, const char *path, int flags, int mode)
 {
 	struct dlfs_ctx *fs = fp->mp->fs_data;
 	struct lfs *lfs = &fs->lfs;
+	VFS_UNUSED(mode);
 	fp->filep = calloc(1, sizeof(lfs_file_t));
 	if (!fp->filep)
 	{
@@ -322,6 +323,7 @@ static int dlfs_stat(struct vfs_mount *mountp, const char *path, struct stat *en
 static int dlfs_chmod(struct vfs_mount *mountp, const char *path, mode_t mode)
 {
 	struct stat st;
+	VFS_UNUSED(mode);
 	return dlfs_stat(mountp, path, &st);
 }
 

@@ -120,6 +120,15 @@ int vfs_register_filesystem(int type, const struct vfs_filesystem_ops *fops)
 	return err;
 }
 
+/** Unregister all filesystems
+ */
+void vfs_unregister_all_filesystems(void)
+{
+	free(ctx.fste);
+	ctx.fste = NULL;
+	ctx.num_fse = 0;
+}
+
 int vfs_mount(struct vfs_mount *mp, int device)
 {
 	struct fs_mount_t *itr;
