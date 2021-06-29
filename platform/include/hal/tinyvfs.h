@@ -76,6 +76,10 @@ int vfs_unmount_deinit();
  */
 int vfs_register_filesystem(int type, const struct vfs_filesystem_ops *fops);
 
+/** Unregister all filesystems
+ */
+void vfs_unregister_all_filesystems(void);
+
 /** Mount filesystem 
  *  Mount the selected filesystem;
  * @param  mp Mount point

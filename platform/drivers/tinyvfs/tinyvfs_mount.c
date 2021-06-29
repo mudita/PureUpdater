@@ -101,5 +101,6 @@ int vfs_unmount_deinit()
     free(ctx.mps);
     ctx.num_mps = 0;
     ctx.mps = NULL;
+    vfs_unregister_all_filesystems();
     return 0;
 }
