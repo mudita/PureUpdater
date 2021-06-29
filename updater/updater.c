@@ -5,13 +5,16 @@
 #include <hal/display.h>
 #include <hal/keyboard.h>
 #include <hal/blk_dev.h>
-#include <ff.h>
+//#include <ff.h>
 #include <lfs.h>
 #include <prv/tinyvfs/lfs_diskio.h>
 #include <hal/tinyvfs.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <dirent.h>
 
+
+#if 0
 static FRESULT scan_files (
     char* path        /* Start node to be scanned (***also used as work area***) */
 )
@@ -47,6 +50,7 @@ static FRESULT scan_files (
     }
     return res;
 }
+#endif
 
 static int lfs_scan_files( lfs_t* lfs, char* path)
 {
@@ -114,6 +118,33 @@ int main()
         printf("VFS close error %i\n", err);
         buf[79] = '\0';
         printf("VFS buf %s\n", buf);
+        // Opendir test
+        struct vfs_dir dir;
+        err = vfs_opendir(&dir, "/user");
+        printf("VFS opendir %i\n", err);
+        for(;;) {
+            struct dirent ent;
+            err = vfs_readdir(&dir,&ent);
+            if(err) {
+                printf("VFS readdir error %i\n", err);
+            }
+            if( ent.d_name[0] == '\0') {
+                break;
+            }
+            printf("Name %s size %u dir %i\n", ent.d_name, ent.d_size, ent.d_type==DT_DIR);
+        }
+        err = vfs_closedir(&dir);
+        printf("Closedir error %i\n", err);
+
+        // Open mudita OS log
+         err = vfs_open( &fil, "/user/MuditaOS.log", O_RDONLY, 0);
+        printf("VFS open error %i\n", err);
+        err = vfs_read( &fil, buf, sizeof buf);
+        printf("VFS read error %i\n", err);
+        err = vfs_close( &fil );
+        printf("VFS close error %i\n", err);
+        buf[79] = '\0';
+        printf("VFS buf log %s\n", buf);
     }
     if(0)
     {
@@ -145,7 +176,7 @@ int main()
             }
         }
     }
-    if(0)
+#if 0
     {
         printf("Before mnt\n");
         FATFS *ffx = calloc(1, sizeof(FATFS));
@@ -157,6 +188,7 @@ int main()
         printf("To koniec odmontowuje ...\n");
         free(ffx);
     }
+#endif
     if(0) {
         struct lfs_config cfg = {};
         lfs_t lfs = {};
