@@ -13,7 +13,6 @@
 #include <fcntl.h>
 #include <dirent.h>
 
-
 #if 0
 static FRESULT scan_files (
     char* path        /* Start node to be scanned (***also used as work area***) */
@@ -52,11 +51,11 @@ static FRESULT scan_files (
 }
 #endif
 
-static int lfs_scan_files( lfs_t* lfs, char* path)
+static int lfs_scan_files(lfs_t *lfs, char *path)
 {
     lfs_dir_t lfs_dir;
     struct lfs_info lfs_info;
-    int res = lfs_dir_open( lfs, &lfs_dir, path);
+    int res = lfs_dir_open(lfs, &lfs_dir, path);
     if (res == LFS_ERR_OK)
     {
         for (;;)
@@ -64,7 +63,7 @@ static int lfs_scan_files( lfs_t* lfs, char* path)
             res = lfs_dir_read(lfs, &lfs_dir, &lfs_info);
             if (res <= 0)
                 break; /* Break on error or end of dir */
-            if( lfs_info.type == LFS_TYPE_DIR && lfs_info.name[0]!='.' )
+            if (lfs_info.type == LFS_TYPE_DIR && lfs_info.name[0] != '.')
             {
                 int i = strlen(path);
                 sprintf(&path[i], "/%s", lfs_info.name);
@@ -84,37 +83,40 @@ static int lfs_scan_files( lfs_t* lfs, char* path)
 }
 
 int main()
-{   // System initialize
+{ // System initialize
     sysinit_setup();
     // Try to initialize EINK
     eink_clear_log();
-    eink_log( "Dzien dobry to moj log", false); 
-    eink_log( "A to kolejna linia", false); 
+    eink_log("Dzien dobry to moj log", false);
+    eink_log("A to kolejna linia", false);
     eink_log_refresh();
     // Block device system initalize
-    if(1) {     // Filesystem test mount 
+    if (1)
+    { // Filesystem test mount
         static const vfs_mount_point_desc_t fstab[] = {
-            { .disk = blkdev_emmc_user, .partition = 1, .type = vfs_fs_fat, "/os" },
-            { .disk = blkdev_emmc_user, .partition = 3, .type = vfs_fs_littlefs, "/user" },
+            {.disk = blkdev_emmc_user, .partition = 1, .type = vfs_fs_fat, "/os"},
+            {.disk = blkdev_emmc_user, .partition = 3, .type = vfs_fs_littlefs, "/user"},
         };
         printf("Before device init\n");
-        int err = vfs_mount_init( fstab, sizeof fstab);
+        int err = vfs_mount_init(fstab, sizeof fstab);
         printf("VFS subsystem init status %i\n", err);
-        if(err) for(;;) {};
+        if (err)
+            for (;;)
+            {
+            };
         // Try single file on a partition
-
 
         //msleep(5000);
         //printf("Before device free\n");
         //err = vfs_unmount_deinit();
         //printf("VFS subsystem free status %i\n", err);
         struct vfs_file fil;
-        err = vfs_open( &fil, "/os/.boot.json", O_RDONLY, 0);
+        err = vfs_open(&fil, "/os/.boot.json", O_RDONLY, 0);
         printf("VFS open error %i\n", err);
         char buf[80];
-        err = vfs_read( &fil, buf, sizeof buf);
+        err = vfs_read(&fil, buf, sizeof buf);
         printf("VFS read error %i\n", err);
-        err = vfs_close( &fil );
+        err = vfs_close(&fil);
         printf("VFS close error %i\n", err);
         buf[79] = '\0';
         printf("VFS buf %s\n", buf);
@@ -122,31 +124,34 @@ int main()
         struct vfs_dir dir;
         err = vfs_opendir(&dir, "/user");
         printf("VFS opendir %i\n", err);
-        for(;;) {
+        for (;;)
+        {
             struct dirent ent;
-            err = vfs_readdir(&dir,&ent);
-            if(err) {
+            err = vfs_readdir(&dir, &ent);
+            if (err)
+            {
                 printf("VFS readdir error %i\n", err);
             }
-            if( ent.d_name[0] == '\0') {
+            if (ent.d_name[0] == '\0')
+            {
                 break;
             }
-            printf("Name %s size %u dir %i\n", ent.d_name, ent.d_size, ent.d_type==DT_DIR);
+            printf("Name %s size %u dir %i\n", ent.d_name, ent.d_size, ent.d_type == DT_DIR);
         }
         err = vfs_closedir(&dir);
         printf("Closedir error %i\n", err);
 
         // Open mudita OS log
-         err = vfs_open( &fil, "/user/MuditaOS.log", O_RDONLY, 0);
+        err = vfs_open(&fil, "/user/MuditaOS.log", O_RDONLY, 0);
         printf("VFS open error %i\n", err);
-        err = vfs_read( &fil, buf, sizeof buf);
+        err = vfs_read(&fil, buf, sizeof buf);
         printf("VFS read error %i\n", err);
-        err = vfs_close( &fil );
+        err = vfs_close(&fil);
         printf("VFS close error %i\n", err);
         buf[79] = '\0';
         printf("VFS buf log %s\n", buf);
     }
-    if(0)
+    if (0)
     {
         int error = blk_initialize();
         printf("Blk device subsystem init status %i\n", error);
@@ -189,29 +194,34 @@ int main()
         free(ffx);
     }
 #endif
-    if(0) {
+    if (0)
+    {
         struct lfs_config cfg = {};
         lfs_t lfs = {};
-        int err = vfs_lfs_append_volume(blk_disk_handle(blkdev_emmc_user,3),  &cfg);
+        int err = vfs_lfs_append_volume(blk_disk_handle(blkdev_emmc_user, 3), &cfg);
         printf("LFS init status %i\n", err);
-        if( err ) {
+        if (err)
+        {
             return EXIT_FAILURE;
         }
         err = lfs_mount(&lfs, &cfg);
-        char scpath[LFS_NAME_MAX+1] = "/";
+        char scpath[LFS_NAME_MAX + 1] = "/";
         printf("LFS mount status %i\n", err);
-        err = lfs_scan_files(&lfs,scpath);
+        err = lfs_scan_files(&lfs, scpath);
         printf("Scan finished file error %i\n", err);
         err = lfs_unmount(&lfs);
         printf("LFS unmount status %i\n", err);
         vfs_lfs_remove_volume(&cfg);
     }
-   for(;;) {}
-    for(;;) {
+    for (;;)
+    {
+    }
+    for (;;)
+    {
         kbd_event_t kevt;
-        int err = kbd_read_key( &kevt );
+        int err = kbd_read_key(&kevt);
         printf("jiffiess %lu kbdcode %i evttype %i err %i\n",
-            get_jiffiess(), kevt.key, kevt.event, err );
+               get_jiffiess(), kevt.key, kevt.event, err);
         msleep(1000);
     }
     return 0;
