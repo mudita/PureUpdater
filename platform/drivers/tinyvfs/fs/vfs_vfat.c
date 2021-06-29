@@ -171,6 +171,7 @@ static const char *path_translate(const char *path, const struct vfs_mount *mp)
 static void _free_clean_up_str(const char **str)
 {
 	free((void *)*str);
+	*str = NULL;
 }
 
 #define AUTO_PATH(var) const char *var __attribute__((__cleanup__(_free_clean_up_str)))
