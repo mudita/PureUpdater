@@ -12,6 +12,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <dirent.h>
+#include <errno.h>
 
 #if 0
 static FRESULT scan_files (
@@ -130,6 +131,22 @@ int main()
         }
         err = fclose(file);
         printf("Fclose result %i\n", err);
+
+        DIR *dir = opendir("/os");
+        printf("Open dir status %p errno %i\n", dir, errno);
+        if (!dir)
+        {
+            for (;;)
+            {
+            }
+        }
+        struct dirent *dent;
+        while ((dent = readdir(dir)) != NULL)
+        {
+            printf("[%s]\n", dent->d_name);
+        }
+        err = closedir(dir);
+        printf("closedir result %i\n", err);
         for (;;)
         {
         }
@@ -146,9 +163,11 @@ int main()
         int err = vfs_mount_init(fstab, sizeof fstab);
         printf("VFS subsystem init status %i\n", err);
         if (err)
+        {
             for (;;)
             {
-            };
+            }
+        }
         // Try single file on a partition
 
         //msleep(5000);
