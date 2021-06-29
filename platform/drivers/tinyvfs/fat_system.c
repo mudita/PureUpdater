@@ -2,12 +2,12 @@
  */
 #include <stdlib.h>
 
-void* ff_memalloc( size_t n )
+void *ff_memalloc(size_t n)
 {
     return malloc(n);
 }
 
-void ff_memfree( void * ptr )
+void ff_memfree(void *ptr)
 {
     free(ptr);
 }

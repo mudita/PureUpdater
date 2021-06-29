@@ -11,7 +11,8 @@ struct statvfs;
 struct dirent;
 
 //! Device filesystem operation structure
-struct vfs_filesystem_ops {
+struct vfs_filesystem_ops
+{
     // File operations
     int (*open)(struct vfs_file *filp, const char *fs_path, int flags, int mode);
     ssize_t (*read)(struct vfs_file *filp, void *dest, size_t nbytes);

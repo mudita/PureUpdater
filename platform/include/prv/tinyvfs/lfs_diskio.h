@@ -2,7 +2,6 @@
  */
 #pragma once
 
-
 struct lfs_config;
 
 /** Append volume to the selected partition block
@@ -10,7 +9,7 @@ struct lfs_config;
  * @param[out] lfsc Block configuration structure
  * @return Error code on success otherwise error
  */
-int vfs_lfs_append_volume( int blkdev, struct lfs_config* lfsc );
+int vfs_lfs_append_volume(int blkdev, struct lfs_config *lfsc);
 
 /** Remove volume from the LFS and destroy 
  * the context

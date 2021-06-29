@@ -21,36 +21,39 @@ struct stat;
 struct statvfs;
 
 //! Filesystem type
-typedef enum vfs_filesystem_type {
+typedef enum vfs_filesystem_type
+{
     vfs_fs_fat,
     vfs_fs_littlefs
 } vfs_filesystem_type_t;
 
 //! Tiny VFS mount point
-typedef struct vfs_mount_point_desc {
-    short disk;                     //! Mount the disc 
-    short partition;                //! Partition number on the EMMC disc
-    vfs_filesystem_type_t type;     //! Filesystem type
-    const char* mount_point;        //! Base mount point
+typedef struct vfs_mount_point_desc
+{
+    short disk;                 //! Mount the disc
+    short partition;            //! Partition number on the EMMC disc
+    vfs_filesystem_type_t type; //! Filesystem type
+    const char *mount_point;    //! Base mount point
 } vfs_mount_point_desc_t;
 
 //! Structure representing file
-struct vfs_file {
-    void *filep;       // File pointer
-    const struct vfs_mount *mp;     // VFS mount point
-    int flags;        // Open flags
-    mode_t mode;      // Structure representing mode flags
+struct vfs_file
+{
+    void *filep;                // File pointer
+    const struct vfs_mount *mp; // VFS mount point
+    int flags;                  // Open flags
+    mode_t mode;                // Structure representing mode flags
 };
 
 struct vfs_mount_entry;
 
 //! Structure representing file
-struct vfs_dir {
+struct vfs_dir
+{
     struct vfs_mount_entry *next_mnt; //Directory pointer
-    const struct vfs_mount *mp;   //Mount point
-    void *dirp;                    // Structure directory pointer
+    const struct vfs_mount *mp;       //Mount point
+    void *dirp;                       // Structure directory pointer
 };
-
 
 /** 
  * Initialize the mini virtual file system by the mount points given as an argument
@@ -58,7 +61,7 @@ struct vfs_dir {
  * @param[in] mnt_len  Size of of the mount point table
  * @return Error status
  */
-int vfs_mount_init( const struct vfs_mount_point_desc mnt_desc[], size_t mnt_size );
+int vfs_mount_init(const struct vfs_mount_point_desc mnt_desc[], size_t mnt_size);
 
 /** Uninitialize the virtual filesystem and unmount all mount points
  * @return Error status
@@ -72,7 +75,6 @@ int vfs_unmount_deinit();
  * @return error otherwvise success
  */
 int vfs_register_filesystem(int type, const struct vfs_filesystem_ops *fops);
-
 
 /** Mount filesystem 
  *  Mount the selected filesystem;
@@ -102,7 +104,6 @@ int vfs_close(struct vfs_file *filp);
  */
 
 ssize_t vfs_read(struct vfs_file *filp, void *ptr, size_t size);
-
 
 /** VFS write entry
  * @see man write

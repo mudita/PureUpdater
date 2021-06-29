@@ -12,31 +12,32 @@
 
 #define _DIRENT_HAVE_D_TYPE
 
-#define	DT_UNKNOWN	 0
-#define	DT_FIFO		 1
-#define	DT_CHR		 2
-#define	DT_DIR		 4
-#define	DT_BLK		 6
-#define	DT_REG		 8
-#define	DT_LNK		10
-#define	DT_SOCK		12
-#define	DT_WHT		14
+#define DT_UNKNOWN 0
+#define DT_FIFO 1
+#define DT_CHR 2
+#define DT_DIR 4
+#define DT_BLK 6
+#define DT_REG 8
+#define DT_LNK 10
+#define DT_SOCK 12
+#define DT_WHT 14
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
-	
-	struct dirent {
-		unsigned char  d_type;
-		char	d_name[NAME_MAX+1];
-		size_t 	d_size;		//File size
+
+	struct dirent
+	{
+		unsigned char d_type;
+		char d_name[NAME_MAX + 1];
+		size_t d_size; //File size
 	};
 
 	struct __dirstream;
 #ifndef DIRENT_NO_DIR_STRUCTURE
 	typedef struct __dirstream DIR;
 #endif
-	
 
 #ifdef __cplusplus
 }
