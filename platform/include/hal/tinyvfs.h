@@ -13,6 +13,12 @@
  * };
  * error = vfs_mount_init( fstab, sizeof fstab );
  */
+//! Forward structs
+struct vfs_filesystem_ops;
+struct vfs_mount;
+struct dirent;
+struct stat;
+struct statvfs;
 
 //! Filesystem type
 typedef enum vfs_filesystem_type {
@@ -28,13 +34,24 @@ typedef struct vfs_mount_point_desc {
     const char* mount_point;        //! Base mount point
 } vfs_mount_point_desc_t;
 
-struct vfs_filesystem_ops;
-struct vfs_mount;
-struct vfs_file;
-struct vfs_dir;
-struct dirent;
-struct stat;
-struct statvfs;
+//! Structure representing file
+struct vfs_file {
+    void *filep;       // File pointer
+    const struct vfs_mount *mp;     // VFS mount point
+    int flags;        // Open flags
+    mode_t mode;      // Structure representing mode flags
+};
+
+struct vfs_mount_entry;
+
+//! Structure representing file
+struct vfs_dir {
+    struct vfs_mount_entry *next_mnt; //Directory pointer
+    const struct vfs_mount *mp;   //Mount point
+    void *dirp;                    // Structure directory pointer
+};
+
+
 /** 
  * Initialize the mini virtual file system by the mount points given as an argument
  * @param[in] mnt_desc Mount point table
@@ -72,53 +89,53 @@ int vfs_unmount(struct vfs_mount *mp);
 /** VFS open entry
  * @see man open
  */
-int vfs_open(struct vfs_file *zfp, const char *file_name, int flags, mode_t mode);
+int vfs_open(struct vfs_file *filp, const char *file_name, int flags, mode_t mode);
 
 /** VFS close entry
  * @see man close
  */
 
-int vfs_close(struct vfs_file *zfp);
+int vfs_close(struct vfs_file *filp);
 
 /** VFS read entry
  * @see man read
  */
 
-ssize_t vfs_read(struct vfs_file *zfp, void *ptr, size_t size);
+ssize_t vfs_read(struct vfs_file *filp, void *ptr, size_t size);
 
 
 /** VFS write entry
  * @see man write
  */
-ssize_t vfs_write(struct vfs_file *zfp, const void *ptr, size_t size);
+ssize_t vfs_write(struct vfs_file *filp, const void *ptr, size_t size);
 /** VFS seek entry
  * @see man seek
  */
-ssize_t vfs_seek(struct vfs_file *zfp, off_t offset, int whence);
+ssize_t vfs_seek(struct vfs_file *filp, off_t offset, int whence);
 /** VFS tell entry
  * @see man tell 
  */
-off_t vfs_tell(struct vfs_file *zfp);
+off_t vfs_tell(struct vfs_file *filp);
 /** VFS truncate entry
  * @see man truncate 
  */
-int vfs_truncate(struct vfs_file *zfp, off_t length);
+int vfs_truncate(struct vfs_file *filp, off_t length);
 /** VFS sync entry
  * @see man sync 
  */
-int vfs_sync(struct vfs_file *zfp);
+int vfs_sync(struct vfs_file *filp);
 /** VFS opendir entry
  * @see man opendir 
  */
-int vfs_opendir(struct vfs_dir *zdp, const char *abs_path);
+int vfs_opendir(struct vfs_dir *dirp, const char *abs_path);
 /** VFS readdir entry
  * @see man readdir 
  */
-int vfs_readdir(struct vfs_dir *zdp, struct dirent *entry);
+int vfs_readdir(struct vfs_dir *dirp, struct dirent *entry);
 /** VFS readdir entry
  * @see man close dir 
  */
-int vfs_closedir(struct vfs_dir *zdp);
+int vfs_closedir(struct vfs_dir *dirp);
 
 /** VFS make directory
  * @see man mkdir

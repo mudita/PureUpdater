@@ -174,7 +174,7 @@ static int ffat_open(struct vfs_file *filp, const char *file_name, int flags, in
 	uint8_t fs_mode;
 	void *ptr;
 
-	if ((ptr=calloc(1,sizeof(struct vfs_file)))) {
+	if ((ptr=calloc(1,sizeof(FIL)))) {
 		filp->filep = ptr;
 	} else {
 		return -ENOMEM;

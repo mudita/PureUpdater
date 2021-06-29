@@ -9,6 +9,8 @@
 #include <lfs.h>
 #include <prv/tinyvfs/lfs_diskio.h>
 #include <hal/tinyvfs.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 static FRESULT scan_files (
     char* path        /* Start node to be scanned (***also used as work area***) */
@@ -94,10 +96,24 @@ int main()
         printf("Before device init\n");
         int err = vfs_mount_init( fstab, sizeof fstab);
         printf("VFS subsystem init status %i\n", err);
-        msleep(5000);
-        printf("Before device free\n");
-        err = vfs_unmount_deinit();
-        printf("VFS subsystem free status %i\n", err);
+        if(err) for(;;) {};
+        // Try single file on a partition
+
+
+        //msleep(5000);
+        //printf("Before device free\n");
+        //err = vfs_unmount_deinit();
+        //printf("VFS subsystem free status %i\n", err);
+        struct vfs_file fil;
+        err = vfs_open( &fil, "/os/.boot.json", O_RDONLY, 0);
+        printf("VFS open error %i\n", err);
+        char buf[80];
+        err = vfs_read( &fil, buf, sizeof buf);
+        printf("VFS read error %i\n", err);
+        err = vfs_close( &fil );
+        printf("VFS close error %i\n", err);
+        buf[79] = '\0';
+        printf("VFS buf %s\n", buf);
     }
     if(0)
     {
