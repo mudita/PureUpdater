@@ -90,8 +90,53 @@ int main()
     eink_log("Dzien dobry to moj log", false);
     eink_log("A to kolejna linia", false);
     eink_log_refresh();
-    // Block device system initalize
+
+    // Testing internal sysscalls really naive version
     if (1)
+    {
+        static const vfs_mount_point_desc_t fstab[] = {
+            {.disk = blkdev_emmc_user, .partition = 1, .type = vfs_fs_fat, "/os"},
+            {.disk = blkdev_emmc_user, .partition = 3, .type = vfs_fs_littlefs, "/user"},
+        };
+        printf("Before device init\n");
+        int err = vfs_mount_init(fstab, sizeof fstab);
+        printf("VFS subsystem init status %i\n", err);
+        if (err)
+        {
+            for (;;)
+            {
+            };
+        }
+        FILE *file = fopen("/os/.boot.json", "r");
+        printf("Fopen handle %p\n", file);
+        if (!file)
+        {
+            for (;;)
+            {
+            }
+        }
+        // Rozmiar pliku
+        err = fseek(file, 0, SEEK_END);
+        printf("Fseek result %i\n", err);
+        long size = ftell(file);
+        printf("ftell result %li\n", size);
+        err = fseek(file, 0, SEEK_SET);
+        printf("Fseek2 result %i\n", err);
+
+        char line[512];
+        while (fgets(line, sizeof line, file))
+        {
+            printf("Line [%s]\n", line);
+        }
+        err = fclose(file);
+        printf("Fclose result %i\n", err);
+        for (;;)
+        {
+        }
+    }
+
+    // Block device system initalize
+    if (0)
     { // Filesystem test mount
         static const vfs_mount_point_desc_t fstab[] = {
             {.disk = blkdev_emmc_user, .partition = 1, .type = vfs_fs_fat, "/os"},

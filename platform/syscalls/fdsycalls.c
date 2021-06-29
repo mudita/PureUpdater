@@ -25,8 +25,8 @@ int _open(const char *file, int flags, int mode)
         errno = EMFILE;
         return hwid;
     }
+    file_handles[hwid] = calloc(1, sizeof(struct vfs_file));
     struct vfs_file *fil = file_handles[hwid];
-    fil = calloc(1, sizeof(struct vfs_file));
     if (!fil)
     {
         errno = ENOMEM;
@@ -157,7 +157,7 @@ int _lseek(int fd, int pos, int dir)
         errno = -err;
         err = -1;
     }
-    return -1;
+    return err;
 }
 
 int fsync(int fd)
