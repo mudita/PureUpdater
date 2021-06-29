@@ -69,7 +69,6 @@ __initialize_args(int *p_argc, char ***p_argv)
 
   *p_argc = 1;
   *p_argv = &argv[0];
-  return;
 }
 
 // These functions are defined here to avoid linker errors in freestanding
@@ -85,8 +84,6 @@ raise(int sig __attribute__((unused)))
   errno = ENOSYS;
   return -1;
 }
-
-int kill(pid_t pid, int sig);
 
 __attribute__((weak)) int
 kill(pid_t pid __attribute__((unused)), int sig __attribute__((unused)))
