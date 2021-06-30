@@ -6,4 +6,4 @@
 	url = https://github.com/littlefs-project/littlefs.git
 [submodule "thirdparty/seatest/src"]
 	path = thirdparty/seatest/src
-	url = https://github.com/keithn/seatest.git
+	url = ../seatest
