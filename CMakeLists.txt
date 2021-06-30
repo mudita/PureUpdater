@@ -21,7 +21,8 @@ target_compile_features(${CMAKE_PROJECT_NAME} PRIVATE
 add_compile_options( "-Werror" )
 
 
-target_compile_options( ${CMAKE_PROJECT_NAME} PRIVATE -Wall -Wextra -Wno-unused)
+target_compile_options( ${CMAKE_PROJECT_NAME} PRIVATE -Wall -Wextra)
+
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS  
     "updater/*.c*"
 )

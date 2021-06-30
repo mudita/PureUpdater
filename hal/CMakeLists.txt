@@ -22,3 +22,9 @@ target_include_directories( ${LIB_NAME}
 PUBLIC
     include
 )
+
+target_compile_options( ${LIB_NAME} PRIVATE
+    -Wall
+    -Wextra
+    -Wno-unused
+)
