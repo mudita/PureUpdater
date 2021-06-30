@@ -33,9 +33,9 @@ target_sources( ${CMAKE_PROJECT_NAME} PRIVATE ${SRC_FILES} )
 # Libraries
 target_link_libraries( ${CMAKE_PROJECT_NAME} 
     PRIVATE 
-    hal
     system
     system-runtime-objs 
+    hal
 )
 
 
