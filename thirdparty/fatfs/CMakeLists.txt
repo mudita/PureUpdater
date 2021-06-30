@@ -15,3 +15,9 @@ target_include_directories(
     PUBLIC
     include
 )
+
+target_link_libraries(
+    fatfs
+    PRIVATE
+    system
+)

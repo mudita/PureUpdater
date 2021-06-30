@@ -58,43 +58,6 @@ static int lfs_to_errno(int error)
 	}
 }
 
-static int errno_to_lfs(int error)
-{
-	if (error >= 0)
-	{
-		return LFS_ERR_OK;
-	}
-
-	switch (error)
-	{
-	default:
-	case -EIO: /* Error during device operation */
-		return LFS_ERR_IO;
-	case -EFAULT: /* Corrupted */
-		return LFS_ERR_CORRUPT;
-	case -ENOENT: /* No directory entry */
-		return LFS_ERR_NOENT;
-	case -EEXIST: /* Entry already exists */
-		return LFS_ERR_EXIST;
-	case -ENOTDIR: /* Entry is not a dir */
-		return LFS_ERR_NOTDIR;
-	case -EISDIR: /* Entry is a dir */
-		return LFS_ERR_ISDIR;
-	case -ENOTEMPTY: /* Dir is not empty */
-		return LFS_ERR_NOTEMPTY;
-	case -EBADF: /* Bad file number */
-		return LFS_ERR_BADF;
-	case -EFBIG: /* File too large */
-		return LFS_ERR_FBIG;
-	case -EINVAL: /* Invalid parameter */
-		return LFS_ERR_INVAL;
-	case -ENOSPC: /* No space left on device */
-		return LFS_ERR_NOSPC;
-	case -ENOMEM: /* No more memory available */
-		return LFS_ERR_NOMEM;
-	}
-}
-
 static int translate_flags(unsigned flags)
 {
 	int lfs_mode = 0;
@@ -145,7 +108,6 @@ static const char *strip_prefix(const char *path, const struct vfs_mount *mp)
 static int dlfs_open(struct vfs_file *fp, const char *path, int flags, int mode)
 {
 	struct dlfs_ctx *fs = fp->mp->fs_data;
-	struct lfs *lfs = &fs->lfs;
 	VFS_UNUSED(mode);
 	fp->filep = calloc(1, sizeof(lfs_file_t));
 	if (!fp->filep)

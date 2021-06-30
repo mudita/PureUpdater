@@ -45,7 +45,7 @@ static const struct vfs_filesystem_ops *fs_type_get(vfs_filesystem_type_t type)
 
 static int fs_get_mnt_point(struct vfs_mount **mnt_pntp, const char *name, size_t *match_len)
 {
-	struct vfs_mount *mnt_p = NULL, *itr;
+	struct vfs_mount *mnt_p = NULL;
 	size_t longest_match = 0;
 	size_t len, name_len = strlen(name);
 	for (struct vfs_mount_entry *e = ctx.fopsl; e; e = e->next)
@@ -131,7 +131,6 @@ void vfs_unregister_all_filesystems(void)
 
 int vfs_mount(struct vfs_mount *mp, int device)
 {
-	struct fs_mount_t *itr;
 	const struct vfs_filesystem_ops *fs;
 	size_t len = 0;
 

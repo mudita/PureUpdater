@@ -7,7 +7,6 @@
 
 //! MBR partition constants
 static const size_t mbr_signature_offs = 0x1FE;
-static const size_t mbr_ptbl_offs = 0x1BE;
 static const size_t mbr_ptbl_active = 0x000;
 static const size_t mbr_ptbl_type = 0x004;
 static const size_t mbr_ptbl_sect_cnt = 0x00c;
@@ -17,8 +16,6 @@ static const size_t ptbl_size = 16;
 static const size_t ext_part = 0x05;
 static const size_t ext_linux_part = 0x85;
 static const size_t ext_win98_part = 0x0f;
-static const size_t reserved_sect = 0x00e;
-static const size_t number_of_fats = 0x010;
 static const size_t num_parts = 4;
 static const size_t min_sector_size = 512;
 

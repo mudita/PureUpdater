@@ -13,12 +13,11 @@
 #include <hal/delay.h>
 #include <boot/board.h>
 
-#define EINK_LINE_LEN   (BOARD_EINK_DISPLAY_RES_X / 17 - 2)
-#define EINK_MAX_LINES  (BOARD_EINK_DISPLAY_RES_Y / 24)
+#define EINK_LINE_LEN (BOARD_EINK_DISPLAY_RES_X / 17 - 2)
+#define EINK_MAX_LINES (BOARD_EINK_DISPLAY_RES_Y / 24)
 
-static unsigned char eink_bmp_buf[2 + (BOARD_EINK_DISPLAY_RES_X*BOARD_EINK_DISPLAY_RES_Y/8)];
+static unsigned char eink_bmp_buf[2 + (BOARD_EINK_DISPLAY_RES_X * BOARD_EINK_DISPLAY_RES_Y / 8)];
 static char eink_text_buf[EINK_MAX_LINES][EINK_LINE_LEN + 1];
-static int eink_num_lines;     // Number of lines currently in buffer
 
 /**
  * @brief  Draws a character on LCD.
@@ -30,49 +29,49 @@ static void draw_char(uint16_t xpos, uint16_t ypos, const uint8_t *c)
 {
     uint32_t i = 0, j = 0;
     uint16_t height, width;
-    uint8_t  offset;
-    uint8_t  *pchar;
+    uint8_t offset;
+    uint8_t *pchar;
     uint32_t line;
-    const eink_font_t* fnt = eink_get_font();
+    const eink_font_t *fnt = eink_get_font();
     height = fnt->height;
-    width  = fnt->width;
+    width = fnt->width;
 
-    offset =  8 *((width + 7)/8) -  width ;
+    offset = 8 * ((width + 7) / 8) - width;
 
-    for(i = 0; i < height; i++)
+    for (i = 0; i < height; i++)
     {
-        pchar = ((uint8_t *)c + (width + 7)/8 * i);
+        pchar = ((uint8_t *)c + (width + 7) / 8 * i);
 
-        switch(((width + 7)/8))
+        switch (((width + 7) / 8))
         {
 
-            case 1:
-                line =  pchar[0];
-                break;
+        case 1:
+            line = pchar[0];
+            break;
 
-            case 2:
-                line =  (pchar[0]<< 8) | pchar[1];
-                break;
+        case 2:
+            line = (pchar[0] << 8) | pchar[1];
+            break;
 
-            case 3:
-            default:
-                line =  (pchar[0]<< 16) | (pchar[1]<< 8) | pchar[2];
-                break;
+        case 3:
+        default:
+            line = (pchar[0] << 16) | (pchar[1] << 8) | pchar[2];
+            break;
         }
 
         for (j = 0; j < width; j++)
         {
             int _byte = ((BOARD_EINK_DISPLAY_RES_X - xpos - j) * BOARD_EINK_DISPLAY_RES_Y + (BOARD_EINK_DISPLAY_RES_Y - ypos)) / 8;
             int _bit = 7 - (((BOARD_EINK_DISPLAY_RES_X - xpos - j) * BOARD_EINK_DISPLAY_RES_Y + (BOARD_EINK_DISPLAY_RES_Y - ypos)) % 8);
-            if(line & (1 << (width- j + offset- 1)))
+            if (line & (1 << (width - j + offset - 1)))
             {
                 //BSP_LCD_DrawPixel((Xpos + j), Ypos, DrawProp[ActiveLayer].TextColor);
-                eink_bmp_buf[2 + _byte] &= ~(1<<_bit);
+                eink_bmp_buf[2 + _byte] &= ~(1 << _bit);
             }
             else
             {
                 //BSP_LCD_DrawPixel((Xpos + j), Ypos, DrawProp[ActiveLayer].BackColor);
-                eink_bmp_buf[2 + _byte] |= (1<<_bit);
+                eink_bmp_buf[2 + _byte] |= (1 << _bit);
             }
         }
         ypos++;
@@ -89,7 +88,7 @@ static void draw_char(uint16_t xpos, uint16_t ypos, const uint8_t *c)
 void eink_display_char(uint16_t Xpos, uint16_t Ypos, uint8_t Ascii)
 {
     const eink_font_t *fnt = eink_get_font();
-    draw_char(Xpos, Ypos, &fnt->table[(Ascii-' ') * fnt->height * ((fnt->width + 7) / 8)]);
+    draw_char(Xpos, Ypos, &fnt->table[(Ascii - ' ') * fnt->height * ((fnt->width + 7) / 8)]);
 }
 
 /**
@@ -107,37 +106,38 @@ void eink_display_string_at(uint16_t xpos, uint16_t ypos, const char *text, eink
 {
     uint16_t refcolumn = 1, i = 0;
     uint32_t size = 0, xsize = 0;
-    const char  *ptr = text;
+    const char *ptr = text;
 
     /* Get the text size */
-    while (*ptr++) size ++ ;
+    while (*ptr++)
+        size++;
 
-    const eink_font_t* fnt = eink_get_font();
+    const eink_font_t *fnt = eink_get_font();
     /* Characters number per line */
-    xsize = (BOARD_EINK_DISPLAY_RES_X/fnt->width);
+    xsize = (BOARD_EINK_DISPLAY_RES_X / fnt->width);
 
     switch (mode)
     {
-        case EINK_CENTER_MODE:
-        {
-            refcolumn = xpos + ((xsize - size)* fnt->width) / 2;
-            break;
-        }
-        case EINK_LEFT_MODE:
-        {
-            refcolumn = xpos;
-            break;
-        }
-        case EINK_RIGHT_MODE:
-        {
-            refcolumn = - xpos + ((xsize - size)*fnt->width);
-            break;
-        }
-        default:
-        {
-            refcolumn = xpos;
-            break;
-        }
+    case EINK_CENTER_MODE:
+    {
+        refcolumn = xpos + ((xsize - size) * fnt->width) / 2;
+        break;
+    }
+    case EINK_LEFT_MODE:
+    {
+        refcolumn = xpos;
+        break;
+    }
+    case EINK_RIGHT_MODE:
+    {
+        refcolumn = -xpos + ((xsize - size) * fnt->width);
+        break;
+    }
+    default:
+    {
+        refcolumn = xpos;
+        break;
+    }
     }
 
     /* Check that the Start column is located in the screen */
@@ -147,7 +147,7 @@ void eink_display_string_at(uint16_t xpos, uint16_t ypos, const char *text, eink
     }
 
     /* Send the string character by character on LCD */
-    while ((*text != 0) & (((BOARD_EINK_DISPLAY_RES_X - (i*fnt->width)) & 0xFFFF) >= fnt->width))
+    while ((*text != 0) & (((BOARD_EINK_DISPLAY_RES_X - (i * fnt->width)) & 0xFFFF) >= fnt->width))
     {
         /* Display one character on LCD */
         eink_display_char(refcolumn, ypos, (uint8_t)*text);
@@ -158,35 +158,36 @@ void eink_display_string_at(uint16_t xpos, uint16_t ypos, const char *text, eink
         text++;
         i++;
     }
-
 }
 
-void eink_refresh_text(uint16_t x, uint16_t y, uint16_t w, uint16_t h) 
+void eink_refresh_text(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
 {
 
     eink_bmp_buf[0] = EinkDataStartTransmission1;
     eink_bmp_buf[1] = 0;
-    EinkDisplayImage (x, y, w, h, eink_bmp_buf);
+    EinkDisplayImage(x, y, w, h, eink_bmp_buf);
 }
 
-void eink_log(const char *text, bool flush) 
+void eink_log(const char *text, bool flush)
 {
     if ((text == NULL) || (text[0] == 0))
         return;
 
     /* Scroll text up */
-    for (int i = (EINK_MAX_LINES - 1); i > 0; --i) {
-        if (eink_text_buf[i-1][0] == 0)
+    for (int i = (EINK_MAX_LINES - 1); i > 0; --i)
+    {
+        if (eink_text_buf[i - 1][0] == 0)
             continue;
         memset(eink_text_buf[i], ' ', EINK_LINE_LEN - 1);
-        strncpy( eink_text_buf[i], eink_text_buf[i-1], EINK_LINE_LEN);
+        strncpy(eink_text_buf[i], eink_text_buf[i - 1], EINK_LINE_LEN);
         eink_text_buf[i][EINK_LINE_LEN] = 0;
     }
 
     memset(eink_text_buf[0], ' ', EINK_LINE_LEN);
     strncpy(eink_text_buf[0], text, EINK_LINE_LEN);
     eink_text_buf[0][EINK_LINE_LEN] = '\0';
-    if(flush) {
+    if (flush)
+    {
         eink_log_refresh();
     }
 }
@@ -203,18 +204,18 @@ void eink_log_refresh()
     eink_refresh_text(0, 0, BOARD_EINK_DISPLAY_RES_Y, BOARD_EINK_DISPLAY_RES_X);
 }
 
-void eink_clear_log(void) 
+void eink_clear_log(void)
 {
     memset(eink_text_buf, 0x00, sizeof(eink_text_buf));
 }
 
-void eink_init(void) 
+void eink_init(void)
 {
     int i;
     //fill white screen table
     eink_bmp_buf[0] = EinkDataStartTransmission1;
     eink_bmp_buf[1] = 0x00;
-    for (i = 0; i < (480*600/8); i++)
+    for (i = 0; i < (480 * 600 / 8); i++)
         eink_bmp_buf[2 + i] = 0xFF;
     EinkInitialize(Eink1Bpp);
 }
