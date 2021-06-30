@@ -108,7 +108,7 @@ function(create_binary_output TARGET TYPE)
     endif()
     set(TARGET_OUT ${TARGET}${CMAKE_EXECUTABLE_SUFFIX_CXX})
     add_custom_target(${TARGET}.${TYPE}
-    ALL DEPENDS ${TARGET} 
+    ${ARGV2} DEPENDS ${TARGET} 
     COMMAND ${CMAKE_OBJCOPY} -O${OBJTYPE} ${TARGET_OUT} ${TARGET}.${TYPE}
     COMMENT "Generating ${TARGET}.${TYPE}"
     )

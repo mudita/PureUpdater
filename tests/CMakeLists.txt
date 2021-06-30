@@ -1,7 +1,7 @@
 # Unit tests on the target platform file
 
 set( TARGET_TEST ${CMAKE_PROJECT_NAME}-test )
-add_executable( ${TARGET_TEST} )
+add_executable( ${TARGET_TEST} EXCLUDE_FROM_ALL)
 
 target_compile_options( ${TARGET_TEST} PRIVATE -Wall -Wextra -Wno-unused)
 
@@ -44,4 +44,5 @@ if (ENABLE_SECURE_BOOT)
     )
 else()
     create_binary_output( ${TARGET_TEST} "bin")
+    add_custom_target( tests  DEPENDS ${TARGET_TEST}.bin)
 endif()

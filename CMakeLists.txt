@@ -60,7 +60,7 @@ if (ENABLE_SECURE_BOOT)
         VERBATIM
     )
 else()
-    create_binary_output( ${CMAKE_PROJECT_NAME} "bin")
+    create_binary_output( ${CMAKE_PROJECT_NAME} "bin" ALL)
 endif()
 
 add_subdirectory( thirdparty )
