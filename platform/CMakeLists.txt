@@ -3,6 +3,10 @@ set( LIB_NAME system )
 
 add_library( ${LIB_NAME} STATIC )
 
+set(LIB_RUNTIME_OBJS ${LIB_NAME}-runtime-objs)
+add_library( ${LIB_RUNTIME_OBJS} OBJECT)
+target_link_libraries( ${LIB_RUNTIME_OBJS} PUBLIC ${LIB_NAME} )
+
 
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS  
     "*.c*"
@@ -15,6 +19,18 @@ target_link_libraries( ${LIB_NAME} PUBLIC
     fatfs
     littlefs
 )
+
+file(GLOB_RECURSE SRC_RUNTIME CONFIGURE_DEPENDS
+    "syscalls/*.c*"
+)
+set( SRC_RUNTIME ${SRC_RUNTIME}
+    "boot/startup_mimxrt1051.c"
+    "boot/system_MIMXRT1051.c"
+    "boot/evkbimxrt1050_sdram_ini_dcd.c"
+)
+
+target_sources( ${LIB_RUNTIME_OBJS} PRIVATE ${SRC_RUNTIME} )
+
 
 # Include directories
 target_include_directories( ${LIB_NAME} PUBLIC

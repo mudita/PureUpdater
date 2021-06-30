@@ -31,7 +31,11 @@ file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS
 target_sources( ${CMAKE_PROJECT_NAME} PRIVATE ${SRC_FILES} )
 
 # Libraries
-target_link_libraries( ${CMAKE_PROJECT_NAME} PRIVATE system)
+target_link_libraries( ${CMAKE_PROJECT_NAME} 
+    PRIVATE 
+    system-runtime-objs 
+    system
+)
 
 
 target_compile_options(
