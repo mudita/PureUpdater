@@ -15,10 +15,9 @@ include(rt1051)
 add_executable(${CMAKE_PROJECT_NAME})
 
 target_compile_features(${CMAKE_PROJECT_NAME} PRIVATE
-    cxx_std_17
-    cxx_noexcept
     c_std_11
 )
+
 add_compile_options( "-Werror" )
 
 
@@ -34,6 +33,7 @@ target_sources( ${CMAKE_PROJECT_NAME} PRIVATE ${SRC_FILES} )
 # Libraries
 target_link_libraries( ${CMAKE_PROJECT_NAME} 
     PRIVATE 
+    hal
     system
     system-runtime-objs 
 )
@@ -63,4 +63,5 @@ endif()
 
 add_subdirectory( thirdparty )
 add_subdirectory( platform )
+add_subdirectory( hal )
 add_subdirectory( tests )

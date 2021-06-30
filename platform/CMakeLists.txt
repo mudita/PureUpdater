@@ -13,12 +13,7 @@ file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS
 )
 
 target_sources( ${LIB_NAME} PRIVATE ${SRC_FILES} )
-
-#Libraries
-target_link_libraries( ${LIB_NAME} PUBLIC
-    fatfs
-    littlefs
-)
+target_link_libraries( ${LIB_NAME} PUBLIC hal )
 
 file(GLOB_RECURSE SRC_RUNTIME CONFIGURE_DEPENDS
     "syscalls/*.c*"
