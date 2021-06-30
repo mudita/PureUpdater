@@ -11,6 +11,8 @@ set(LINKER_SCRIPTS
 )
 include(rt1051)
 
+add_compile_options( "-Werror" )
+
 
 add_executable(${CMAKE_PROJECT_NAME})
 
@@ -18,7 +20,6 @@ target_compile_features(${CMAKE_PROJECT_NAME} PRIVATE
     c_std_11
 )
 
-add_compile_options( "-Werror" )
 
 
 target_compile_options( ${CMAKE_PROJECT_NAME} PRIVATE -Wall -Wextra)

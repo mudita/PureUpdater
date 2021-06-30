@@ -18,7 +18,7 @@ int main()
     eink_clear_log();
     eink_log("Dzien dobry to moj log", false);
     eink_log("A to kolejna linia", false);
-    eink_log("Nowy test", false);
+    eink_log("Nowy test 2", false);
     eink_log_refresh();
 
     // VFS SUBSYSTEM TESTS
