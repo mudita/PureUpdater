@@ -19,9 +19,10 @@ target_compile_features(${CMAKE_PROJECT_NAME} PRIVATE
     cxx_noexcept
     c_std_11
 )
+add_compile_options( "-Werror" )
+
 
 target_compile_options( ${CMAKE_PROJECT_NAME} PRIVATE -Wall -Wextra -Wno-unused)
-
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS  
     "updater/*.c*"
 )
@@ -33,25 +34,12 @@ target_sources( ${CMAKE_PROJECT_NAME} PRIVATE ${SRC_FILES} )
 # Libraries
 target_link_libraries( ${CMAKE_PROJECT_NAME} 
     PRIVATE 
-    system-runtime-objs 
     system
+    system-runtime-objs 
 )
 
-
-target_compile_options(
-    ${CMAKE_PROJECT_NAME} PRIVATE "-Werror"
-)
 
 include(secure-boot)
-
-if (NOT ENABLE_SECURE_BOOT)
-    # Only enable the build-time boot header in a non-secure configuration,
-    # a header for Secure Boot is added post-build when signing the binary
-    target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
-        XIP_BOOT_HEADER_ENABLE=1
-        XIP_BOOT_HEADER_DCD_ENABLE=0
-    )
-endif()
 
 # Create binary format
 print_section_sizes( ${CMAKE_PROJECT_NAME})

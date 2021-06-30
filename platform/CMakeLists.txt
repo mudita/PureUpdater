@@ -27,6 +27,7 @@ set( SRC_RUNTIME ${SRC_RUNTIME}
     "boot/startup_mimxrt1051.c"
     "boot/system_MIMXRT1051.c"
     "boot/evkbimxrt1050_sdram_ini_dcd.c"
+    "boot/evkbimxrt1050_flexspi_nor_config.c"
 )
 
 target_sources( ${LIB_RUNTIME_OBJS} PRIVATE ${SRC_RUNTIME} )
@@ -64,6 +65,17 @@ target_compile_definitions(${LIB_NAME} PUBLIC
     DISABLE_WATCHDOG
 )
 
-target_compile_options(
-    ${LIB_NAME} PRIVATE "-Werror"
-)
+if (NOT ENABLE_SECURE_BOOT)
+    # Only enable the build-time boot header in a non-secure configuration,
+    # a header for Secure Boot is added post-build when signing the binary
+    target_compile_definitions(${LIB_NAME} PUBLIC
+        XIP_BOOT_HEADER_ENABLE=1
+        XIP_BOOT_HEADER_DCD_ENABLE=0
+    )
+endif()
+
+
+
+#target_compile_options(
+#    ${LIB_RUNTIME_OBJS} PRIVATE "-Werror"
+#)
