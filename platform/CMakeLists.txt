@@ -17,13 +17,9 @@ target_link_libraries( ${LIB_NAME} PUBLIC hal )
 
 file(GLOB_RECURSE SRC_RUNTIME CONFIGURE_DEPENDS
     "syscalls/*.c*"
+    "boot/*.c"
 )
-set( SRC_RUNTIME ${SRC_RUNTIME}
-    "boot/startup_mimxrt1051.c"
-    "boot/evkbimxrt1050_sdram_ini_dcd.c"
-    "boot/evkbimxrt1050_flexspi_nor_config.c"
-    "boot/fsl_flexspi_nor_boot.c"
-)
+
 
 target_sources( ${LIB_RUNTIME_OBJS} PRIVATE ${SRC_RUNTIME} )
 
