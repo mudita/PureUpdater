@@ -24,6 +24,8 @@ int main(void)
     // Eink welcome message
     eink_clear_log();
     eink_log("Updater test framework", false);
+    eink_log("Unit tests started", false);
+    eink_log("Please wait...", false);
     eink_log_refresh();
 
     // fstab filesystem mounts
@@ -38,13 +40,17 @@ int main(void)
         printf("Failed to initialize VFS errno %i\n", err);
     }
     err = run_tests(all_tests);
-    printf("Run tests result %i\n", err);
+    {
+        char buf[32];
+        snprintf(buf, sizeof buf, "Finished with code %i", err);
+        eink_log(buf, false);
+        eink_log_refresh();
+    }
     err = vfs_unmount_deinit();
     if (err)
     {
         printf("Failed to umount VFS data errno %i\n", err);
     }
-    printf("Program exited\n");
     msleep(5000);
     return 0;
 }
