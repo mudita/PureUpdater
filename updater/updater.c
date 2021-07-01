@@ -18,7 +18,7 @@ int main()
     eink_clear_log();
     eink_log("Dzien dobry to moj log", false);
     eink_log("A to kolejna linia", false);
-    eink_log("Nowy test 3", false);
+    eink_log("Nowy test 4", false);
     eink_log_refresh();
 
     // VFS SUBSYSTEM TESTS
@@ -80,11 +80,8 @@ int main()
     printf("Before device free\n");
     err = vfs_unmount_deinit();
     printf("VFS subsystem free status %i\n", err);
-
-    // Infinite loop test only
-    for (;;)
-    {
-    }
+    msleep(5000);
+    return 0;
 
     // Main loop read keys etc
     for (;;)

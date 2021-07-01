@@ -441,8 +441,9 @@ extern "C"
 #if defined(__REDLIB__)
     extern void __main(void);
 #endif
-    extern int main(void);
+    extern int main(int argc, char **argv);
     extern int unit_tests_main(void);
+    extern void _exit(int);
 
     //*****************************************************************************
     // External declaration for the pointer to the stack top from the Linker Script
@@ -747,7 +748,8 @@ __attribute__((section(".after_vectors.reset"))) void ResetISR(void)
 #elif PROJECT_CONFIG_UNIT_TESTS_BUILD == 1
     unit_tests_main();
 #else
-    main();
+    static char *main_argv[2] = {"update.bin", 0};
+    _exit(main(1, main_argv));
 #endif
 
     //

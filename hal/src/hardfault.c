@@ -46,14 +46,14 @@ static void crash(enum fail_mode mode, uintptr_t *sp)
     stacked_pc = ((unsigned long)sp[6]);
     stacked_psr = ((unsigned long)sp[7]);
 
-    printf("\n\n[Hard fault handler in %s mode]\n", mode == FAIL_USER ? "User" : "System");
+    printf("\n\n**** [Hard fault handler in the %s mode] ****\n", mode == FAIL_USER ? "user" : "system");
     printf("R0 = %08x\n", stacked_r0);
     printf("R1 = %08x\n", stacked_r1);
     printf("R2 = %08x\n", stacked_r2);
     printf("R3 = %08x\n", stacked_r3);
     printf("R12 = %08x\n", stacked_r12);
-    printf("LR [R14] = %08x  subroutine call return address\n", stacked_lr);
-    printf("PC [R15] = %08x  program counter\n", stacked_pc);
+    printf("LR [R14] = %08x\n", stacked_lr);
+    printf("PC [R15] = %08x\n", stacked_pc);
     printf("PSR = %08x\n", stacked_psr);
     printf("BFAR = %08x\n", (*((volatile uintptr_t *)(0xE000ED38))));
     printf("CFSR = %08x\n", (*((volatile uintptr_t *)(0xE000ED28))));
