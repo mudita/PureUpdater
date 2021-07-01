@@ -31,7 +31,7 @@ DIR *opendir(const char *dirname)
     if (err < 0)
     {
         free(ret);
-        errno = EIO;
+        errno = -err;
         ret = NULL;
     }
     else

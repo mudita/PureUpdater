@@ -1,6 +1,7 @@
 #include <prv/tinyvfs/vfs_device.h>
 #include <prv/tinyvfs/vfs_priv_data.h>
 #include <hal/tinyvfs.h>
+#include <sys/_default_fcntl.h>
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -400,7 +401,7 @@ off_t vfs_tell(struct vfs_file *filp)
 	return err;
 }
 
-int vfs_truncate(struct vfs_file *filp, off_t length)
+int vfs_ftruncate(struct vfs_file *filp, off_t length)
 {
 	int err = -EINVAL;
 	if (filp->mp == NULL)
@@ -416,6 +417,19 @@ int vfs_truncate(struct vfs_file *filp, off_t length)
 		}
 	}
 	return err;
+}
+
+int vfs_truncate(const char *abs_path, off_t length)
+{
+	struct vfs_file fil;
+	int err = vfs_open(&fil, abs_path, O_WRONLY | O_CREAT, 0);
+	if (err)
+	{
+		return err;
+	}
+	err = vfs_ftruncate(&fil, length);
+	int err2 = vfs_close(&fil);
+	return (err) ? (err) : (err2);
 }
 
 int vfs_sync(struct vfs_file *filp)

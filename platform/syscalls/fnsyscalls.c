@@ -67,3 +67,13 @@ int statvfs(const char *path, struct statvfs *buf)
     }
     return err;
 }
+int truncate(const char *path, off_t length)
+{
+    int err = vfs_truncate(path, length);
+    if (err < 0)
+    {
+        errno = -err;
+        err = -1;
+    }
+    return err;
+}

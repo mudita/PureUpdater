@@ -414,7 +414,7 @@ static int ffat_opendir(struct vfs_dir *dirp, const char *path)
 {
 	FRESULT res;
 	void *ptr;
-	if ((ptr = calloc(1, sizeof(struct vfs_dir))))
+	if ((ptr = calloc(1, sizeof(DIR))))
 	{
 		dirp->dirp = ptr;
 	}

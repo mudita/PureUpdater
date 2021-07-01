@@ -122,9 +122,9 @@ ssize_t vfs_seek(struct vfs_file *filp, off_t offset, int whence);
  */
 off_t vfs_tell(struct vfs_file *filp);
 /** VFS truncate entry
- * @see man truncate 
+ * @see man ftruncate 
  */
-int vfs_truncate(struct vfs_file *filp, off_t length);
+int vfs_ftruncate(struct vfs_file *filp, off_t length);
 /** VFS sync entry
  * @see man sync 
  */
@@ -166,6 +166,11 @@ int vfs_stat(const char *abs_path, struct stat *entry);
  * @See man chmod
  */
 int vfs_chmod(const char *abs_path, mode_t mode);
+
+/** VFS sync entry
+ * @see man truncate
+ */
+int vfs_truncate(const char *abs_path, off_t length);
 
 /** VFS statvfs
  * @see man statvfs

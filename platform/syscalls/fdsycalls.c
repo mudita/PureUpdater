@@ -183,7 +183,7 @@ int ftruncate(int fd, off_t len)
     {
         return -1;
     }
-    int err = vfs_truncate(fil, len);
+    int err = vfs_ftruncate(fil, len);
     if (err < 0)
     {
         errno = -err;
