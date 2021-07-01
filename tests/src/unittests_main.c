@@ -10,39 +10,17 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <seatest/seatest.h>
+#include "test_suite_vfs.h"
 
-void test_hello_world()
+static void all_tests(void)
 {
-    char *s = "hello world!";
-    assert_string_equal("hello world!", s);
-    assert_string_contains("hello", s);
-    assert_string_doesnt_contain("goodbye", s);
-    assert_string_ends_with("!", s);
-    assert_string_starts_with("hell", s);
-}
-
-//
-// put the test into a fixture...
-//
-void test_fixture_hello(void)
-{
-    test_fixture_start();
-    run_test(test_hello_world);
-    test_fixture_end();
-}
-
-//
-// put the fixture into a suite...
-//
-void all_tests(void)
-{
-    test_fixture_hello();
+    test_fixture_vfs();
 }
 
 int main(void)
 {
     // System initialize
-    sysinit_setup();
+    system_initialize();
     // Eink welcome message
     eink_clear_log();
     eink_log("Updater test framework", false);
