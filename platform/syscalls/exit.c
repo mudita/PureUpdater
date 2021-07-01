@@ -28,21 +28,22 @@
 // ----------------------------------------------------------------------------
 
 #include <stdlib.h>
+#include <stdio.h>
+#include <fsl_common.h>
 
 // ----------------------------------------------------------------------------
 
 #if !defined(DEBUG)
 extern void
-__attribute__((noreturn))
-__reset_hardware(void);
+    __attribute__((noreturn))
+    __reset_hardware(void);
 #endif
 
 // ----------------------------------------------------------------------------
 
 // Forward declaration
 
-void
-_exit(int code);
+void _exit(int code);
 
 // ----------------------------------------------------------------------------
 
@@ -56,37 +57,39 @@ _exit(int code);
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
 
-void
-__attribute__((weak))
-_exit(int code __attribute__((unused)))
+void _exit(int code)
 {
-#if !defined(DEBUG)
-  __reset_hardware();
+    printf("***** FATAL: Exit called with arg %i *****\n", code);
+#ifndef DEBUG
+    for (volatile uint32_t i = 0; i < 100000000; ++i)
+    {
+    }
+    NVIC_SystemReset();
 #endif
-
-  // TODO: write on trace
-  while (1)
-  {
-      //terminal_abort_flush();
-      //__BKPT();
-  }
+    while (1)
+    {
+    }
 }
 
-// ----------------------------------------------------------------------------
-void
-__attribute__((weak))
-abort(void)
+void exit(int code)
 {
-#if !defined(DEBUG)
-  __reset_hardware();
+    _exit(code);
+    for (;;)
+        ;
+}
+// ----------------------------------------------------------------------------
+void abort(void)
+{
+    printf("***** FATAL: Abort called *****\n");
+#ifndef DEBUG
+    for (volatile uint32_t i = 0; i < 100000000; ++i)
+    {
+    }
+    NVIC_SystemReset();
 #endif
-
-  // TODO: write on trace
-  while (1)
-  {
-      //terminal_abort_flush();
-      //__BKPT();
-  }
+    while (1)
+    {
+    }
 }
 #pragma GCC diagnostic pop
 

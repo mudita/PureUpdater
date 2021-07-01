@@ -64,8 +64,8 @@ extern "C"
 #endif
 #endif
 
-#define WEAK     __attribute__((weak))
-#define WEAK_AV  __attribute__((weak, section(".after_vectors")))
+#define WEAK __attribute__((weak))
+#define WEAK_AV __attribute__((weak, section(".after_vectors")))
 #define ALIAS(f) __attribute__((weak, alias(#f)))
 
 //*****************************************************************************
@@ -91,7 +91,7 @@ extern "C"
     //*****************************************************************************
     void ResetISR(void);
     WEAK void NMI_Handler(void);
-    WEAK void HardFault_Handler(void);
+    void HardFault_Handler(void);
     WEAK void SVC_Handler(void);
     WEAK void PendSV_Handler(void);
     WEAK void SysTick_Handler(void);
@@ -453,7 +453,6 @@ extern "C"
 } // extern "C"
 #endif
 
-
 //*****************************************************************************
 // The vector table.
 // This relies on the linker script to place at correct location in memory.
@@ -654,7 +653,7 @@ __attribute__((section(".after_vectors.init_data"))) void data_init(unsigned int
                                                                     unsigned int len)
 {
     unsigned int *pulDest = (unsigned int *)start;
-    unsigned int *pulSrc  = (unsigned int *)romstart;
+    unsigned int *pulSrc = (unsigned int *)romstart;
     unsigned int loop;
     for (loop = 0; loop < len; loop = loop + 4)
         *pulDest++ = *pulSrc++;
@@ -696,7 +695,6 @@ __attribute__((section(".after_vectors.reset"))) void ResetISR(void)
     // Disable interrupts
     __asm volatile("cpsid i");
 
-
     // Adjust MSP pointer according to the Vector table
     __set_MSP((uintptr_t)g_pfnVectors[0]);
     __DSB();
@@ -705,7 +703,6 @@ __attribute__((section(".after_vectors.reset"))) void ResetISR(void)
     // System Init
     SystemInit();
 
-
     unsigned int LoadAddr, ExeAddr, SectionLen;
     unsigned int *SectionTableAddr;
 
@@ -713,11 +710,13 @@ __attribute__((section(".after_vectors.reset"))) void ResetISR(void)
     SectionTableAddr = &__data_section_table;
 
     // Copy the data sections from flash to SRAM.
-    while (SectionTableAddr < &__data_section_table_end) {
-        LoadAddr   = *SectionTableAddr++;
-        ExeAddr    = *SectionTableAddr++;
+    while (SectionTableAddr < &__data_section_table_end)
+    {
+        LoadAddr = *SectionTableAddr++;
+        ExeAddr = *SectionTableAddr++;
         SectionLen = *SectionTableAddr++;
-        if (LoadAddr != ExeAddr) {
+        if (LoadAddr != ExeAddr)
+        {
             data_init(LoadAddr, ExeAddr, SectionLen);
         }
     }
@@ -725,8 +724,9 @@ __attribute__((section(".after_vectors.reset"))) void ResetISR(void)
     // Initialize BSS section
     SectionTableAddr = &__bss_section_table;
     // Zero fill the bss segment
-    while (SectionTableAddr < &__bss_section_table_end) {
-        ExeAddr    = *SectionTableAddr++;
+    while (SectionTableAddr < &__bss_section_table_end)
+    {
+        ExeAddr = *SectionTableAddr++;
         SectionLen = *SectionTableAddr++;
         bss_init(ExeAddr, SectionLen);
     }
@@ -753,7 +753,8 @@ __attribute__((section(".after_vectors.reset"))) void ResetISR(void)
     //
     // main() shouldn't return, but if it does, we'll just enter an infinite loop
     //
-    while (1) {
+    while (1)
+    {
         ;
     }
 }
@@ -764,22 +765,30 @@ __attribute__((section(".after_vectors.reset"))) void ResetISR(void)
 //*****************************************************************************
 WEAK_AV void NMI_Handler(void)
 {
-    while (1) {}
+    while (1)
+    {
+    }
 }
 
 WEAK_AV void SVC_Handler(void)
 {
-    while (1) {}
+    while (1)
+    {
+    }
 }
 
 WEAK_AV void PendSV_Handler(void)
 {
-    while (1) {}
+    while (1)
+    {
+    }
 }
 
 WEAK_AV void SysTick_Handler(void)
 {
-    while (1) {}
+    while (1)
+    {
+    }
 }
 
 //*****************************************************************************
@@ -788,7 +797,9 @@ WEAK_AV void SysTick_Handler(void)
 //*****************************************************************************
 WEAK_AV void IntDefaultHandler(void)
 {
-    while (1) {}
+    while (1)
+    {
+    }
 }
 
 //*****************************************************************************

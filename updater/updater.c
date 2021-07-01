@@ -13,7 +13,7 @@
 
 int main()
 { // System initialize
-    sysinit_setup();
+    system_initialize();
     // Try to initialize EINK
     eink_clear_log();
     eink_log("Dzien dobry to moj log", false);

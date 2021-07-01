@@ -14,11 +14,10 @@
 
 void PrintSystemClocks();
 
-static struct hal_i2c_dev i2c_gen = {.base = (uintptr_t)BOARD_KEYBOARD_I2C_BASEADDR, .initialized = false };
-
+static struct hal_i2c_dev i2c_gen = {.base = (uintptr_t)BOARD_KEYBOARD_I2C_BASEADDR, .initialized = false};
 
 /** Initialize basic system setup */
-void sysinit_setup(void)
+void system_initialize(void)
 {
     BOARD_InitBootloaderPins();
     RTWDOG_Disable(RTWDOG);
@@ -30,29 +29,37 @@ void sysinit_setup(void)
     //TODO temporary
     //PrintSystemClocks();
     // Initialize emmc card
-    if( emmc_init() ) {
+    if (emmc_init())
+    {
         printf("Fatal: Unable to init EMMC card\n");
     }
     //Initialize Eink display
     eink_init();
     // Initialize the I2c controller
-    if(!get_i2c_controller()) {
-        printf( "Unable to intialize i2c device %i\n", i2c_gen.error);
+    if (!get_i2c_controller())
+    {
+        printf("Unable to intialize i2c device %i\n", i2c_gen.error);
     }
-    if( kbd_init() ) {
+    if (kbd_init())
+    {
         printf("Unable to initialize keyboard");
     }
 }
 
-
-
 /** Get I2C bus controller */
-struct hal_i2c_dev* get_i2c_controller()
+struct hal_i2c_dev *get_i2c_controller()
 {
-    if( !i2c_gen.initialized ) {
+    if (!i2c_gen.initialized)
+    {
         i2c_gen.error = hal_i2c_init(&i2c_gen, BOARD_KEYBOARD_I2C_CLOCK_FREQ);
-        if( i2c_gen.error != kStatus_Success)
+        if (i2c_gen.error != kStatus_Success)
             i2c_gen.initialized = true;
     }
-    return (i2c_gen.error==kStatus_Success)?(&i2c_gen):(NULL);
+    return (i2c_gen.error == kStatus_Success) ? (&i2c_gen) : (NULL);
+}
+
+/** System reset */
+void system_reset(void)
+{
+    NVIC_SystemReset();
 }
