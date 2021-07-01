@@ -23,7 +23,6 @@ int main(void)
     system_initialize();
     // Eink welcome message
     eink_clear_log();
-    eink_log("Updater test framework", false);
     eink_log("Unit tests started", false);
     eink_log("Please wait...", false);
     eink_log_refresh();
@@ -43,8 +42,7 @@ int main(void)
     {
         char buf[32];
         snprintf(buf, sizeof buf, "Finished with code %i", err);
-        eink_log(buf, false);
-        eink_log_refresh();
+        eink_log(buf, true);
     }
     err = vfs_unmount_deinit();
     if (err)
