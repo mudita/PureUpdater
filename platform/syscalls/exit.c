@@ -59,7 +59,7 @@ void _exit(int code);
 
 void _exit(int code)
 {
-    printf("***** FATAL: Exit called with arg %i *****\n", code);
+    printf("Program terminated by exit with code %i\n", code);
 #ifndef DEBUG
     for (volatile uint32_t i = 0; i < 100000000; ++i)
     {

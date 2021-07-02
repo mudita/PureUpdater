@@ -24,10 +24,10 @@ static void test_basic_file_read_api()
     }
     else
     {
-        assert_int_equal(ftell(file), 0);
-        assert_int_equal(fseek(file, 0, SEEK_END), 0);
+        assert_int_equal(0, ftell(file));
+        assert_int_equal(0, fseek(file, 0, SEEK_END));
         assert_true(ftell(file) > 100);
-        assert_int_equal(fclose(file), 0);
+        assert_int_equal(0, fclose(file));
     }
     // Try the second littlefs partition
     file = fopen("/user/db/contacts_001.sql", "r");
@@ -38,10 +38,10 @@ static void test_basic_file_read_api()
     }
     else
     {
-        assert_int_equal(ftell(file), 0);
-        assert_int_equal(fseek(file, 0, SEEK_END), 0);
+        assert_int_equal(0, ftell(file));
+        assert_int_equal(0, fseek(file, 0, SEEK_END));
         assert_true(ftell(file) > 100);
-        assert_int_equal(fclose(file), 0);
+        assert_int_equal(0, fclose(file));
     }
 }
 
@@ -68,11 +68,10 @@ static void test_basic_write_files(void)
         }
         else
         {
-            assert_ulong_equal(
-                fwrite(arr_to_wr, sizeof(arr_to_wr[0]), ARRAY_SIZE(arr_to_wr), file),
-                ARRAY_SIZE(arr_to_wr));
-            assert_int_equal(ftell(file), sizeof(arr_to_wr));
-            fclose(file);
+            assert_ulong_equal(ARRAY_SIZE(arr_to_wr),
+                               fwrite(arr_to_wr, sizeof(arr_to_wr[0]), ARRAY_SIZE(arr_to_wr), file));
+            assert_int_equal(sizeof(arr_to_wr), ftell(file));
+            assert_int_equal(0, fclose(file));
         }
     }
     for (size_t fno = 0; fno < ARRAY_SIZE(files_to_write); ++fno)
@@ -86,11 +85,10 @@ static void test_basic_write_files(void)
         else
         {
             memset(arr_to_rd, 0, sizeof arr_to_rd);
-            assert_ulong_equal(
-                fread(arr_to_rd, sizeof(arr_to_rd[0]), ARRAY_SIZE(arr_to_rd), file),
-                ARRAY_SIZE(arr_to_rd));
-            assert_int_equal(ftell(file), sizeof(arr_to_rd));
-            fclose(file);
+            assert_ulong_equal(ARRAY_SIZE(arr_to_rd),
+                               fread(arr_to_rd, sizeof(arr_to_rd[0]), ARRAY_SIZE(arr_to_rd), file));
+            assert_int_equal(sizeof(arr_to_rd), ftell(file));
+            assert_int_equal(0, fclose(file));
             assert_n_array_equal(arr_to_wr, arr_to_rd, ARRAY_SIZE(arr_to_rd));
         }
     }
@@ -100,15 +98,15 @@ static void test_basic_write_files(void)
 static void test_failed_to_open_files(void)
 {
     assert_true(fopen(NULL, "r") == NULL);
-    assert_int_equal(errno, EINVAL);
+    assert_int_equal(EINVAL, errno);
     assert_true(fopen("", "r") == NULL);
-    assert_int_equal(errno, EINVAL);
+    assert_int_equal(EINVAL, errno);
     assert_true(fopen("/nonexist_mountpoint/xxx.txt", "r") == NULL);
-    assert_int_equal(errno, ENOENT);
+    assert_int_equal(ENOENT, errno);
     assert_true(fopen("/user/xxxx.txt", "r") == NULL);
-    assert_int_equal(errno, ENOENT);
+    assert_int_equal(ENOENT, errno);
     assert_true(fopen("/os/xxxx.txt", "r") == NULL);
-    assert_int_equal(errno, ENOENT);
+    assert_int_equal(ENOENT, errno);
 }
 
 static ssize_t file_length(const char *path)
@@ -138,30 +136,30 @@ static void test_create_and_remove_files(void)
     for (size_t fno = 0; fno < ARRAY_SIZE(files_to_check); ++fno)
     {
         const char *fname = files_to_check[fno];
-        assert_int_equal(truncate(fname, trunc_size), 0);
+        assert_int_equal(0, truncate(fname, trunc_size));
     }
     //Open and check for sizes
     for (size_t fno = 0; fno < ARRAY_SIZE(files_to_check); ++fno)
     {
         const char *fname = files_to_check[fno];
-        assert_int_equal(file_length(fname), trunc_size);
+        assert_int_equal(trunc_size, file_length(fname));
     }
     // Unlink
     for (size_t fno = 0; fno < ARRAY_SIZE(files_to_check); ++fno)
     {
         const char *fname = files_to_check[fno];
-        assert_int_equal(unlink(fname), 0);
+        assert_int_equal(0, unlink(fname));
     }
     //Check for sizes again
     for (size_t fno = 0; fno < ARRAY_SIZE(files_to_check); ++fno)
     {
         const char *fname = files_to_check[fno];
-        assert_int_equal(file_length(fname), -1);
-        assert_int_equal(errno, ENOENT);
+        assert_int_equal(-1, file_length(fname));
+        assert_int_equal(ENOENT, errno);
     }
     //Unlink unexistient
-    assert_int_equal(unlink("/os/non_existientfile"), -1);
-    assert_int_equal(errno, ENOENT);
+    assert_int_equal(-1, unlink("/os/non_existientfile"));
+    assert_int_equal(ENOENT, errno);
 }
 
 // Tests for directory create removal and stat
@@ -169,35 +167,35 @@ static void test_directory_create_remove_stat_base(const char *basedir)
 {
     char path[96];
     snprintf(path, sizeof path, "%s/dirtest", basedir);
-    assert_int_equal(mkdir(path, 0755), 0);
+    assert_int_equal(0, mkdir(path, 0755));
     for (size_t d = 0; d < 20; ++d)
     {
         snprintf(path, sizeof path, "%s/dirtest/dir%i", basedir, d);
-        assert_int_equal(mkdir(path, 0755), 0);
+        assert_int_equal(0, mkdir(path, 0755));
     }
     snprintf(path, sizeof path, "%s/dirtest/dir2/filx", basedir);
-    assert_int_equal(truncate(path, 16384), 0);
+    assert_int_equal(0, truncate(path, 16384));
     // Check stat for file and dir
     struct stat st;
-    assert_int_equal(stat(path, &st), 0);
+    assert_int_equal(0, stat(path, &st));
     assert_true(S_ISREG(st.st_mode));
-    assert_int_equal(st.st_size, 16384);
-    assert_int_equal(unlink(path), 0);
+    assert_int_equal(16384, st.st_size);
+    assert_int_equal(0, unlink(path));
     for (size_t d = 0; d < 20; ++d)
     {
         snprintf(path, sizeof path, "%s/dirtest/dir%i", basedir, d);
-        assert_int_equal(stat(path, &st), 0);
+        assert_int_equal(0, stat(path, &st));
         assert_true(S_ISDIR(st.st_mode));
     }
     //Try to remove the directories
     for (size_t d = 0; d < 20; ++d)
     {
         snprintf(path, sizeof path, "%s/dirtest/dir%i", basedir, d);
-        assert_int_equal(unlink(path), 0);
+        assert_int_equal(0, unlink(path));
     }
     // Last dir remove
     snprintf(path, sizeof path, "%s/dirtest", basedir);
-    assert_int_equal(unlink(path), 0);
+    assert_int_equal(0, unlink(path));
 }
 
 static void test_directory_create_remove_stat_lfs(void)
@@ -244,14 +242,14 @@ static void test_dir_traversal(const char *basedir)
 
     // Create resources
     snprintf(path, sizeof path, "%s/dirtest", basedir);
-    assert_int_equal(mkdir(path, 0755), 0);
+    assert_int_equal(0, mkdir(path, 0755));
     for (size_t d = 0; d < 20; ++d)
     {
         snprintf(path, sizeof path, "%s/dirtest/dir%i", basedir, d);
-        assert_int_equal(mkdir(path, 0755), 0);
+        assert_int_equal(0, mkdir(path, 0755));
     }
     snprintf(path, sizeof path, "%s/dirtest/filx", basedir);
-    assert_int_equal(truncate(path, 16384), 0);
+    assert_int_equal(0, truncate(path, 16384));
 
     // Major tests
     snprintf(path, sizeof path, "%s/dirtest", basedir);
@@ -283,13 +281,13 @@ static void test_dir_traversal(const char *basedir)
     for (size_t d = 0; d < 20; ++d)
     {
         snprintf(path, sizeof path, "%s/dirtest/dir%i", basedir, d);
-        assert_int_equal(unlink(path), 0);
+        assert_int_equal(0, unlink(path));
     }
     snprintf(path, sizeof path, "%s/dirtest/filx", basedir);
-    assert_int_equal(unlink(path), 0);
+    assert_int_equal(0, unlink(path));
     // Last dir remove
     snprintf(path, sizeof path, "%s/dirtest", basedir);
-    assert_int_equal(unlink(path), 0);
+    assert_int_equal(0, unlink(path));
 }
 
 void test_dir_traversal_lfs(void)
