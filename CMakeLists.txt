@@ -19,10 +19,9 @@ add_executable(${CMAKE_PROJECT_NAME})
 target_compile_features(${CMAKE_PROJECT_NAME} PRIVATE
     c_std_11
 )
-
-
-
-target_compile_options( ${CMAKE_PROJECT_NAME} PRIVATE -Wall -Wextra)
+target_compile_options( ${CMAKE_PROJECT_NAME} PRIVATE 
+    -Wall -Wextra
+)
 
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS  
     "updater/*.c*"
