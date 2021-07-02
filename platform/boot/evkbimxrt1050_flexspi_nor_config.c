@@ -38,7 +38,7 @@
  ******************************************************************************/
 #if defined(XIP_BOOT_HEADER_ENABLE) && (XIP_BOOT_HEADER_ENABLE == 1)
 #if defined(__CC_ARM) || defined(__GNUC__)
-__attribute__((section(".boot_hdr.conf")))
+__attribute__((used, section(".boot_hdr.conf")))
 #elif defined(__ICCARM__)
 #pragma location = ".boot_hdr.conf"
 #endif

@@ -93,7 +93,7 @@ void SystemInit(void)
     SCB->CPACR |= ((3UL << 10 * 2) | (3UL << 11 * 2)); /* set CP10, CP11 Full Access */
 #endif                                                 /* ((__FPU_PRESENT == 1) && (__FPU_USED == 1)) */
 
-    extern uint32_t g_pfnVectors[]; // Vector table defined in startup code
+    extern void *g_pfnVectors[]; // Vector table defined in startup code
     SCB->VTOR = (uint32_t)g_pfnVectors;
 
     // Disable WDOGx Power Down Counter
@@ -101,10 +101,12 @@ void SystemInit(void)
     WDOG2->WMCR &= ~WDOG_WMCR_PDE_MASK;
 
     // Disable WDOGx watchdogs timers
-    if (WDOG1->WCR & WDOG_WCR_WDE_MASK) {
+    if (WDOG1->WCR & WDOG_WCR_WDE_MASK)
+    {
         WDOG1->WCR &= ~WDOG_WCR_WDE_MASK;
     }
-    if (WDOG2->WCR & WDOG_WCR_WDE_MASK) {
+    if (WDOG2->WCR & WDOG_WCR_WDE_MASK)
+    {
         WDOG2->WCR &= ~WDOG_WCR_WDE_MASK;
     }
 
@@ -113,7 +115,7 @@ void SystemInit(void)
     RTWDOG->CNT = 0xD928C520U;
     // Disable RTWDOG and allow configuration updates
     RTWDOG->TOVAL = 0xFFFF;
-    RTWDOG->CS    = (uint32_t)(((RTWDOG->CS) & ~RTWDOG_CS_EN_MASK) | RTWDOG_CS_UPDATE_MASK);
+    RTWDOG->CS = (uint32_t)(((RTWDOG->CS) & ~RTWDOG_CS_EN_MASK) | RTWDOG_CS_UPDATE_MASK);
 #else
     //
     // Perform preliminary RTWDOG configuration
@@ -127,18 +129,21 @@ void SystemInit(void)
 #endif // (DISABLE_WATCHDOG)
 
     /* Disable Systick which might be enabled by bootrom */
-    if (SysTick->CTRL & SysTick_CTRL_ENABLE_Msk) {
+    if (SysTick->CTRL & SysTick_CTRL_ENABLE_Msk)
+    {
         SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk;
     }
 
 /* Enable instruction and data caches */
 #if defined(__ICACHE_PRESENT) && __ICACHE_PRESENT
-    if (SCB_CCR_IC_Msk != (SCB_CCR_IC_Msk & SCB->CCR)) {
+    if (SCB_CCR_IC_Msk != (SCB_CCR_IC_Msk & SCB->CCR))
+    {
         SCB_EnableICache();
     }
 #endif
 #if defined(__DCACHE_PRESENT) && __DCACHE_PRESENT
-    if (SCB_CCR_DC_Msk != (SCB_CCR_DC_Msk & SCB->CCR)) {
+    if (SCB_CCR_DC_Msk != (SCB_CCR_DC_Msk & SCB->CCR))
+    {
         SCB_EnableDCache();
     }
 #endif
@@ -158,17 +163,21 @@ void SystemCoreClockUpdate(void)
     uint32_t PLL2MainClock;
 
     /* Periph_clk2_clk ---> Periph_clk */
-    if (CCM->CBCDR & CCM_CBCDR_PERIPH_CLK_SEL_MASK) {
-        switch (CCM->CBCMR & CCM_CBCMR_PERIPH_CLK2_SEL_MASK) {
+    if (CCM->CBCDR & CCM_CBCDR_PERIPH_CLK_SEL_MASK)
+    {
+        switch (CCM->CBCMR & CCM_CBCMR_PERIPH_CLK2_SEL_MASK)
+        {
         /* Pll3_sw_clk ---> Periph_clk2_clk ---> Periph_clk */
         case CCM_CBCMR_PERIPH_CLK2_SEL(0U):
-            if (CCM_ANALOG->PLL_USB1 & CCM_ANALOG_PLL_USB1_BYPASS_MASK) {
+            if (CCM_ANALOG->PLL_USB1 & CCM_ANALOG_PLL_USB1_BYPASS_MASK)
+            {
                 freq = (((CCM_ANALOG->PLL_USB1 & CCM_ANALOG_PLL_USB1_BYPASS_CLK_SRC_MASK) >>
                          CCM_ANALOG_PLL_USB1_BYPASS_CLK_SRC_SHIFT) == 0U)
                            ? CPU_XTAL_CLK_HZ
                            : CPU_CLK1_HZ;
             }
-            else {
+            else
+            {
                 freq = (CPU_XTAL_CLK_HZ * ((CCM_ANALOG->PLL_USB1 & CCM_ANALOG_PLL_USB1_DIV_SELECT_MASK) ? 22U : 20U));
             }
             break;
@@ -195,35 +204,41 @@ void SystemCoreClockUpdate(void)
         freq /= (((CCM->CBCDR & CCM_CBCDR_PERIPH_CLK2_PODF_MASK) >> CCM_CBCDR_PERIPH_CLK2_PODF_SHIFT) + 1U);
     }
     /* Pre_Periph_clk ---> Periph_clk */
-    else {
+    else
+    {
         /* check if pll is bypassed */
-        if (CCM_ANALOG->PLL_ARM & CCM_ANALOG_PLL_ARM_BYPASS_MASK) {
+        if (CCM_ANALOG->PLL_ARM & CCM_ANALOG_PLL_ARM_BYPASS_MASK)
+        {
             PLL1MainClock = (((CCM_ANALOG->PLL_ARM & CCM_ANALOG_PLL_ARM_BYPASS_CLK_SRC_MASK) >>
                               CCM_ANALOG_PLL_ARM_BYPASS_CLK_SRC_SHIFT) == 0U)
                                 ? CPU_XTAL_CLK_HZ
                                 : CPU_CLK1_HZ;
         }
-        else {
+        else
+        {
             PLL1MainClock = ((CPU_XTAL_CLK_HZ * ((CCM_ANALOG->PLL_ARM & CCM_ANALOG_PLL_ARM_DIV_SELECT_MASK) >>
                                                  CCM_ANALOG_PLL_ARM_DIV_SELECT_SHIFT)) >>
                              1U);
         }
 
         /* check if pll is bypassed */
-        if (CCM_ANALOG->PLL_SYS & CCM_ANALOG_PLL_SYS_BYPASS_MASK) {
+        if (CCM_ANALOG->PLL_SYS & CCM_ANALOG_PLL_SYS_BYPASS_MASK)
+        {
             PLL2MainClock = (((CCM_ANALOG->PLL_SYS & CCM_ANALOG_PLL_SYS_BYPASS_CLK_SRC_MASK) >>
                               CCM_ANALOG_PLL_SYS_BYPASS_CLK_SRC_SHIFT) == 0U)
                                 ? CPU_XTAL_CLK_HZ
                                 : CPU_CLK1_HZ;
         }
-        else {
+        else
+        {
             PLL2MainClock =
                 (CPU_XTAL_CLK_HZ * ((CCM_ANALOG->PLL_SYS & CCM_ANALOG_PLL_SYS_DIV_SELECT_MASK) ? 22U : 20U));
         }
         PLL2MainClock += ((uint64_t)CPU_XTAL_CLK_HZ * ((uint64_t)(CCM_ANALOG->PLL_SYS_NUM))) /
                          ((uint64_t)(CCM_ANALOG->PLL_SYS_DENOM));
 
-        switch (CCM->CBCMR & CCM_CBCMR_PRE_PERIPH_CLK_SEL_MASK) {
+        switch (CCM->CBCMR & CCM_CBCMR_PRE_PERIPH_CLK_SEL_MASK)
+        {
         /* PLL2 ---> Pre_Periph_clk ---> Periph_clk */
         case CCM_CBCMR_PRE_PERIPH_CLK_SEL(0U):
             freq = PLL2MainClock;

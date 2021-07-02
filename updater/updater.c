@@ -19,7 +19,7 @@ int main()
     eink_clear_log();
     eink_log("Dzien dobry to moj log", false);
     eink_log("A to kolejna linia", false);
-    eink_log("Nowy test 4", false);
+    eink_log("Nowy test 5", false);
     eink_log_refresh();
 
     // This is example HOWTO use Tiny VFS subsystem
@@ -87,7 +87,7 @@ int main()
      * casues a system reboot. Zero or negative value
      * only halts the system permanently
      */
-    return 0;
+    //return 0;
 
     /** This main loop shows howto use get 
      * timer ticks and the keyboard events
@@ -98,7 +98,7 @@ int main()
         int err = kbd_read_key(&kevt);
         printf("jiffiess %u kbdcode %i evttype %i err %i\n",
                (unsigned)get_jiffiess(), kevt.key, kevt.event, err);
-        msleep(1000);
+        msleep(5000);
     }
 
     return 0;

@@ -61,10 +61,11 @@ set(CMAKE_ASM_FLAGS_RELEASE "" CACHE INTERNAL "ASM Compiler options for release 
 set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-flto" CACHE INTERNAL "Linker options for release build type")
 
 # Flags for RELWITHDEBINFO build
-set(CMAKE_C_FLAGS_RELWITHDEBINFO "-Og" CACHE INTERNAL "C Compiler options for relwithdebinfo build type")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-Og" CACHE INTERNAL "C++ Compiler options for relwithdebinfo build type")
+set(CMAKE_C_FLAGS_RELWITHDEBINFO "-Os -flto -g" CACHE INTERNAL "C Compiler options for relwithdebinfo build type")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-Os -flto -g" CACHE INTERNAL "C++ Compiler options for relwithdebinfo build type")
 set(CMAKE_ASM_FLAGS_RELWITHDEBINFO "" CACHE INTERNAL "ASM Compiler options for relwithdebinfo build type")
-set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "" CACHE INTERNAL "Linker options for relwithdebinfo build type")
+set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "-flto" CACHE INTERNAL "Linker options for relwithdebinfo build type")
+
 
 #############################
 # Set compilers
@@ -73,6 +74,8 @@ set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "" CACHE INTERNAL "Linker options for 
 set(CMAKE_C_COMPILER ${TOOLCHAIN_BIN_DIR}/${TOOLCHAIN}-gcc${TOOLCHAIN_EXT} CACHE INTERNAL "C Compiler")
 set(CMAKE_CXX_COMPILER ${TOOLCHAIN_BIN_DIR}/${TOOLCHAIN}-g++${TOOLCHAIN_EXT} CACHE INTERNAL "C++ Compiler")
 set(CMAKE_ASM_COMPILER ${TOOLCHAIN_BIN_DIR}/${TOOLCHAIN}-as${TOOLCHAIN_EXT} CACHE INTERNAL "ASM Compiler")
+set(CMAKE_AR ${TOOLCHAIN_BIN_DIR}/${TOOLCHAIN}-gcc-ar${TOOLCHAIN_EXT} CACHE INTERNAL "AR tool")
+set(CMAKE_RANLIB ${TOOLCHAIN_BIN_DIR}/${TOOLCHAIN}-gcc-ranlib${TOOLCHAIN_EXT} CACHE INTERNAL "RANLIB tool")
 
 set(CMAKE_FIND_ROOT_PATH ${TOOLCHAIN_PREFIX}/${${TOOLCHAIN}} ${CMAKE_PREFIX_PATH})
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)

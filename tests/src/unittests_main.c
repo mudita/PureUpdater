@@ -17,7 +17,7 @@ static void all_tests(void)
     test_fixture_vfs();
 }
 
-int main(void)
+int main()
 {
     // System initialize
     system_initialize();

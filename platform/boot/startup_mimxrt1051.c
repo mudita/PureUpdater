@@ -43,412 +43,366 @@
 
 #include "MIMXRT1051.h"
 
-#if defined(DEBUG)
-#pragma GCC push_options
-#pragma GCC optimize("Og")
-#endif // (DEBUG)
-
-#if defined(__cplusplus)
-#ifdef __REDLIB__
-#error Redlib does not support C++
-#else
-//*****************************************************************************
-//
-// The entry point for the C++ library startup
-//
-//*****************************************************************************
-extern "C"
-{
-    extern void __libc_init_array(void);
-}
-#endif
-#endif
-
 #define WEAK __attribute__((weak))
 #define WEAK_AV __attribute__((weak, section(".after_vectors")))
 #define ALIAS(f) __attribute__((weak, alias(#f)))
 
+void ResetISR(void);
+WEAK void NMI_Handler(void);
+void HardFault_Handler(void);
+WEAK void SVC_Handler(void);
+WEAK void PendSV_Handler(void);
+WEAK void SysTick_Handler(void);
+WEAK void IntDefaultHandler(void);
+WEAK void MemManage_Handler(void);
+WEAK void UsageFault_Handler(void);
+WEAK void BusFault_Handler(void);
+
 //*****************************************************************************
-#if defined(__cplusplus)
-extern "C"
-{
-#endif
+// Forward declaration of the application IRQ handlers. When the application
+// defines a handler (with the same name), this will automatically take
+// precedence over weak definitions below
+//*****************************************************************************
+WEAK void DMA0_DMA16_IRQHandler(void);
+WEAK void DMA1_DMA17_IRQHandler(void);
+WEAK void DMA2_DMA18_IRQHandler(void);
+WEAK void DMA3_DMA19_IRQHandler(void);
+WEAK void DMA4_DMA20_IRQHandler(void);
+WEAK void DMA5_DMA21_IRQHandler(void);
+WEAK void DMA6_DMA22_IRQHandler(void);
+WEAK void DMA7_DMA23_IRQHandler(void);
+WEAK void DMA8_DMA24_IRQHandler(void);
+WEAK void DMA9_DMA25_IRQHandler(void);
+WEAK void DMA10_DMA26_IRQHandler(void);
+WEAK void DMA11_DMA27_IRQHandler(void);
+WEAK void DMA12_DMA28_IRQHandler(void);
+WEAK void DMA13_DMA29_IRQHandler(void);
+WEAK void DMA14_DMA30_IRQHandler(void);
+WEAK void DMA15_DMA31_IRQHandler(void);
+WEAK void DMA_ERROR_IRQHandler(void);
+WEAK void CTI0_ERROR_IRQHandler(void);
+WEAK void CTI1_ERROR_IRQHandler(void);
+WEAK void CORE_IRQHandler(void);
+WEAK void LPUART1_IRQHandler(void);
+WEAK void LPUART2_IRQHandler(void);
+WEAK void LPUART3_IRQHandler(void);
+WEAK void LPUART4_IRQHandler(void);
+WEAK void LPUART5_IRQHandler(void);
+WEAK void LPUART6_IRQHandler(void);
+WEAK void LPUART7_IRQHandler(void);
+WEAK void LPUART8_IRQHandler(void);
+WEAK void LPI2C1_IRQHandler(void);
+WEAK void LPI2C2_IRQHandler(void);
+WEAK void LPI2C3_IRQHandler(void);
+WEAK void LPI2C4_IRQHandler(void);
+WEAK void LPSPI1_IRQHandler(void);
+WEAK void LPSPI2_IRQHandler(void);
+WEAK void LPSPI3_IRQHandler(void);
+WEAK void LPSPI4_IRQHandler(void);
+WEAK void CAN1_IRQHandler(void);
+WEAK void CAN2_IRQHandler(void);
+WEAK void FLEXRAM_IRQHandler(void);
+WEAK void KPP_IRQHandler(void);
+WEAK void TSC_DIG_IRQHandler(void);
+WEAK void GPR_IRQ_IRQHandler(void);
+WEAK void LCDIF_IRQHandler(void);
+WEAK void CSI_IRQHandler(void);
+WEAK void PXP_IRQHandler(void);
+WEAK void WDOG2_IRQHandler(void);
+WEAK void SNVS_HP_WRAPPER_IRQHandler(void);
+WEAK void SNVS_HP_WRAPPER_TZ_IRQHandler(void);
+WEAK void SNVS_LP_WRAPPER_IRQHandler(void);
+WEAK void CSU_IRQHandler(void);
+WEAK void DCP_IRQHandler(void);
+WEAK void DCP_VMI_IRQHandler(void);
+WEAK void Reserved68_IRQHandler(void);
+WEAK void TRNG_IRQHandler(void);
+WEAK void SJC_IRQHandler(void);
+WEAK void BEE_IRQHandler(void);
+WEAK void SAI1_IRQHandler(void);
+WEAK void SAI2_IRQHandler(void);
+WEAK void SAI3_RX_IRQHandler(void);
+WEAK void SAI3_TX_IRQHandler(void);
+WEAK void SPDIF_IRQHandler(void);
+WEAK void ANATOP_EVENT0_IRQHandler(void);
+WEAK void ANATOP_EVENT1_IRQHandler(void);
+WEAK void ANATOP_TAMP_LOW_HIGH_IRQHandler(void);
+WEAK void ANATOP_TEMP_PANIC_IRQHandler(void);
+WEAK void USB_PHY1_IRQHandler(void);
+WEAK void USB_PHY2_IRQHandler(void);
+WEAK void ADC1_IRQHandler(void);
+WEAK void ADC2_IRQHandler(void);
+WEAK void DCDC_IRQHandler(void);
+WEAK void Reserved86_IRQHandler(void);
+WEAK void Reserved87_IRQHandler(void);
+WEAK void GPIO1_INT0_IRQHandler(void);
+WEAK void GPIO1_INT1_IRQHandler(void);
+WEAK void GPIO1_INT2_IRQHandler(void);
+WEAK void GPIO1_INT3_IRQHandler(void);
+WEAK void GPIO1_INT4_IRQHandler(void);
+WEAK void GPIO1_INT5_IRQHandler(void);
+WEAK void GPIO1_INT6_IRQHandler(void);
+WEAK void GPIO1_INT7_IRQHandler(void);
+WEAK void GPIO1_Combined_0_15_IRQHandler(void);
+WEAK void GPIO1_Combined_16_31_IRQHandler(void);
+WEAK void GPIO2_Combined_0_15_IRQHandler(void);
+WEAK void GPIO2_Combined_16_31_IRQHandler(void);
+WEAK void GPIO3_Combined_0_15_IRQHandler(void);
+WEAK void GPIO3_Combined_16_31_IRQHandler(void);
+WEAK void GPIO4_Combined_0_15_IRQHandler(void);
+WEAK void GPIO4_Combined_16_31_IRQHandler(void);
+WEAK void GPIO5_Combined_0_15_IRQHandler(void);
+WEAK void GPIO5_Combined_16_31_IRQHandler(void);
+WEAK void FLEXIO1_IRQHandler(void);
+WEAK void FLEXIO2_IRQHandler(void);
+WEAK void WDOG1_IRQHandler(void);
+WEAK void RTWDOG_IRQHandler(void);
+WEAK void EWM_IRQHandler(void);
+WEAK void CCM_1_IRQHandler(void);
+WEAK void CCM_2_IRQHandler(void);
+WEAK void GPC_IRQHandler(void);
+WEAK void SRC_IRQHandler(void);
+WEAK void Reserved115_IRQHandler(void);
+WEAK void GPT1_IRQHandler(void);
+WEAK void GPT2_IRQHandler(void);
+WEAK void PWM1_0_IRQHandler(void);
+WEAK void PWM1_1_IRQHandler(void);
+WEAK void PWM1_2_IRQHandler(void);
+WEAK void PWM1_3_IRQHandler(void);
+WEAK void PWM1_FAULT_IRQHandler(void);
+WEAK void Reserved123_IRQHandler(void);
+WEAK void FLEXSPI_IRQHandler(void);
+WEAK void SEMC_IRQHandler(void);
+WEAK void USDHC1_IRQHandler(void);
+WEAK void USDHC2_IRQHandler(void);
+WEAK void USB_OTG2_IRQHandler(void);
+WEAK void USB_OTG1_IRQHandler(void);
+WEAK void ENET_IRQHandler(void);
+WEAK void ENET_1588_Timer_IRQHandler(void);
+WEAK void XBAR1_IRQ_0_1_IRQHandler(void);
+WEAK void XBAR1_IRQ_2_3_IRQHandler(void);
+WEAK void ADC_ETC_IRQ0_IRQHandler(void);
+WEAK void ADC_ETC_IRQ1_IRQHandler(void);
+WEAK void ADC_ETC_IRQ2_IRQHandler(void);
+WEAK void ADC_ETC_ERROR_IRQ_IRQHandler(void);
+WEAK void PIT_IRQHandler(void);
+WEAK void ACMP1_IRQHandler(void);
+WEAK void ACMP2_IRQHandler(void);
+WEAK void ACMP3_IRQHandler(void);
+WEAK void ACMP4_IRQHandler(void);
+WEAK void Reserved143_IRQHandler(void);
+WEAK void Reserved144_IRQHandler(void);
+WEAK void ENC1_IRQHandler(void);
+WEAK void ENC2_IRQHandler(void);
+WEAK void ENC3_IRQHandler(void);
+WEAK void ENC4_IRQHandler(void);
+WEAK void TMR1_IRQHandler(void);
+WEAK void TMR2_IRQHandler(void);
+WEAK void TMR3_IRQHandler(void);
+WEAK void TMR4_IRQHandler(void);
+WEAK void PWM2_0_IRQHandler(void);
+WEAK void PWM2_1_IRQHandler(void);
+WEAK void PWM2_2_IRQHandler(void);
+WEAK void PWM2_3_IRQHandler(void);
+WEAK void PWM2_FAULT_IRQHandler(void);
+WEAK void PWM3_0_IRQHandler(void);
+WEAK void PWM3_1_IRQHandler(void);
+WEAK void PWM3_2_IRQHandler(void);
+WEAK void PWM3_3_IRQHandler(void);
+WEAK void PWM3_FAULT_IRQHandler(void);
+WEAK void PWM4_0_IRQHandler(void);
+WEAK void PWM4_1_IRQHandler(void);
+WEAK void PWM4_2_IRQHandler(void);
+WEAK void PWM4_3_IRQHandler(void);
+WEAK void PWM4_FAULT_IRQHandler(void);
+WEAK void Reserved168_IRQHandler(void);
+WEAK void Reserved169_IRQHandler(void);
+WEAK void Reserved170_IRQHandler(void);
+WEAK void Reserved171_IRQHandler(void);
+WEAK void Reserved172_IRQHandler(void);
+WEAK void Reserved173_IRQHandler(void);
+WEAK void SJC_ARM_DEBUG_IRQHandler(void);
+WEAK void NMI_WAKEUP_IRQHandler(void);
 
-    //*****************************************************************************
-    // Variable to store CRP value in. Will be placed automatically
-    // by the linker when "Enable Code Read Protect" selected.
-    // See crp.h header for more information
-    //*****************************************************************************
-    //*****************************************************************************
-    // Declaration of external SystemInit function
-    //*****************************************************************************
-    extern void SystemInit(void);
-
-    //*****************************************************************************
-    // Forward declaration of the core exception handlers.
-    // When the application defines a handler (with the same name), this will
-    // automatically take precedence over these weak definitions
-    //*****************************************************************************
-    void ResetISR(void);
-    WEAK void NMI_Handler(void);
-    void HardFault_Handler(void);
-    WEAK void SVC_Handler(void);
-    WEAK void PendSV_Handler(void);
-    WEAK void SysTick_Handler(void);
-    WEAK void IntDefaultHandler(void);
-    WEAK void MemManage_Handler(void);
-    WEAK void UsageFault_Handler(void);
-    WEAK void BusFault_Handler(void);
-
-    //*****************************************************************************
-    // Forward declaration of the application IRQ handlers. When the application
-    // defines a handler (with the same name), this will automatically take
-    // precedence over weak definitions below
-    //*****************************************************************************
-    WEAK void DMA0_DMA16_IRQHandler(void);
-    WEAK void DMA1_DMA17_IRQHandler(void);
-    WEAK void DMA2_DMA18_IRQHandler(void);
-    WEAK void DMA3_DMA19_IRQHandler(void);
-    WEAK void DMA4_DMA20_IRQHandler(void);
-    WEAK void DMA5_DMA21_IRQHandler(void);
-    WEAK void DMA6_DMA22_IRQHandler(void);
-    WEAK void DMA7_DMA23_IRQHandler(void);
-    WEAK void DMA8_DMA24_IRQHandler(void);
-    WEAK void DMA9_DMA25_IRQHandler(void);
-    WEAK void DMA10_DMA26_IRQHandler(void);
-    WEAK void DMA11_DMA27_IRQHandler(void);
-    WEAK void DMA12_DMA28_IRQHandler(void);
-    WEAK void DMA13_DMA29_IRQHandler(void);
-    WEAK void DMA14_DMA30_IRQHandler(void);
-    WEAK void DMA15_DMA31_IRQHandler(void);
-    WEAK void DMA_ERROR_IRQHandler(void);
-    WEAK void CTI0_ERROR_IRQHandler(void);
-    WEAK void CTI1_ERROR_IRQHandler(void);
-    WEAK void CORE_IRQHandler(void);
-    WEAK void LPUART1_IRQHandler(void);
-    WEAK void LPUART2_IRQHandler(void);
-    WEAK void LPUART3_IRQHandler(void);
-    WEAK void LPUART4_IRQHandler(void);
-    WEAK void LPUART5_IRQHandler(void);
-    WEAK void LPUART6_IRQHandler(void);
-    WEAK void LPUART7_IRQHandler(void);
-    WEAK void LPUART8_IRQHandler(void);
-    WEAK void LPI2C1_IRQHandler(void);
-    WEAK void LPI2C2_IRQHandler(void);
-    WEAK void LPI2C3_IRQHandler(void);
-    WEAK void LPI2C4_IRQHandler(void);
-    WEAK void LPSPI1_IRQHandler(void);
-    WEAK void LPSPI2_IRQHandler(void);
-    WEAK void LPSPI3_IRQHandler(void);
-    WEAK void LPSPI4_IRQHandler(void);
-    WEAK void CAN1_IRQHandler(void);
-    WEAK void CAN2_IRQHandler(void);
-    WEAK void FLEXRAM_IRQHandler(void);
-    WEAK void KPP_IRQHandler(void);
-    WEAK void TSC_DIG_IRQHandler(void);
-    WEAK void GPR_IRQ_IRQHandler(void);
-    WEAK void LCDIF_IRQHandler(void);
-    WEAK void CSI_IRQHandler(void);
-    WEAK void PXP_IRQHandler(void);
-    WEAK void WDOG2_IRQHandler(void);
-    WEAK void SNVS_HP_WRAPPER_IRQHandler(void);
-    WEAK void SNVS_HP_WRAPPER_TZ_IRQHandler(void);
-    WEAK void SNVS_LP_WRAPPER_IRQHandler(void);
-    WEAK void CSU_IRQHandler(void);
-    WEAK void DCP_IRQHandler(void);
-    WEAK void DCP_VMI_IRQHandler(void);
-    WEAK void Reserved68_IRQHandler(void);
-    WEAK void TRNG_IRQHandler(void);
-    WEAK void SJC_IRQHandler(void);
-    WEAK void BEE_IRQHandler(void);
-    WEAK void SAI1_IRQHandler(void);
-    WEAK void SAI2_IRQHandler(void);
-    WEAK void SAI3_RX_IRQHandler(void);
-    WEAK void SAI3_TX_IRQHandler(void);
-    WEAK void SPDIF_IRQHandler(void);
-    WEAK void ANATOP_EVENT0_IRQHandler(void);
-    WEAK void ANATOP_EVENT1_IRQHandler(void);
-    WEAK void ANATOP_TAMP_LOW_HIGH_IRQHandler(void);
-    WEAK void ANATOP_TEMP_PANIC_IRQHandler(void);
-    WEAK void USB_PHY1_IRQHandler(void);
-    WEAK void USB_PHY2_IRQHandler(void);
-    WEAK void ADC1_IRQHandler(void);
-    WEAK void ADC2_IRQHandler(void);
-    WEAK void DCDC_IRQHandler(void);
-    WEAK void Reserved86_IRQHandler(void);
-    WEAK void Reserved87_IRQHandler(void);
-    WEAK void GPIO1_INT0_IRQHandler(void);
-    WEAK void GPIO1_INT1_IRQHandler(void);
-    WEAK void GPIO1_INT2_IRQHandler(void);
-    WEAK void GPIO1_INT3_IRQHandler(void);
-    WEAK void GPIO1_INT4_IRQHandler(void);
-    WEAK void GPIO1_INT5_IRQHandler(void);
-    WEAK void GPIO1_INT6_IRQHandler(void);
-    WEAK void GPIO1_INT7_IRQHandler(void);
-    WEAK void GPIO1_Combined_0_15_IRQHandler(void);
-    WEAK void GPIO1_Combined_16_31_IRQHandler(void);
-    WEAK void GPIO2_Combined_0_15_IRQHandler(void);
-    WEAK void GPIO2_Combined_16_31_IRQHandler(void);
-    WEAK void GPIO3_Combined_0_15_IRQHandler(void);
-    WEAK void GPIO3_Combined_16_31_IRQHandler(void);
-    WEAK void GPIO4_Combined_0_15_IRQHandler(void);
-    WEAK void GPIO4_Combined_16_31_IRQHandler(void);
-    WEAK void GPIO5_Combined_0_15_IRQHandler(void);
-    WEAK void GPIO5_Combined_16_31_IRQHandler(void);
-    WEAK void FLEXIO1_IRQHandler(void);
-    WEAK void FLEXIO2_IRQHandler(void);
-    WEAK void WDOG1_IRQHandler(void);
-    WEAK void RTWDOG_IRQHandler(void);
-    WEAK void EWM_IRQHandler(void);
-    WEAK void CCM_1_IRQHandler(void);
-    WEAK void CCM_2_IRQHandler(void);
-    WEAK void GPC_IRQHandler(void);
-    WEAK void SRC_IRQHandler(void);
-    WEAK void Reserved115_IRQHandler(void);
-    WEAK void GPT1_IRQHandler(void);
-    WEAK void GPT2_IRQHandler(void);
-    WEAK void PWM1_0_IRQHandler(void);
-    WEAK void PWM1_1_IRQHandler(void);
-    WEAK void PWM1_2_IRQHandler(void);
-    WEAK void PWM1_3_IRQHandler(void);
-    WEAK void PWM1_FAULT_IRQHandler(void);
-    WEAK void Reserved123_IRQHandler(void);
-    WEAK void FLEXSPI_IRQHandler(void);
-    WEAK void SEMC_IRQHandler(void);
-    WEAK void USDHC1_IRQHandler(void);
-    WEAK void USDHC2_IRQHandler(void);
-    WEAK void USB_OTG2_IRQHandler(void);
-    WEAK void USB_OTG1_IRQHandler(void);
-    WEAK void ENET_IRQHandler(void);
-    WEAK void ENET_1588_Timer_IRQHandler(void);
-    WEAK void XBAR1_IRQ_0_1_IRQHandler(void);
-    WEAK void XBAR1_IRQ_2_3_IRQHandler(void);
-    WEAK void ADC_ETC_IRQ0_IRQHandler(void);
-    WEAK void ADC_ETC_IRQ1_IRQHandler(void);
-    WEAK void ADC_ETC_IRQ2_IRQHandler(void);
-    WEAK void ADC_ETC_ERROR_IRQ_IRQHandler(void);
-    WEAK void PIT_IRQHandler(void);
-    WEAK void ACMP1_IRQHandler(void);
-    WEAK void ACMP2_IRQHandler(void);
-    WEAK void ACMP3_IRQHandler(void);
-    WEAK void ACMP4_IRQHandler(void);
-    WEAK void Reserved143_IRQHandler(void);
-    WEAK void Reserved144_IRQHandler(void);
-    WEAK void ENC1_IRQHandler(void);
-    WEAK void ENC2_IRQHandler(void);
-    WEAK void ENC3_IRQHandler(void);
-    WEAK void ENC4_IRQHandler(void);
-    WEAK void TMR1_IRQHandler(void);
-    WEAK void TMR2_IRQHandler(void);
-    WEAK void TMR3_IRQHandler(void);
-    WEAK void TMR4_IRQHandler(void);
-    WEAK void PWM2_0_IRQHandler(void);
-    WEAK void PWM2_1_IRQHandler(void);
-    WEAK void PWM2_2_IRQHandler(void);
-    WEAK void PWM2_3_IRQHandler(void);
-    WEAK void PWM2_FAULT_IRQHandler(void);
-    WEAK void PWM3_0_IRQHandler(void);
-    WEAK void PWM3_1_IRQHandler(void);
-    WEAK void PWM3_2_IRQHandler(void);
-    WEAK void PWM3_3_IRQHandler(void);
-    WEAK void PWM3_FAULT_IRQHandler(void);
-    WEAK void PWM4_0_IRQHandler(void);
-    WEAK void PWM4_1_IRQHandler(void);
-    WEAK void PWM4_2_IRQHandler(void);
-    WEAK void PWM4_3_IRQHandler(void);
-    WEAK void PWM4_FAULT_IRQHandler(void);
-    WEAK void Reserved168_IRQHandler(void);
-    WEAK void Reserved169_IRQHandler(void);
-    WEAK void Reserved170_IRQHandler(void);
-    WEAK void Reserved171_IRQHandler(void);
-    WEAK void Reserved172_IRQHandler(void);
-    WEAK void Reserved173_IRQHandler(void);
-    WEAK void SJC_ARM_DEBUG_IRQHandler(void);
-    WEAK void NMI_WAKEUP_IRQHandler(void);
-
-    //*****************************************************************************
-    // Forward declaration of the driver IRQ handlers. These are aliased
-    // to the IntDefaultHandler, which is a 'forever' loop. When the driver
-    // defines a handler (with the same name), this will automatically take
-    // precedence over these weak definitions
-    //*****************************************************************************
-    void DMA0_DMA16_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void DMA1_DMA17_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void DMA2_DMA18_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void DMA3_DMA19_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void DMA4_DMA20_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void DMA5_DMA21_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void DMA6_DMA22_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void DMA7_DMA23_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void DMA8_DMA24_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void DMA9_DMA25_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void DMA10_DMA26_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void DMA11_DMA27_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void DMA12_DMA28_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void DMA13_DMA29_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void DMA14_DMA30_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void DMA15_DMA31_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void DMA_ERROR_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void CTI0_ERROR_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void CTI1_ERROR_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void CORE_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void LPUART1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void LPUART2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void LPUART3_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void LPUART4_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void LPUART5_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void LPUART6_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void LPUART7_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void LPUART8_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void LPI2C1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void LPI2C2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void LPI2C3_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void LPI2C4_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void LPSPI1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void LPSPI2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void LPSPI3_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void LPSPI4_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void CAN1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void CAN2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void FLEXRAM_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void KPP_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void TSC_DIG_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void GPR_IRQ_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void LCDIF_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void CSI_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void PXP_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void WDOG2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void SNVS_HP_WRAPPER_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void SNVS_HP_WRAPPER_TZ_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void SNVS_LP_WRAPPER_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void CSU_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void DCP_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void DCP_VMI_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void Reserved68_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void TRNG_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void SJC_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void BEE_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void SAI1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void SAI2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void SAI3_RX_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void SAI3_TX_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void SPDIF_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void ANATOP_EVENT0_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void ANATOP_EVENT1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void ANATOP_TAMP_LOW_HIGH_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void ANATOP_TEMP_PANIC_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void USB_PHY1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void USB_PHY2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void ADC1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void ADC2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void DCDC_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void Reserved86_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void Reserved87_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void GPIO1_INT0_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void GPIO1_INT1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void GPIO1_INT2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void GPIO1_INT3_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void GPIO1_INT4_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void GPIO1_INT5_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void GPIO1_INT6_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void GPIO1_INT7_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void GPIO1_Combined_0_15_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void GPIO1_Combined_16_31_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void GPIO2_Combined_0_15_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void GPIO2_Combined_16_31_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void GPIO3_Combined_0_15_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void GPIO3_Combined_16_31_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void GPIO4_Combined_0_15_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void GPIO4_Combined_16_31_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void GPIO5_Combined_0_15_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void GPIO5_Combined_16_31_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void FLEXIO1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void FLEXIO2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void WDOG1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void RTWDOG_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void EWM_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void CCM_1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void CCM_2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void GPC_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void SRC_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void Reserved115_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void GPT1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void GPT2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void PWM1_0_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void PWM1_1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void PWM1_2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void PWM1_3_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void PWM1_FAULT_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void Reserved123_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void FLEXSPI_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void SEMC_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void USDHC1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void USDHC2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void USB_OTG2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void USB_OTG1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void ENET_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void ENET_1588_Timer_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void XBAR1_IRQ_0_1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void XBAR1_IRQ_2_3_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void ADC_ETC_IRQ0_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void ADC_ETC_IRQ1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void ADC_ETC_IRQ2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void ADC_ETC_ERROR_IRQ_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void PIT_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void ACMP1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void ACMP2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void ACMP3_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void ACMP4_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void Reserved143_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void Reserved144_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void ENC1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void ENC2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void ENC3_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void ENC4_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void TMR1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void TMR2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void TMR3_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void TMR4_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void PWM2_0_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void PWM2_1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void PWM2_2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void PWM2_3_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void PWM2_FAULT_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void PWM3_0_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void PWM3_1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void PWM3_2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void PWM3_3_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void PWM3_FAULT_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void PWM4_0_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void PWM4_1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void PWM4_2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void PWM4_3_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void PWM4_FAULT_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void Reserved168_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void Reserved169_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void Reserved170_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void Reserved171_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void Reserved172_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void Reserved173_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void SJC_ARM_DEBUG_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
-    void NMI_WAKEUP_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+//*****************************************************************************
+// Forward declaration of the driver IRQ handlers. These are aliased
+// to the IntDefaultHandler, which is a 'forever' loop. When the driver
+// defines a handler (with the same name), this will automatically take
+// precedence over these weak definitions
+//*****************************************************************************
+void DMA0_DMA16_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void DMA1_DMA17_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void DMA2_DMA18_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void DMA3_DMA19_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void DMA4_DMA20_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void DMA5_DMA21_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void DMA6_DMA22_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void DMA7_DMA23_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void DMA8_DMA24_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void DMA9_DMA25_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void DMA10_DMA26_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void DMA11_DMA27_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void DMA12_DMA28_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void DMA13_DMA29_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void DMA14_DMA30_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void DMA15_DMA31_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void DMA_ERROR_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void CTI0_ERROR_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void CTI1_ERROR_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void CORE_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void LPUART1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void LPUART2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void LPUART3_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void LPUART4_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void LPUART5_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void LPUART6_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void LPUART7_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void LPUART8_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void LPI2C1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void LPI2C2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void LPI2C3_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void LPI2C4_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void LPSPI1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void LPSPI2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void LPSPI3_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void LPSPI4_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void CAN1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void CAN2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void FLEXRAM_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void KPP_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void TSC_DIG_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void GPR_IRQ_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void LCDIF_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void CSI_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void PXP_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void WDOG2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void SNVS_HP_WRAPPER_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void SNVS_HP_WRAPPER_TZ_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void SNVS_LP_WRAPPER_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void CSU_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void DCP_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void DCP_VMI_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void Reserved68_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void TRNG_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void SJC_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void BEE_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void SAI1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void SAI2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void SAI3_RX_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void SAI3_TX_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void SPDIF_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void ANATOP_EVENT0_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void ANATOP_EVENT1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void ANATOP_TAMP_LOW_HIGH_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void ANATOP_TEMP_PANIC_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void USB_PHY1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void USB_PHY2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void ADC1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void ADC2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void DCDC_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void Reserved86_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void Reserved87_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void GPIO1_INT0_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void GPIO1_INT1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void GPIO1_INT2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void GPIO1_INT3_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void GPIO1_INT4_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void GPIO1_INT5_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void GPIO1_INT6_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void GPIO1_INT7_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void GPIO1_Combined_0_15_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void GPIO1_Combined_16_31_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void GPIO2_Combined_0_15_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void GPIO2_Combined_16_31_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void GPIO3_Combined_0_15_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void GPIO3_Combined_16_31_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void GPIO4_Combined_0_15_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void GPIO4_Combined_16_31_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void GPIO5_Combined_0_15_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void GPIO5_Combined_16_31_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void FLEXIO1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void FLEXIO2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void WDOG1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void RTWDOG_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void EWM_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void CCM_1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void CCM_2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void GPC_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void SRC_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void Reserved115_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void GPT1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void GPT2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void PWM1_0_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void PWM1_1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void PWM1_2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void PWM1_3_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void PWM1_FAULT_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void Reserved123_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void FLEXSPI_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void SEMC_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void USDHC1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void USDHC2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void USB_OTG2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void USB_OTG1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void ENET_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void ENET_1588_Timer_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void XBAR1_IRQ_0_1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void XBAR1_IRQ_2_3_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void ADC_ETC_IRQ0_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void ADC_ETC_IRQ1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void ADC_ETC_IRQ2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void ADC_ETC_ERROR_IRQ_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void PIT_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void ACMP1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void ACMP2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void ACMP3_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void ACMP4_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void Reserved143_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void Reserved144_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void ENC1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void ENC2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void ENC3_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void ENC4_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void TMR1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void TMR2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void TMR3_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void TMR4_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void PWM2_0_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void PWM2_1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void PWM2_2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void PWM2_3_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void PWM2_FAULT_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void PWM3_0_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void PWM3_1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void PWM3_2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void PWM3_3_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void PWM3_FAULT_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void PWM4_0_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void PWM4_1_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void PWM4_2_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void PWM4_3_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void PWM4_FAULT_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void Reserved168_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void Reserved169_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void Reserved170_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void Reserved171_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void Reserved172_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void Reserved173_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void SJC_ARM_DEBUG_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
+void NMI_WAKEUP_DriverIRQHandler(void) ALIAS(IntDefaultHandler);
 
 //*****************************************************************************
 // The entry point for the application.
 // __main() is the entry point for Redlib based applications
 // main() is the entry point for Newlib based applications
 //*****************************************************************************
-#if defined(__REDLIB__)
-    extern void __main(void);
-#endif
-    extern int main(int argc, char **argv);
-    extern int unit_tests_main(void);
-    extern void _exit(int);
+extern int main(void);
+extern void _exit(int);
 
-    //*****************************************************************************
-    // External declaration for the pointer to the stack top from the Linker Script
-    //*****************************************************************************
-    extern void _vStackTop(void);
+//*****************************************************************************
+// External declaration for the pointer to the stack top from the Linker Script
+//*****************************************************************************
+extern void _vStackTop(void);
 //*****************************************************************************
 #if defined(__cplusplus)
 } // extern "C"
@@ -657,7 +611,9 @@ __attribute__((section(".after_vectors.init_data"))) void data_init(unsigned int
     unsigned int *pulSrc = (unsigned int *)romstart;
     unsigned int loop;
     for (loop = 0; loop < len; loop = loop + 4)
+    {
         *pulDest++ = *pulSrc++;
+    }
 }
 
 __attribute__((section(".after_vectors.init_bss"))) void bss_init(unsigned int start, unsigned int len)
@@ -665,7 +621,9 @@ __attribute__((section(".after_vectors.init_bss"))) void bss_init(unsigned int s
     unsigned int *pulDest = (unsigned int *)start;
     unsigned int loop;
     for (loop = 0; loop < len; loop = loop + 4)
+    {
         *pulDest++ = 0;
+    }
 }
 
 //*****************************************************************************
@@ -682,21 +640,20 @@ extern unsigned int __data_section_table_end;
 extern unsigned int __bss_section_table;
 extern unsigned int __bss_section_table_end;
 
-__attribute__((section(".sdram"))) volatile unsigned int LoadAddr, ExeAddr, SectionLen;
-__attribute__((section(".sdram"))) volatile unsigned int *SectionTableAddr;
-
 //*****************************************************************************
 // Reset entry point for your code.
 // Sets up a simple runtime environment and initializes the C/C++
 // library.
 //*****************************************************************************
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
+extern void __libc_init_array(void);
+extern void __libc_fini_array(void);
+extern void __cxa_finalize(int);
+
 __attribute__((section(".after_vectors.reset"))) void ResetISR(void)
 {
 
     // Disable interrupts
-    __asm volatile("cpsid i");
+    __asm volatile("cpsid i\n");
 
     // Adjust MSP pointer according to the Vector table
     __set_MSP((uintptr_t)g_pfnVectors[0]);
@@ -739,8 +696,7 @@ __attribute__((section(".after_vectors.reset"))) void ResetISR(void)
     // Reenable interrupts
     __asm volatile("cpsie i");
 
-    static char *main_argv[2] = {"update.bin", 0};
-    int err = main(1, main_argv);
+    int err = main();
     __libc_fini_array();
     __cxa_finalize(0);
     _exit(err);
@@ -749,7 +705,6 @@ __attribute__((section(".after_vectors.reset"))) void ResetISR(void)
         ;
     }
 }
-#pragma GCC diagnostic pop
 
 //*****************************************************************************
 // Default core exception handlers. Override the ones here by defining your own
@@ -1599,9 +1554,3 @@ WEAK void NMI_WAKEUP_IRQHandler(void)
 {
     NMI_WAKEUP_DriverIRQHandler();
 }
-
-//*****************************************************************************
-
-#if defined(DEBUG)
-#pragma GCC pop_options
-#endif // (DEBUG)

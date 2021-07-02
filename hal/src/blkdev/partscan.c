@@ -16,7 +16,7 @@ static const size_t ptbl_size = 16;
 static const size_t ext_part = 0x05;
 static const size_t ext_linux_part = 0x85;
 static const size_t ext_win98_part = 0x0f;
-static const size_t num_parts = 4;
+static const size_t mbr_num_parts = 4;
 static const size_t min_sector_size = 512;
 
 static const size_t EXT_MAX_NUM_PARTS = 100;
@@ -51,10 +51,10 @@ static inline uint16_t to_short(const uint8_t vec[], size_t offs)
 }
 
 //* Read partitions info
-static void read_partitions(const uint8_t buffer[], blk_partition_t *parts, size_t num_parts)
+static void read_partitions(const uint8_t buffer[], blk_partition_t *parts, size_t nparts)
 {
     size_t offs = ptbl_offs;
-    for (size_t p = 0; p < num_parts; ++p)
+    for (size_t p = 0; p < nparts; ++p)
     {
         blk_partition_t *part = &parts[p];
         part->bootable = buffer[mbr_ptbl_active + offs] & 0x80;
@@ -97,7 +97,7 @@ static int parse_extended(int disk, lba_t lba, blk_size_t count, struct partitio
         return error;
     }
     int extended_part_num;
-    blk_partition_t parts[num_parts];
+    blk_partition_t parts[mbr_num_parts];
     lba_t current_sector = lba;
     unsigned long this_size = count * diskinfo.sector_size;
 
@@ -132,10 +132,10 @@ static int parse_extended(int disk, lba_t lba, blk_size_t count, struct partitio
             }
         }
 
-        read_partitions(sect_buf, parts, num_parts);
+        read_partitions(sect_buf, parts, mbr_num_parts);
         extended_part_num = -1;
 
-        for (size_t partition_num = 0U; partition_num < num_parts; ++partition_num)
+        for (size_t partition_num = 0U; partition_num < mbr_num_parts; ++partition_num)
         {
             if (parts[partition_num].num_sectors == 0)
             {
@@ -242,12 +242,12 @@ int blk_priv_scan_partitions(int disk, struct blk_partition **part)
         return -ENXIO;
     }
     /* Copy the 4 partition records into partitions */
-    blk_partition_t root_part[num_parts];
-    read_partitions(mbr_sect, root_part, num_parts);
+    blk_partition_t root_part[mbr_num_parts];
+    read_partitions(mbr_sect, root_part, mbr_num_parts);
     // Add not extended partitions
     *part = reallocarray(*part, MAX_NUM_PARTS, sizeof(blk_partition_t));
     struct partitions outparts = {*part, 1};
-    for (size_t i = 0; i < num_parts; ++i)
+    for (size_t i = 0; i < mbr_num_parts; ++i)
     {
         blk_partition_t *partx = &root_part[i];
         if (is_extended(partx->type))
@@ -268,7 +268,7 @@ int blk_priv_scan_partitions(int disk, struct blk_partition **part)
             //m_parts.emplace_back(part);
         }
     }
-    for (size_t i = 0; i < num_parts; ++i)
+    for (size_t i = 0; i < mbr_num_parts; ++i)
     {
         blk_partition_t *partx = &root_part[i];
         if (is_extended(partx->type))

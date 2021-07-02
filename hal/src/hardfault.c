@@ -73,7 +73,7 @@ static void crash(enum fail_mode mode, uintptr_t *sp)
     }
 }
 
-void HardFault_Handler(void)
+void __attribute__((used)) HardFault_Handler(void)
 {
     uintptr_t *sp;
     enum fail_mode cmode;
