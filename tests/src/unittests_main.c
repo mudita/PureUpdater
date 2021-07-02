@@ -23,7 +23,7 @@ int main(void)
     system_initialize();
     // Eink welcome message
     eink_clear_log();
-    eink_log("Unit tests started", false);
+    eink_log("Unit tests updater", false);
     eink_log("Please wait...", false);
     eink_log_refresh();
 

@@ -690,6 +690,8 @@ __attribute__((section(".sdram"))) volatile unsigned int *SectionTableAddr;
 // Sets up a simple runtime environment and initializes the C/C++
 // library.
 //*****************************************************************************
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
 __attribute__((section(".after_vectors.reset"))) void ResetISR(void)
 {
 
@@ -732,34 +734,22 @@ __attribute__((section(".after_vectors.reset"))) void ResetISR(void)
         bss_init(ExeAddr, SectionLen);
     }
 
-#if defined(__cplusplus)
-    //
-    // Call C++ library initialisation
-    //
     __libc_init_array();
-#endif
 
     // Reenable interrupts
     __asm volatile("cpsie i");
 
-#if defined(__REDLIB__)
-    // Call the Redlib library, which in turn calls main()
-    __main();
-#elif PROJECT_CONFIG_UNIT_TESTS_BUILD == 1
-    unit_tests_main();
-#else
     static char *main_argv[2] = {"update.bin", 0};
-    _exit(main(1, main_argv));
-#endif
-
-    //
-    // main() shouldn't return, but if it does, we'll just enter an infinite loop
-    //
+    int err = main(1, main_argv);
+    __libc_fini_array();
+    __cxa_finalize(0);
+    _exit(err);
     while (1)
     {
         ;
     }
 }
+#pragma GCC diagnostic pop
 
 //*****************************************************************************
 // Default core exception handlers. Override the ones here by defining your own
