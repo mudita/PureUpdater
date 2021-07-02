@@ -25,7 +25,8 @@ HAL provides following functionality:
 
 * System - System runtime for single threaded application
 
-    - When main function returns using zero or negative code application will stop
+- When main function returns using zero or negative code application will stop
+
 ```c
     // Exit and stop application
     int main(int argc, char** argv)
@@ -33,7 +34,7 @@ HAL provides following functionality:
         return 0;
     }
 ```
-    - When main function returns with positive error code application will restart the system
+- When main function returns with positive error code application will restart the system
 ```c
     // Exit and restart the system
     int main(int argc, char** argv)
@@ -41,8 +42,7 @@ HAL provides following functionality:
         return 1;
     }
 ```
-    - If you want to exit also from another functions exit() funcion can be used
-
+- If you want to exit also from another functions exit() funcion can be used
 ```c
 #include <stdlib.h>
         void some_function()
@@ -81,5 +81,5 @@ Updater also has unit test framework which is able to run directly on the RT1051
 Test should generate _PureUpdater-test.bin_ binary.
 
 
-Updater binary or test binary can be run via *Ecoboot* bootloader like standard OS binary.
-You need to change .boot.json for run the updater or updater tests.
+Updater binary or test binary can be run via ***Ecoboot*** bootloader like standard OS binary.
+You need to change ***.boot.json*** for run the updater or updater tests.
