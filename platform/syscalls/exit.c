@@ -25,27 +25,13 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// ----------------------------------------------------------------------------
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <fsl_common.h>
 
-// ----------------------------------------------------------------------------
-
-#if !defined(DEBUG)
-extern void
-    __attribute__((noreturn))
-    __reset_hardware(void);
-#endif
-
-// ----------------------------------------------------------------------------
-
 // Forward declaration
 
 void _exit(int code);
-
-// ----------------------------------------------------------------------------
 
 // On Release, call the hardware reset procedure.
 // On Debug we just enter an infinite loop, to be used as landmark when halting
@@ -83,13 +69,12 @@ void _exit(int code)
         while (1)
         {
 #ifndef DEBUG
-            _asm volatile("wfi\n");
+            __asm volatile("wfi\n");
 #endif
         }
     }
 }
 
-// ----------------------------------------------------------------------------
 void abort(void)
 {
     printf("***** FATAL: Abort called *****\n");
@@ -108,5 +93,3 @@ void abort(void)
     }
 }
 #pragma GCC diagnostic pop
-
-// ----------------------------------------------------------------------------
