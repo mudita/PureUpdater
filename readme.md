@@ -23,10 +23,44 @@ HAL provides following functionality:
 
 * Logging - via the standard printf() or stdout, stderr stream to the Usart serial console
 
-* System - Other system functionality 
+* System - System runtime for single threaded application
 
-    - system_reset() - restart the system
-    - exit() or return from main - also should restart the system in non debug mode
+    - When main function returns using zero or negative code application will stop
+```c
+    // Exit and stop application
+    int main(int argc, char** argv)
+    {
+        return 0;
+    }
+```
+    - When main function returns with positive error code application will restart the system
+```c
+    // Exit and restart the system
+    int main(int argc, char** argv)
+    {
+        return 1;
+    }
+```
+    - If you want to exit also from another functions exit() funcion can be used
+
+```c
+#include <stdlib.h>
+        void some_function()
+        {
+            if(need_restart) {
+                //! Terminate and restart the system
+                exit(1);
+            }
+        }
+        void other_function() 
+        {
+            //! Terminate and stop application
+            if(need_stop) {
+                exit(0);
+            }
+        }
+```
+
 
 
 ## How to build

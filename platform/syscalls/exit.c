@@ -60,14 +60,32 @@ void _exit(int code);
 void _exit(int code)
 {
     printf("Program terminated by exit with code %i\n", code);
-#ifndef DEBUG
-    for (volatile uint32_t i = 0; i < 100000000; ++i)
+    if (code > 0)
     {
+        printf("Positive exit status - Reboot the system\n");
     }
-    NVIC_SystemReset();
-#endif
-    while (1)
+    __asm volatile(
+        "cpsid i\n"
+        "dsb\n"
+        "isb\n");
+    if (code > 0)
     {
+        for (volatile uint32_t i = 0; i < 50000000; ++i)
+        {
+        }
+        NVIC_SystemReset();
+        while (1)
+        {
+        }
+    }
+    else
+    {
+        while (1)
+        {
+#ifndef DEBUG
+            _asm volatile("wfi\n");
+#endif
+        }
     }
 }
 
@@ -75,6 +93,10 @@ void _exit(int code)
 void abort(void)
 {
     printf("***** FATAL: Abort called *****\n");
+    __asm volatile(
+        "cpsid i\n"
+        "dsb\n"
+        "isb\n");
 #ifndef DEBUG
     for (volatile uint32_t i = 0; i < 100000000; ++i)
     {

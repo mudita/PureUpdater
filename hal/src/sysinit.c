@@ -55,9 +55,3 @@ struct hal_i2c_dev *get_i2c_controller()
     }
     return (i2c_gen.error == kStatus_Success) ? (&i2c_gen) : (NULL);
 }
-
-/** System reset */
-void system_reset(void)
-{
-    NVIC_SystemReset();
-}

@@ -7,6 +7,3 @@ struct hal_i2c_dev;
 
 /** Get I2C bus controller */
 struct hal_i2c_dev *get_i2c_controller();
-
-/** System reset */
-void system_reset(void);

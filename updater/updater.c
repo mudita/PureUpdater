@@ -81,6 +81,12 @@ int main()
     err = vfs_unmount_deinit();
     printf("VFS subsystem free status %i\n", err);
     msleep(5000);
+
+    /*** Positive return code from main function 
+     * or call exit with positive argument
+     * casues a system reboot. Zero or negative value
+     * only halts the system permanently
+     */
     return 0;
 
     /** This main loop shows howto use get 
@@ -94,10 +100,6 @@ int main()
                (unsigned)get_jiffiess(), kevt.key, kevt.event, err);
         msleep(1000);
     }
-
-    /** And finally after some time usefull will be also reset a system
-     * system_reset();
-     */
 
     return 0;
 }

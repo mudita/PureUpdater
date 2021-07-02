@@ -47,6 +47,5 @@ int main(void)
     {
         printf("Failed to umount VFS data errno %i\n", err);
     }
-    msleep(5000);
     return 0;
 }
