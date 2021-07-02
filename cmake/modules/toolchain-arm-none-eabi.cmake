@@ -36,7 +36,7 @@ set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 #################################
 
 # Generic C/C++ options
-set(OBJECT_GEN_FLAGS "-mthumb -fno-builtin -Wall -ffunction-sections -fdata-sections -fomit-frame-pointer")
+set(OBJECT_GEN_FLAGS "-mthumb -fno-builtin -Wall -ffunction-sections -fdata-sections -fomit-frame-pointer -fstrict-aliasing")
 set(CMAKE_C_FLAGS   "${OBJECT_GEN_FLAGS} -std=gnu17" CACHE INTERNAL "C Compiler options")
 set(CMAKE_CXX_FLAGS "${OBJECT_GEN_FLAGS} " CACHE INTERNAL "C++ Compiler options")
 set(CMAKE_ASM_FLAGS "${OBJECT_GEN_FLAGS} -x assembler-with-cpp " CACHE INTERNAL "ASM Compiler options")
@@ -55,16 +55,16 @@ set(CMAKE_ASM_FLAGS_DEBUG "-g -DDEBUG" CACHE INTERNAL "ASM Compiler options for 
 set(CMAKE_EXE_LINKER_FLAGS_DEBUG "" CACHE INTERNAL "Linker options for debug build type")
 
 # Options for RELEASE build
-set(CMAKE_C_FLAGS_RELEASE "-Os -flto" CACHE INTERNAL "C Compiler options for release build type")
-set(CMAKE_CXX_FLAGS_RELEASE "-Os -flto" CACHE INTERNAL "C++ Compiler options for release build type")
+set(CMAKE_C_FLAGS_RELEASE "-O2 -flto" CACHE INTERNAL "C Compiler options for release build type")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -flto" CACHE INTERNAL "C++ Compiler options for release build type")
 set(CMAKE_ASM_FLAGS_RELEASE "" CACHE INTERNAL "ASM Compiler options for release build type")
-set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-flto" CACHE INTERNAL "Linker options for release build type")
+set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-O2 -flto" CACHE INTERNAL "Linker options for release build type")
 
 # Flags for RELWITHDEBINFO build
-set(CMAKE_C_FLAGS_RELWITHDEBINFO "-Os -flto -g" CACHE INTERNAL "C Compiler options for relwithdebinfo build type")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-Os -flto -g" CACHE INTERNAL "C++ Compiler options for relwithdebinfo build type")
+set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -flto -g" CACHE INTERNAL "C Compiler options for relwithdebinfo build type")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -flto -g" CACHE INTERNAL "C++ Compiler options for relwithdebinfo build type")
 set(CMAKE_ASM_FLAGS_RELWITHDEBINFO "" CACHE INTERNAL "ASM Compiler options for relwithdebinfo build type")
-set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "-flto" CACHE INTERNAL "Linker options for relwithdebinfo build type")
+set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "-O2 -flto" CACHE INTERNAL "Linker options for relwithdebinfo build type")
 
 
 #############################

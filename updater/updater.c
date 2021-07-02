@@ -11,7 +11,7 @@
 #include <errno.h>
 #include <stdlib.h>
 
-int main()
+int __attribute__((noinline, used)) main()
 {
     // System initialize
     system_initialize();
@@ -19,7 +19,7 @@ int main()
     eink_clear_log();
     eink_log("Dzien dobry to moj log", false);
     eink_log("A to kolejna linia", false);
-    eink_log("Nowy test 5", false);
+    eink_log("Nowy test 6", false);
     eink_log_refresh();
 
     // This is example HOWTO use Tiny VFS subsystem
