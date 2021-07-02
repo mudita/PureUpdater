@@ -24,6 +24,11 @@ int main(void)
     // Eink welcome message
     eink_clear_log();
     eink_log("Unit tests updater", false);
+    {
+        char buf[32];
+        snprintf(buf, sizeof buf, "Date %s %s", __DATE__, __TIME__);
+        eink_log(buf, false);
+    }
     eink_log("Please wait...", false);
     eink_log_refresh();
 

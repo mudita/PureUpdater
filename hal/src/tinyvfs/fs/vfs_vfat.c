@@ -488,7 +488,8 @@ static int ffat_statvfs(struct vfs_mount *mountp, const char *path, struct statv
 	FRESULT res;
 	VFS_UNUSED(path);
 	DWORD bfree;
-	res = f_getfree(&mountp->mnt_point[1], &bfree, &fs);
+	AUTO_PATH(opath) = path_translate("", mountp);
+	res = f_getfree(opath, &bfree, &fs);
 	if (res != FR_OK)
 	{
 		return -EIO;

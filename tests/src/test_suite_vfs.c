@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <sys/statvfs.h>
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
@@ -290,16 +291,33 @@ static void test_dir_traversal(const char *basedir)
     assert_int_equal(0, unlink(path));
 }
 
-void test_dir_traversal_lfs(void)
+static void test_dir_traversal_lfs(void)
 {
     test_dir_traversal("/user");
 }
 
-void test_dir_traversal_vfat(void)
+static void test_dir_traversal_vfat(void)
 {
     test_dir_traversal("/os");
 }
 
+static void test_statvfs(void)
+{
+    struct statvfs svfs;
+    assert_int_equal(-1, statvfs("/xyz", &svfs));
+    assert_int_equal(ENOENT, errno);
+    assert_int_equal(0, statvfs("/os/test", &svfs));
+    assert_int_equal(512, svfs.f_bsize);
+    assert_true(svfs.f_frsize > 1024);
+    assert_true(svfs.f_blocks > 100);
+    assert_true(svfs.f_bfree > 10);
+    memset(&svfs, 0, sizeof svfs);
+    assert_int_equal(0, statvfs("/user/test", &svfs));
+    assert_int_equal(32768, svfs.f_bsize);
+    assert_int_equal(32768, svfs.f_frsize);
+    assert_true(svfs.f_blocks > 100);
+    assert_true(svfs.f_bfree > 10);
+}
 // VFS test fixutre
 void test_fixture_vfs()
 {
@@ -313,5 +331,6 @@ void test_fixture_vfs()
     run_test(test_dir_travesal_intervfs);
     run_test(test_dir_traversal_lfs);
     run_test(test_dir_traversal_vfat);
+    run_test(test_statvfs);
     test_fixture_end();
 }
