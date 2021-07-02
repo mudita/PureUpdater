@@ -7,7 +7,7 @@
 #include <hal/emmc.h>
 #include <hal/display.h>
 #include <hal/i2c_host.h>
-#include <hal/i2c_dev_priv.h>
+#include <prv/hal/i2c_dev.h>
 #include <hal/keyboard.h>
 #include <boot/board.h>
 #include <stdio.h>
