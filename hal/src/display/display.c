@@ -12,6 +12,8 @@
 #include "fonts.h"
 #include <hal/delay.h>
 #include <boot/board.h>
+#include <stdio.h>
+#include <stdarg.h>
 
 #define EINK_LINE_LEN (BOARD_EINK_DISPLAY_RES_X / 17 - 2)
 #define EINK_MAX_LINES (BOARD_EINK_DISPLAY_RES_Y / 24)
@@ -61,8 +63,8 @@ static void draw_char(uint16_t xpos, uint16_t ypos, const uint8_t *c)
 
         for (j = 0; j < width; j++)
         {
-            int _byte = ((BOARD_EINK_DISPLAY_RES_X - xpos - j) * BOARD_EINK_DISPLAY_RES_Y + (BOARD_EINK_DISPLAY_RES_Y - ypos)) / 8;
-            int _bit = 7 - (((BOARD_EINK_DISPLAY_RES_X - xpos - j) * BOARD_EINK_DISPLAY_RES_Y + (BOARD_EINK_DISPLAY_RES_Y - ypos)) % 8);
+            size_t _byte = ((BOARD_EINK_DISPLAY_RES_X - xpos - j) * BOARD_EINK_DISPLAY_RES_Y + (BOARD_EINK_DISPLAY_RES_Y - ypos)) / 8;
+            size_t _bit = 7 - (((BOARD_EINK_DISPLAY_RES_X - xpos - j) * BOARD_EINK_DISPLAY_RES_Y + (BOARD_EINK_DISPLAY_RES_Y - ypos)) % 8);
             if (line & (1 << (width - j + offset - 1)))
             {
                 //BSP_LCD_DrawPixel((Xpos + j), Ypos, DrawProp[ActiveLayer].TextColor);
@@ -110,7 +112,9 @@ void eink_display_string_at(uint16_t xpos, uint16_t ypos, const char *text, eink
 
     /* Get the text size */
     while (*ptr++)
+    {
         size++;
+    }
 
     const eink_font_t *fnt = eink_get_font();
     /* Characters number per line */
@@ -171,15 +175,20 @@ void eink_refresh_text(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
 void eink_log(const char *text, bool flush)
 {
     if ((text == NULL) || (text[0] == 0))
+    {
         return;
+    }
 
     /* Scroll text up */
     for (int i = (EINK_MAX_LINES - 1); i > 0; --i)
     {
         if (eink_text_buf[i - 1][0] == 0)
+        {
             continue;
+        }
         memset(eink_text_buf[i], ' ', EINK_LINE_LEN - 1);
-        strncpy(eink_text_buf[i], eink_text_buf[i - 1], EINK_LINE_LEN);
+        const size_t len = strlen(eink_text_buf[i - 1]);
+        memcpy(eink_text_buf[i], eink_text_buf[i - 1], (len > EINK_LINE_LEN) ? EINK_LINE_LEN : len);
         eink_text_buf[i][EINK_LINE_LEN] = 0;
     }
 
@@ -216,6 +225,18 @@ void eink_init(void)
     eink_bmp_buf[0] = EinkDataStartTransmission1;
     eink_bmp_buf[1] = 0x00;
     for (i = 0; i < (480 * 600 / 8); i++)
+    {
         eink_bmp_buf[2 + i] = 0xFF;
+    }
     EinkInitialize(Eink1Bpp);
+}
+
+void eink_log_printf(const char *fmt, ...)
+{
+    char buf[EINK_LINE_LEN + 1];
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(buf, sizeof buf, fmt, args);
+    eink_log(buf, false);
+    va_end(args);
 }

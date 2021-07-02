@@ -12,7 +12,8 @@
 #include <stdlib.h>
 
 int main()
-{ // System initialize
+{
+    // System initialize
     system_initialize();
     // Try to initialize EINK
     eink_clear_log();
@@ -21,7 +22,7 @@ int main()
     eink_log("Nowy test 4", false);
     eink_log_refresh();
 
-    // VFS SUBSYSTEM TESTS
+    // This is example HOWTO use Tiny VFS subsystem
     static const vfs_mount_point_desc_t fstab[] = {
         {.disk = blkdev_emmc_user, .partition = 1, .type = vfs_fs_fat, "/os"},
         {.disk = blkdev_emmc_user, .partition = 3, .type = vfs_fs_littlefs, "/user"},
@@ -43,7 +44,6 @@ int main()
         {
         }
     }
-    // Rozmiar pliku
     err = fseek(file, 0, SEEK_END);
     printf("Fseek result %i\n", err);
     long size = ftell(file);
@@ -83,7 +83,9 @@ int main()
     msleep(5000);
     return 0;
 
-    // Main loop read keys etc
+    /** This main loop shows howto use get 
+     * timer ticks and the keyboard events
+     */
     for (;;)
     {
         kbd_event_t kevt;
@@ -92,5 +94,10 @@ int main()
                (unsigned)get_jiffiess(), kevt.key, kevt.event, err);
         msleep(1000);
     }
+
+    /** And finally after some time usefull will be also reset a system
+     * system_reset();
+     */
+
     return 0;
 }

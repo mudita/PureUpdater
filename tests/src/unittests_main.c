@@ -23,12 +23,8 @@ int main(void)
     system_initialize();
     // Eink welcome message
     eink_clear_log();
-    eink_log("Unit tests updater", false);
-    {
-        char buf[32];
-        snprintf(buf, sizeof buf, "Date %s %s", __DATE__, __TIME__);
-        eink_log(buf, false);
-    }
+    eink_log_printf("Unit test updater");
+    eink_log_printf("Date %s %s", __DATE__, __TIME__);
     eink_log("Please wait...", false);
     eink_log_refresh();
 
@@ -44,11 +40,8 @@ int main(void)
         printf("Failed to initialize VFS errno %i\n", err);
     }
     err = run_tests(all_tests);
-    {
-        char buf[32];
-        snprintf(buf, sizeof buf, "Finished with code %i", err);
-        eink_log(buf, true);
-    }
+    eink_log_printf("Finished with code %i", err);
+    eink_log_refresh();
     err = vfs_unmount_deinit();
     if (err)
     {

@@ -17,9 +17,9 @@
   */
 typedef enum eink_align_mode
 {
-  EINK_CENTER_MODE             = 0x01,    /*!< Center mode */
-  EINK_RIGHT_MODE              = 0x02,    /*!< Right mode  */
-  EINK_LEFT_MODE               = 0x03     /*!< Left mode   */
+  EINK_CENTER_MODE = 0x01, /*!< Center mode */
+  EINK_RIGHT_MODE = 0x02,  /*!< Right mode  */
+  EINK_LEFT_MODE = 0x03    /*!< Left mode   */
 
 } eink_align_mode_t;
 
@@ -48,13 +48,18 @@ void eink_display_string_at(uint16_t xpos, uint16_t ypos, const char *text, eink
  * @param w Width of clean area
  * @param h Weight of clean area
  */
-void eink_refresh_text( uint16_t x, uint16_t y, uint16_t w, uint16_t h );
+void eink_refresh_text(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
 
 /** Display to the eink like log console
  * @param text Text for display
  * @param interactive True if interactive refreshing enabled
  */
 void eink_log(const char *text, bool flush);
+
+/** Printf value using the eink and doesn't refresh
+ * Use standard printf tool
+ */
+void eink_log_printf(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 
 /** Flush log into the display
  */
@@ -63,4 +68,3 @@ void eink_log_refresh();
 /** Clear eink log console
  */
 void eink_clear_log(void);
-
