@@ -1,5 +1,6 @@
 #!/bin/bash
 FILE="build/tests/PureUpdater-test.bin"
+#FILE="build//PureUpdater.bin"
 DEST="/media/phone"
 
 if [ ! -f $FILE ]; then
