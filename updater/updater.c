@@ -20,6 +20,9 @@ int __attribute__((noinline, used)) main()
     eink_log("Dzien dobry to moj log", false);
     eink_log("A to kolejna linia", false);
     eink_log("Nowy test 6", false);
+    /**  If you want to printf any data to the eink you can use 
+    eink_log_printf("Value %i", variable);
+    */
     eink_log_refresh();
 
     // This is example HOWTO use Tiny VFS subsystem
