@@ -26,6 +26,9 @@ target_link_libraries( ${TARGET_TEST}
     hal
     seatest
 )
+
+include(secure-boot)
+
 # Create binary format
 print_section_sizes( ${TARGET_TEST})
 
@@ -33,7 +36,7 @@ print_section_sizes( ${TARGET_TEST})
 if (ENABLE_SECURE_BOOT)
     create_binary_output( ${TARGET_TEST} "srec")
     add_custom_command(
-        COMMENT "Generate signed {$CMAKE_PROJECT_NAME}.bin (Secure Boot)"
+        COMMENT "Generate signed {$CMAKE_PROJECT_NAME}-test.bin (Secure Boot)"
         OUTPUT ${BIN_FILE}
         DEPENDS ${SREC_FILE}
         COMMAND ${CMAKE_SOURCE_DIR}/cmake/config/elftosb_wrapper.sh "${ELFTOSB_PATH}" "${CST_PATH}" -f imx -V

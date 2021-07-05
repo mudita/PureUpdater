@@ -7,3 +7,9 @@
 [submodule "thirdparty/seatest/src"]
 	path = thirdparty/seatest/src
 	url = ../seatest
+[submodule "thirdparty/klib/klib"]
+	path = thirdparty/klib/src
+	url = https://github.com/attractivechaos/klib.git
+[submodule "thirdparty/microtar/microtar"]
+	path = thirdparty/microtar/src
+	url = https://github.com/rxi/microtar.git
