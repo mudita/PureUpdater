@@ -17,7 +17,6 @@ macro(use_rt1051)
     include(rt1051)
 endmacro()
 
-project(PureUpdater LANGUAGES C CXX ASM)
 
 message("Platform: ${PLATFORM}")
 
@@ -27,6 +26,8 @@ else()
     use_rt1051()
     add_custom_target(${CMAKE_PROJECT_NAME} DEPENDS updater)
 endif()
+
+project(PureUpdater LANGUAGES C CXX ASM)
 
 add_subdirectory( thirdparty )
 add_subdirectory( platform )
