@@ -19,8 +19,9 @@ extern "C"
     /// all input data required for backup
     struct backup_handle_s
     {
-        const char *backup_from; /// location we want to tar
-        const char *backup_to;   /// tar file to put backup in
+        const char *backup_from_os;   /// os location we want to tar
+        const char *backup_from_user; /// user location we want to tar
+        const char *backup_to;        /// tar file to put backup in
     };
 
     bool backup_previous_firmware(struct backup_handle_s *handle, trace_list_t *tl);

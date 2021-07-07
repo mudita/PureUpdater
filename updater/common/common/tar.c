@@ -10,6 +10,12 @@
 #include "tar.h"
 #include "trace.h"
 
+#ifdef DEBUG_UNPACK
+#define log_unpack(...) printf(__VA_ARGS__)
+#else
+#define log_unpack(...)
+#endif
+
 static void _autoclose(int *f)
 {
     if (*f > 0) {
@@ -91,15 +97,22 @@ int tar_file(struct tar_ctx *ctx, const char *path, const char *sanitized)
     printf("Try tar file: %s to: %s\n", path, sanitized);
 
     AUTOCLOSE(f) = open(path, O_RDONLY);
+    if (f <= 0 && errno == ENOENT) {
+        printf("ignored non existing file: %s\n", path);
+        ret = 0;
+        goto exit;
+    }
     if (f <= 0) {
         trace_write(ctx->t, ErrorTarStd, errno);
+        ret = ErrorTarStd;
         goto exit;
     }
 
     struct stat buf;
-    ret = fstat(f, &buf);
+    ret = stat(path, &buf);
     if (ret != 0) {
         trace_write(ctx->t, ErrorTarStd, errno);
+        ret = ErrorTarStd;
         goto exit;
     }
 
@@ -109,6 +122,7 @@ int tar_file(struct tar_ctx *ctx, const char *path, const char *sanitized)
     ret = mtar_write_file_header(&(*ctx).tar, sanitized, file_size);
     if (ret != 0) {
         trace_write(ctx->t, ErrorTarLib, ret);
+        ret = ErrorTarLib;
         goto exit;
     }
 
@@ -118,13 +132,13 @@ int tar_file(struct tar_ctx *ctx, const char *path, const char *sanitized)
         ret        = mtar_write_data(&(ctx->tar), ctx->buffer, bytes_read);
         if (ret != 0) {
             trace_write(ctx->t, ErrorTarLib, ret);
+            ret = ErrorTarLib;
             goto exit;
         }
         if (yet_to_write < bytes_read) {
             trace_write(ctx->t, ErrorTarAny, 0);
-            ret            = -1;
+            ret = ErrorTarLib;
             goto exit;
-            ret = f;
         }
         yet_to_write -= bytes_read;
     } while (bytes_read > 0 && yet_to_write);
@@ -149,7 +163,7 @@ int un_tar_file(struct tar_ctx *ctx, mtar_header_t *header, const char *where)
     AUTOFREE(out)        = calloc(1, strlen(name) + strlen(where) + 2);
     sprintf(out, "%s/%s", where, name);
 
-    printf("unpacking: %s %d.%dkb\n",out, header->size/1024,header->size%1024);
+    log_unpack("unpacking: %s %d.%dkb\n",out, header->size/1024,header->size%1024);
 
     AUTOCLOSE(f) = open(out, O_WRONLY|O_CREAT);
     if (f <= 0) {

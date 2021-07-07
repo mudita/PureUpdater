@@ -17,11 +17,11 @@ bool backup_previous_firmware(struct backup_handle_s *handle, trace_list_t *tl)
         return false;
     }
 
-    if (backup_boot_partition(handle, tl)) {
+    if (!backup_boot_partition(handle, tl)) {
         return false;
     }
 
-    if (backup_user_data(handle, tl)) {
+    if (!backup_user_data(handle, tl)) {
         return false;
     }
 
