@@ -32,21 +32,22 @@ trace_t *trace_append(const char *name,
                       const char *(*err_cstr)(int err),
                       const char *(*err_ext_cstr)(int err, int ext_err))
 {
-    trace_t *t        = kl_pushp(trace_list, tl->data);
+    trace_t *t = kl_pushp(trace_list, tl->data);
     t->procedure_name = calloc(1, strlen(name) + 1);
     sprintf(t->procedure_name, "%s", name);
-    t->err_cstr     = err_cstr;
+    t->err_cstr = err_cstr;
     t->err_ext_cstr = err_ext_cstr;
     return t;
 }
 
 bool _trace_write(trace_t *t, int err, int ext_err, unsigned int line, const char *file)
 {
-    if (trace_ok(t)) {
-        t->err     = err;
+    if (trace_ok(t))
+    {
+        t->err = err;
         t->err_ext = ext_err;
-        t->line    = line;
-        t->file    = file;
+        t->line = line;
+        t->file = file;
     }
 
     return t->err != 0;
@@ -65,12 +66,14 @@ bool trace_ok(trace_t *t)
 
 bool trace_list_ok(trace_list_t *tl)
 {
-    bool ret                    = true;
+    bool ret = true;
     kliter_t(trace_list) *begin = kl_begin((kl_trace_list_t *)(tl->data));
-    kliter_t(trace_list) *end   = kl_end((kl_trace_list_t *)(tl->data));
-    while (begin != end && begin != NULL) {
+    kliter_t(trace_list) *end = kl_end((kl_trace_list_t *)(tl->data));
+    while (begin != end && begin != NULL)
+    {
         trace_t *t = &begin->data;
-        if (!(trace_ok(t))) {
+        if (!(trace_ok(t)))
+        {
             ret = false;
             break;
         }
@@ -79,43 +82,52 @@ bool trace_list_ok(trace_list_t *tl)
     return ret;
 }
 
-void trace_dumps(trace_list_t *tl, void *user_data, bool f(void*,char*, ...))
+void trace_dumps(trace_list_t *tl, void *user_data, bool f(void *, char *, ...))
 {
     (void)user_data;
     kliter_t(trace_list) *begin = kl_begin((kl_trace_list_t *)(tl->data));
-    kliter_t(trace_list) *end   = kl_end((kl_trace_list_t *)(tl->data));
-    int i                       = 0;
-    while (begin != end && begin != NULL) {
+    kliter_t(trace_list) *end = kl_end((kl_trace_list_t *)(tl->data));
+    int i = 0;
+    while (begin != end && begin != NULL)
+    {
         trace_t *t = &begin->data;
-        if (t != NULL) {
-            if (trace_ok(t)) {
-                f(NULL,"t:%d,name:\"%s\"", i, t->procedure_name);
+        if (t != NULL)
+        {
+            if (trace_ok(t))
+            {
+                f(NULL, "t:%d,name:\"%s\"", i, t->procedure_name);
             }
-            else {
-                f(NULL,"t:%d,name:\"%s\",err:%d", i, t->procedure_name, t->err);
-                if (t->err_ext) {
-                    f(NULL,",ext_err:%d", t->err_ext);
+            else
+            {
+                f(NULL, "t:%d,name:\"%s\",err:%d", i, t->procedure_name, t->err);
+                if (t->err_ext)
+                {
+                    f(NULL, ",ext_err:%d", t->err_ext);
                 }
-                if (NULL != t->err_cstr) {
-                    f(NULL,",err_cstr:\"%s\"", t->err_cstr(t->err));
+                if (NULL != t->err_cstr)
+                {
+                    f(NULL, ",err_cstr:\"%s\"", t->err_cstr(t->err));
                 }
-                if (NULL != t->err_ext_cstr) {
-                    f(NULL,",ext_err_cstr:\"%s\"", t->err_ext_cstr(t->err, t->err_ext));
+                if (NULL != t->err_ext_cstr)
+                {
+                    f(NULL, ",ext_err_cstr:\"%s\"", t->err_ext_cstr(t->err, t->err_ext));
                 }
-                f(NULL,",file:\"%s\",line:%d", t->file, t->line);
-                if (NULL != t->opt_string) {
-                    f(NULL,",opt:%s", t->opt_string);
+                f(NULL, ",file:\"%s\",line:%d", t->file, t->line);
+                if (NULL != t->opt_string)
+                {
+                    f(NULL, ",opt:%s", t->opt_string);
                 }
             }
-            f(NULL,"%s", "\n");
+            f(NULL, "%s", "\n");
             ++i;
         }
         begin = kl_next(begin);
     }
 }
 
-static bool _trace_print(void *, char*data, ...)
+static bool _trace_print(void *ptr, char *data, ...)
 {
+    (void)ptr;
     va_list l;
     va_start(l, data);
     vprintf(data, l);
@@ -125,7 +137,8 @@ static bool _trace_print(void *, char*data, ...)
 
 void trace_print(trace_list_t *tl)
 {
-    if (NULL == tl) {
+    if (NULL == tl)
+    {
         return;
     }
     trace_dumps(tl, NULL, _trace_print);
