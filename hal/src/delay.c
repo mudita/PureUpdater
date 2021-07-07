@@ -38,15 +38,24 @@ void msleep(uint32_t delay)
 		delay -= UINT32_MAX - _pv;
 		while (get_jiffiess() < UINT32_MAX)
 		{
+#ifndef DEBUG
+			asm volatile("wfi\n");
+#endif
 		}
 		while (get_jiffiess() < delay)
 		{
+#ifndef DEBUG
+			asm volatile("wfi\n");
+#endif
 		}
 	}
 	else
 	{
 		while (get_jiffiess() < _pv + delay)
 		{
+#ifndef DEBUG
+			asm volatile("wfi\n");
+#endif
 		}
 	}
 }
