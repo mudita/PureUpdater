@@ -49,7 +49,8 @@ BOOST_AUTO_TEST_CASE( backup_entries_check_strings)
     for (auto &[p1, p2] : data.paths) {
         struct backup_handle_s h;
         trace_list_t tl = trace_init();
-        h.backup_from = p1;
+        h.backup_from_user = p1;
+        h.backup_from_os = p1;
         h.backup_to = p2;
 
         BOOST_TEST(check_backup_entries(&h, &tl) == false);
@@ -66,7 +67,8 @@ BOOST_AUTO_TEST_CASE( backup_entries_check_success)
     trace_list_t tl = trace_init();
     std::string yay="yay";
     std::string may="may";
-    h.backup_from = yay.c_str();
+    h.backup_from_os = yay.c_str();
+    h.backup_from_user = yay.c_str();
     h.backup_to = may.c_str();
     BOOST_TEST(check_backup_entries(&h,&tl) == true, "invalid entries");
     BOOST_TEST(trace_list_ok(&tl));
@@ -90,7 +92,8 @@ BOOST_FIXTURE_TEST_CASE( backup_entries_success_no_data, AssetEmptyImage)
     trace_list_t tl = trace_init();
     std::string from =  image.drive;
     std::string to =  disk.drive + "test.tar";
-    h.backup_from = from.c_str();
+    h.backup_from_os = from.c_str();
+    h.backup_from_user = from.c_str();
     h.backup_to = to.c_str();
     BOOST_TEST(backup_whole_directory(&h, &tl) == true);
     BOOST_TEST(trace_list_ok(&tl));
@@ -104,7 +107,8 @@ BOOST_FIXTURE_TEST_CASE( backup_entries_too_small_disk, TooSmall)
     trace_list_t tl = trace_init();
     std::string from =  image.drive;
     std::string to =  disk.drive + "test.tar";
-    h.backup_from = from.c_str();
+    h.backup_from_os = from.c_str();
+    h.backup_from_user = from.c_str();
     h.backup_to = to.c_str();
     BOOST_TEST(backup_whole_directory(&h, &tl) == false);
     BOOST_TEST(!trace_list_ok(&tl));
@@ -118,7 +122,8 @@ BOOST_FIXTURE_TEST_CASE( backup_entries_success_sample_data, AverageDisk)
     trace_list_t tl = trace_init();
     std::string from =  image.drive;
     std::string to =  disk.drive + "test.tar";
-    h.backup_from = from.c_str();
+    h.backup_from_os = from.c_str();
+    h.backup_from_user = from.c_str();
     h.backup_to = to.c_str();
     BOOST_TEST(backup_whole_directory(&h, &tl) == true, "cant write data from: "<<from<<" to: " << to );
     BOOST_TEST(trace_list_ok(&tl));
@@ -133,7 +138,8 @@ BOOST_FIXTURE_TEST_CASE( backup_entries_success_deep_sample_data, AverageDiskDee
     trace_list_t tl = trace_init();
     std::string from =  image.drive;
     std::string to =  disk.drive + "test.tar";
-    h.backup_from = from.c_str();
+    h.backup_from_os = from.c_str();
+    h.backup_from_user = from.c_str();
     h.backup_to = to.c_str();
     BOOST_TEST(backup_whole_directory(&h, &tl) == true, "cant write data from: "<<from<<" to: " << to );
     BOOST_TEST(trace_list_ok(&tl));

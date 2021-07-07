@@ -12,6 +12,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <procedure/package_update/update.h>
+#include <procedure/backup/backup.h>
 #include <common/enum_s.h>
 #include <string.h>
 
@@ -25,6 +26,7 @@ enum
     ErrMainOk,
     ErrMainVfs,
     ErrMainUpdate,
+    ErrMainBackup,
 };
 
 const char* strerror_main(int val)
@@ -33,6 +35,7 @@ const char* strerror_main(int val)
         ENUMS(ErrMainOk);
         ENUMS(ErrMainVfs);
         ENUMS(ErrMainUpdate);
+        ENUMS(ErrMainBackup);
     }
     return "";
 }
@@ -61,6 +64,7 @@ int __attribute__((noinline, used)) main()
 
     static const vfs_mount_point_desc_t fstab[] = {
         {.disk = blkdev_emmc_user, .partition = 1, .type = vfs_fs_fat, "/os"},
+        {.disk = blkdev_emmc_user, .partition = 2, .type = vfs_fs_fat, "/backup"},
         {.disk = blkdev_emmc_user, .partition = 3, .type = vfs_fs_littlefs, "/user"},
     };
 
@@ -68,6 +72,18 @@ int __attribute__((noinline, used)) main()
     if (err)
     {
         trace_write(t, ErrMainVfs, err);
+        goto exit;
+    }
+
+    eink_log_printf("processing backup please wait!");
+
+    struct backup_handle_s backup_handle;
+    backup_handle.backup_from_os = "/os/current";
+    backup_handle.backup_from_user = "/user";
+    backup_handle.backup_to = "/backup/backup.tar";
+    if(!backup_previous_firmware(&backup_handle, &tl))
+    {
+        trace_write(t, ErrMainBackup, 0);
         goto exit;
     }
 

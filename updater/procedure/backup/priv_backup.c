@@ -11,6 +11,7 @@
 
 const char *boot_files_to_backup[] = 
 {
+    "updater.bin",
     "boot.bin",
     "version.json",
 };
@@ -24,8 +25,8 @@ bool backup_boot_partition(struct backup_handle_s *handle, trace_list_t *tl)
 {
     bool success = true;
     struct tar_ctx ctx;
-    trace_t *t = trace_append("backup_boot", tl, NULL,NULL);
-    trace_t *tar_t = trace_append("tar", tl, NULL,NULL);
+    trace_t *t = trace_append("backup_boot", tl, backup_strerror, NULL);
+    trace_t *tar_t = trace_append("tar", tl, tar_strerror, tar_strerror_ext);
     do {
         if (0 != tar_init(&ctx,tar_t, handle->backup_to, "a")) {
             trace_write(t,BackupErrorTar,0);
@@ -35,9 +36,9 @@ bool backup_boot_partition(struct backup_handle_s *handle, trace_list_t *tl)
 
         for (size_t i = 0; i < sizeof(boot_files_to_backup) / sizeof(boot_files_to_backup[0]); ++i) {
             const char *filename = boot_files_to_backup[i];
-            char *filename_from  = (char *)calloc(1,strlen(filename) + strlen(handle->backup_from) + 2);
+            char *filename_from  = (char *)calloc(1,strlen(filename) + strlen(handle->backup_from_os) + 2);
             char *filename_to    = (char *)calloc(1,strlen(filename) + strlen(handle->backup_to) + 2);
-            sprintf(filename_from, "%s/%s", handle->backup_from, filename);
+            sprintf(filename_from, "%s/%s", handle->backup_from_os, filename);
             sprintf(filename_to, "%s/%s", handle->backup_to, filename);
             path_remove_dup_slash(filename_from);
             path_remove_dup_slash(filename_to);
@@ -171,7 +172,7 @@ bool backup_user_data(struct backup_handle_s *handle, trace_list_t *tl)
 
         size_t file_types_cnt     = sizeof(user_file_types_to_backup) / sizeof(user_file_types_to_backup[0]);
         struct list_node_t *nodes = list_create();
-        int ret = get_files_flat(handle->backup_from, user_file_types_to_backup, file_types_cnt, nodes);
+        int ret = get_files_flat(handle->backup_from_user, user_file_types_to_backup, file_types_cnt, nodes);
         if (ret != 0 ) {
             trace_write(t,BackupErrorTar,0);
             tar_deinit(&ctx);
@@ -184,8 +185,8 @@ bool backup_user_data(struct backup_handle_s *handle, trace_list_t *tl)
                 node = node->next;
                 continue;
             }
-            char *filename_from = (char *)calloc(1,strlen(node->data) + strlen(handle->backup_from) + 2);
-            sprintf(filename_from, "%s/%s", handle->backup_from, node->data);
+            char *filename_from = (char *)calloc(1,strlen(node->data) + strlen(handle->backup_from_user) + 2);
+            sprintf(filename_from, "%s/%s", handle->backup_from_user, node->data);
             path_remove_dup_slash(filename_from);
             if (0 != tar_file(&ctx,filename_from, node->data)) {
                 free(filename_from);
@@ -211,9 +212,9 @@ bool backup_user_data(struct backup_handle_s *handle, trace_list_t *tl)
 bool check_backup_entries(struct backup_handle_s *handle,trace_list_t *tl)
 {
     trace_t *t = trace_append("check_backup", tl, NULL,NULL);
-    bool ret = handle->backup_from != NULL && handle->backup_to != NULL;
+    bool ret = handle->backup_from_os != NULL && handle->backup_from_user != NULL && handle->backup_to != NULL;
     if (ret) {
-        ret = (strlen(handle->backup_from) > 0) && (strlen(handle->backup_to) > 0);
+        ret = (strlen(handle->backup_from_os) > 0) && (strlen(handle->backup_from_user) > 0)  && (strlen(handle->backup_to) > 0);
     }
     if (!ret) {
         trace_write(t,BackupBadInput,0);
@@ -270,7 +271,8 @@ bool backup_whole_directory(struct backup_handle_s *handle, trace_list_t *tl)
         }
 
         recursive_dir_walker_init(&handle_walk, tar_callback, &ctx);
-        recursive_dir_walker(handle->backup_from, &handle_walk, &recursion_limit);
+        recursive_dir_walker(handle->backup_from_os, &handle_walk, &recursion_limit);
+        recursive_dir_walker(handle->backup_from_user, &handle_walk, &recursion_limit);
         recursive_dir_walker_deinit(&handle_walk);
 
         if (handle_walk.error) {

@@ -14,7 +14,8 @@ BOOST_FIXTURE_TEST_CASE( backup_success, Firmware)
 
     std::string from =  image.drive;
     std::string end_tar =  disk.drive + "test.tar";
-    h.backup_from = from.c_str();
+    h.backup_from_os = from.c_str();
+    h.backup_from_user = from.c_str();
     h.backup_to = end_tar.c_str();
 
     BOOST_TEST(backup_boot_partition(&h, &tl) == true, "we can write data from: "<<from<<" to: " << end_tar );
