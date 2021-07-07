@@ -33,4 +33,15 @@ char *path_sanitize(char *from, char *path)
     return ret;
 }
 
-
+void path_remove_trailing_slash(char* out)
+{
+    if ( out == NULL) {
+        return;
+    }
+    if (strlen(out) < 2) {
+        return;
+    }
+    if (out[strlen(out)-1] == '/' ) {
+        out[strlen(out)-1] = 0;
+    }
+}

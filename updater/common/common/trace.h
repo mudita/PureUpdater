@@ -37,6 +37,7 @@ extern "C"
     trace_list_t trace_init();
     void trace_deinit(trace_list_t *);
     void trace_print(trace_list_t *);
+    void trace_dumps(trace_list_t *, void *user_data, bool f(void*,char*, ...));
     trace_t *trace_append(const char *name,
                           trace_list_t *,
                           const char *(*err_cstr)(int err),

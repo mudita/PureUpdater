@@ -13,7 +13,7 @@ target_sources(littlefs
 
 #target_compile_definitions(littlefs 
 #    PUBLIC 
-#        LFS_DEBUG
+#    LFS_YES_TRACE
 #)
 
 target_include_directories(littlefs

@@ -11,7 +11,7 @@
 BOOST_FIXTURE_TEST_CASE(unpack_success, UpdateAsset)
 {
     std::string in = image.tar_path.string() + image.tar_name;
-    struct update_handle_s handle{0,0,0,0,0};
+    struct update_handle_s handle{0,0,0,0};
     handle.update_from = in.c_str();
     handle.update_os = disk_os.drive.c_str();
     handle.update_user = disk_user.drive.c_str();
@@ -33,7 +33,7 @@ BOOST_FIXTURE_TEST_CASE(unpack_success, UpdateAsset)
 BOOST_FIXTURE_TEST_CASE(unpack_no_tar, UpdateEmptyAsset)
 {
     std::string in = image.tar_path.string() + image.tar_name;
-    struct update_handle_s handle{0,0,0,0,0};
+    struct update_handle_s handle{0,0,0,0};
     handle.update_from = in.c_str();
     handle.update_os = disk_os.drive.c_str();
     handle.update_user = disk_user.drive.c_str();

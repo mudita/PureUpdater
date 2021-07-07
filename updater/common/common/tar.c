@@ -36,6 +36,7 @@ int tar_init(struct tar_ctx *ctx, trace_t *t, const char *name, const char *oper
     int ret = mtar_open(&ctx->tar, name, operation_mode);
     if (ret != 0) {
         trace_write(ctx->t, ErrorTarLib, ret);
+        trace_printf(ctx->t, name);
         return ret;
     }
 
@@ -141,10 +142,14 @@ exit:
 int un_tar_file(struct tar_ctx *ctx, mtar_header_t *header, const char *where)
 {
     int ret              = 0;
-    int bytes_read       = 0;
+    char *name  = header->name;
     size_t yet_to_write = header->size;
-    AUTOFREE(out)        = calloc(1, strlen(header->name) + strlen(where) + 2);
-    sprintf(out, "%s/%s", where, header->name);
+
+    path_remove_cwd(name);
+    AUTOFREE(out)        = calloc(1, strlen(name) + strlen(where) + 2);
+    sprintf(out, "%s/%s", where, name);
+
+    printf("unpacking: %s %d.%dkb\n",out, header->size/1024,header->size%1024);
 
     AUTOCLOSE(f) = open(out, O_WRONLY|O_CREAT);
     if (f <= 0) {
@@ -154,22 +159,24 @@ int un_tar_file(struct tar_ctx *ctx, mtar_header_t *header, const char *where)
         goto exit;
     }
 
-    while(ctx->tar.remaining_data)
-    {
-         size_t read_size = yet_to_write > ctx->size ? ctx->size : yet_to_write;
-         memset(ctx->buffer, 0, ctx->size);
-         ret = mtar_read_data(&ctx->tar, ctx->buffer, read_size);
-         if (ret != 0) {
-             trace_write(ctx->t, ErrorTarLib, bytes_read);
-             goto exit;
-         }
- 
-         ret = write(f, ctx->buffer, read_size);
-         if (0 > ret) {
-             trace_write(ctx->t, ErrorTarStd, errno);
-             goto exit;
-         }
-     }
+    do {
+      size_t read_size = yet_to_write > ctx->size ? ctx->size : yet_to_write;
+      memset(ctx->buffer, 0, ctx->size);
+      ret = mtar_read_data(&ctx->tar, ctx->buffer, read_size);
+      if (ret != 0) {
+        trace_write(ctx->t, ErrorTarLib, ret);
+        goto exit;
+      }
+
+      ret = write(f, ctx->buffer, read_size);
+      if (0 > ret) {
+        trace_write(ctx->t, ErrorTarStd, errno);
+        goto exit;
+      } else {
+          ret =0;
+      }
+      yet_to_write = ctx->tar.remaining_data;
+    } while (yet_to_write);
 
 exit:
     return ret;
@@ -179,6 +186,7 @@ int un_tar_catalog(struct tar_ctx *ctx, mtar_header_t *header, const char *where
 {
     int ret       = 0;
     ssize_t header_name_len = strlen(header->name);
+    char *name  = header->name;
 
     if (strlen(header->name) == 0)
     {
@@ -191,11 +199,11 @@ int un_tar_catalog(struct tar_ctx *ctx, mtar_header_t *header, const char *where
         return 0;
     }
 
+    path_remove_cwd(name);
 
-    // TODO is it needed? remove_here(header->name);
-    AUTOFREE(out) = calloc(1, strlen(header->name) + strlen(where) + 2);
-    sprintf(out, "%s/%s", where, header->name);
-    // TODO is it needed? remove_dup_slash(out);
+    AUTOFREE(out) = calloc(1, strlen(name) + strlen(where) + 2);
+    sprintf(out, "%s/%s", where, name);
+    path_remove_trailing_slash(out);
 
     struct stat data;
     ret = stat(out, &data);
@@ -207,14 +215,15 @@ int un_tar_catalog(struct tar_ctx *ctx, mtar_header_t *header, const char *where
         goto exit;
     }
 
-        ret = mkdir(out, S_IRWXU | S_IXOTH);
-        if (ret != 0 && errno == EEXIST) {
-            ret = 0;
-        }
-        if (ret != 0) {
-            trace_write(ctx->t, ErrorTarStd, errno);
-            goto exit;
-        }
+    ret = mkdir(out, S_IRWXU | S_IXOTH);
+    if (ret != 0 && errno == EEXIST) {
+        ret = 0;
+    }
+    if (ret != 0) {
+        trace_write(ctx->t, ErrorTarStd, errno);
+        trace_printf(ctx->t, out);
+        goto exit;
+    }
 
 exit:
     return ret;

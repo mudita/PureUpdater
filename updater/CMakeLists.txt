@@ -8,12 +8,17 @@ target_compile_features(${UPDATER} PRIVATE
 
 target_compile_options(${UPDATER} PRIVATE -Wall -Wextra -Werror)
 
-file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS  
-    "updater/*.c*"
+file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS
+    "**/*.c*"
+    "*.c*"
 )
 
 # Source directories
-target_sources(${UPDATER} PRIVATE ${SRC_FILES} updater.c)
+target_sources(
+    ${UPDATER}
+    PRIVATE
+    ${SRC_FILES}
+    )
 
 # Libraries
 target_link_libraries(
@@ -25,6 +30,12 @@ target_link_libraries(
     microtar
     klib
     common
+)
+
+target_include_directories(
+    ${UPDATER}
+    PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}
 )
 
 include(secure-boot)
