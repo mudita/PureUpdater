@@ -1,5 +1,7 @@
 #include <hal/system.h>
 #include <fsl_rtwdog.h>
+#include <fsl_snvs_hp.h>
+#include <fsl_snvs_lp.h>
 #include <boot/pin_mux.h>
 #include <boot/clock_config.h>
 #include <hal/delay.h>
@@ -23,9 +25,9 @@ void system_initialize(void)
     BOARD_InitBootClocks();
     debug_console_init();
     emmc_enable();
+    SNVS_LP_Init(SNVS);
+    SNVS_HP_Init(SNVS);
     delay_init();
-    //TODO temporary
-    //PrintSystemClocks();
     // Initialize emmc card
     if (emmc_init())
     {
@@ -54,4 +56,43 @@ struct hal_i2c_dev *get_i2c_controller()
             i2c_gen.initialized = true;
     }
     return (i2c_gen.error == kStatus_Success) ? (&i2c_gen) : (NULL);
+}
+
+/** Get system boot reason code */
+enum system_boot_reason_code system_boot_reason(void)
+{
+    static const uint32_t eco_update_code = 0xbadc0000;
+    static const uint32_t eco_recovery_code = 0xbadc0001;
+    static const uint32_t eco_factory_rst_code = 0xbadc0002;
+    const uint32_t boot_code = SNVS->LPGPR[0];
+    SNVS->LPGPR[0] = 0;
+    switch (boot_code)
+    {
+    case eco_update_code:
+        return system_boot_reason_update;
+    case eco_recovery_code:
+        return system_boot_reason_recovery;
+    case eco_factory_rst_code:
+        return system_boot_reason_factory;
+    default:
+        return system_boot_reason_unknown;
+    }
+}
+
+// Get the system boot reason str
+const char *system_boot_reason_str(enum system_boot_reason_code code)
+{
+    switch (code)
+    {
+    case system_boot_reason_update:
+        return "system_boot_reason_update";
+    case system_boot_reason_recovery:
+        return "system_boot_reason_recovery";
+    case system_boot_reason_factory:
+        return "system_boot_reason_factory";
+    case system_boot_reason_unknown:
+        return "system_boot_reason_unknown";
+    default:
+        return "not in enum system_boot_reason_code";
+    }
 }
