@@ -1,0 +1,33 @@
+{
+  "git":
+  {
+    "git_branch": "master",
+    "git_commit": "247fda4df",
+    "git_tag": "release-0.73.1-rc1-13-g247fda4df"
+  },
+  "misc":
+  {
+    "codename": "",
+    "kernel": "V10.2.0",
+    "buildon": "5.11.0-24-generic",
+    "builddate": "2021-07-09-14:09:16",
+    "builduser": "Maciej Janicki"
+  },
+  "version":
+  {
+    "major": "0",
+    "minor": "73",
+    "patch": "1",
+    "string": "0.73.1"
+  },
+  "bootloader":
+  {
+    "included": "true",
+    "version": "1.0.12",
+    "filename": "ecoboot.bin"
+  },
+  "checksums":
+  {
+    "boot.bin": "123"
+  }
+}
