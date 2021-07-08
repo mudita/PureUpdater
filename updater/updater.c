@@ -29,9 +29,10 @@ enum
     ErrMainBackup,
 };
 
-const char* strerror_main(int val)
+const char *strerror_main(int val)
 {
-    switch (val) {
+    switch (val)
+    {
         ENUMS(ErrMainOk);
         ENUMS(ErrMainVfs);
         ENUMS(ErrMainUpdate);
@@ -40,13 +41,14 @@ const char* strerror_main(int val)
     return "";
 }
 
-const char* strerror_main_ext(int val, int ext)
+const char *strerror_main_ext(int val, int ext)
 {
-    switch (val) {
-        case ErrMainOk:
-            return "";
-        case ErrMainVfs:
-            return strerror(-ext);
+    switch (val)
+    {
+    case ErrMainOk:
+        return "";
+    case ErrMainVfs:
+        return strerror(-ext);
     }
     return "";
 }
@@ -55,6 +57,7 @@ int __attribute__((noinline, used)) main()
 {
     trace_list_t tl;
     system_initialize();
+    printf("System boot reason code: %s\n", system_boot_reason_str(system_boot_reason()));
 
     eink_clear_log();
     eink_log("Updater Init", false);
@@ -89,11 +92,12 @@ int __attribute__((noinline, used)) main()
 
     eink_log_printf("processing update please wait!");
 
-    struct update_handle_s handle = {0,0,0,0};
+    struct update_handle_s handle = {0, 0, 0, 0};
     handle.update_from = "/os/update.tar";
     handle.update_os = "/os/current";
     handle.update_user = "/user";
-    if (!update_firmware(&handle, &tl)) {
+    if (!update_firmware(&handle, &tl))
+    {
         trace_write(t, ErrMainUpdate, 0);
         goto exit;
     }
