@@ -30,6 +30,8 @@ target_link_libraries(
     microtar
     klib
     common
+    cjson
+    md5
 )
 
 target_include_directories(

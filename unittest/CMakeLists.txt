@@ -35,7 +35,7 @@ target_include_directories(
     ${Boost_INCLUDE_DIRS}
     ${PROJECT_SOURCE_DIR}/updater/procedure/backup/
     ${PROJECT_SOURCE_DIR}/updater/procedure/package_update/
-    ${PROJECT_SOURCE_DIR}/updater/procedure/checksum/
+    ${PROJECT_SOURCE_DIR}/updater/proazienka, tylko 2,5 m2, czy jest szansa na prysznic?cedure/checksum/
     )
 
 target_compile_definitions(test_backup
@@ -48,6 +48,8 @@ target_compile_definitions(test_backup
 target_link_libraries(test_backup ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
     klib
     common
+    cjson
+    md5
     )
 
 add_test(NAME test1 COMMAND test_backup)

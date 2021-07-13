@@ -13,3 +13,9 @@
 [submodule "thirdparty/microtar/microtar"]
 	path = thirdparty/microtar/src
 	url = https://github.com/rxi/microtar.git
+[submodule "thirdparty/md5/src/md5"]
+	path = thirdparty/md5/src/md5
+	url = git@github.com:mudita/md5.git
+[submodule "thirdparty/cjson/src/cJSON"]
+	path = thirdparty/cjson/src/cJSON
+	url = https://github.com/DaveGamble/cJSON.git
