@@ -1,25 +1,11 @@
 #include <stdio.h>
 #include <common/trace.h>
+#include <common/json.h>
 #include <boost/test/unit_test.hpp>
-#include <cJSON/cJSON.h>
 #include <md5/md5.h>
 #define BOOST_TEST_MODULE test checksum
 #include "checksum.h"
 #include "checksum_fixture.h"
-
-
-BOOST_FIXTURE_TEST_CASE(get_json_test, TestChecksum)
-{
-    trace_list_t tl = trace_init();
-
-    cJSON * json = get_json(&tl, test_json_path.c_str());
-
-    BOOST_TEST(json != nullptr);
-    BOOST_TEST(cJSON_GetArraySize(json) == 5);
-
-    cJSON_Delete(json);
-    trace_deinit(&tl);
-}
 
 BOOST_FIXTURE_TEST_CASE(get_checksum_test, TestChecksum)
 {
