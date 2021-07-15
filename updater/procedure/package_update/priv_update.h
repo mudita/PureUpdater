@@ -8,7 +8,7 @@ extern "C"
 #include "update.h"
 #include "common/trace.h"
 
-bool unpack(struct update_handle_s *handle, trace_list_t *);
+bool unpack(struct update_handle_s *handle, trace_list_t *tl);
 
 #ifdef __cplusplus
 }

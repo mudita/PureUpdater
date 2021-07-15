@@ -5,6 +5,7 @@
 #include <md5/md5.h>
 #define BOOST_TEST_MODULE test checksum
 #include "checksum.h"
+#include "priv_checksum.h"
 #include "checksum_fixture.h"
 
 BOOST_FIXTURE_TEST_CASE(get_checksum_test, TestChecksum)

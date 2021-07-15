@@ -8,7 +8,6 @@ extern "C"
 #include <stdio.h>
 #include <stdbool.h>
 #include <common/trace.h>
-#include <common/json.h>
 
 enum checksum_error_e {
     ChecksumOk,
@@ -18,7 +17,6 @@ enum checksum_error_e {
     ChecksumJsonReadFailed,
     ChecksumJsonParseFailed,
     ChecksumNotFoundInJson,
-    ChecksumGenericError,
 };
 
 /// all input data required for checksum
@@ -30,12 +28,7 @@ struct checksum_handle_s {
 bool checksum_verify(struct checksum_handle_s *handle, trace_list_t *tl);
 
 const char *strerror_checksum(int err);
-
 const char *strerror_checksum_ext(int err, int err_ext);
-
-const char *get_checksum(trace_list_t *tl, const cJSON *json, const char *file_name);
-
-bool compare_checksums(const char *checksum_l, const char *checksum_r);
 
 #ifdef __cplusplus
 }

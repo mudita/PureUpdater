@@ -1,4 +1,6 @@
 #include "common/trace.h"
+#include "priv_tmp.h"
+#include "update.h"
 #include <boost/process/io.hpp>
 #include <boost/process/system.hpp>
 #include <boost/test/unit_test.hpp>
@@ -11,12 +13,17 @@
 BOOST_FIXTURE_TEST_CASE(unpack_success, UpdateAsset)
 {
     std::string in = image.tar_path.string() + image.tar_name;
-    struct update_handle_s handle{0,0,0,0};
+    struct update_handle_s handle;
+    update_firmware_init(&handle);
     handle.update_from = in.c_str();
-    handle.update_os = disk_os.drive.c_str();
+    handle.update_os   = disk_os.drive.c_str();
     handle.update_user = disk_user.drive.c_str();
+    handle.tmp_os      = (disk_os.drive + "/tmp").c_str();
+    handle.tmp_user    = (disk_user.drive + "/tmp").c_str();
 
     trace_list_t trace_list = trace_init();
+
+    create_temp_catalog(&handle, &trace_list);
     BOOST_TEST(unpack(&handle, &trace_list));
     trace_print(&trace_list);
  
@@ -33,12 +40,17 @@ BOOST_FIXTURE_TEST_CASE(unpack_success, UpdateAsset)
 BOOST_FIXTURE_TEST_CASE(unpack_no_tar, UpdateEmptyAsset)
 {
     std::string in = image.tar_path.string() + image.tar_name;
-    struct update_handle_s handle{0,0,0,0};
+    struct update_handle_s handle;
+    update_firmware_init(&handle);
     handle.update_from = in.c_str();
-    handle.update_os = disk_os.drive.c_str();
+    handle.update_os   = disk_os.drive.c_str();
     handle.update_user = disk_user.drive.c_str();
+    handle.tmp_os      = (disk_os.drive + "/tmp").c_str();
+    handle.tmp_user    = (disk_user.drive + "/tmp").c_str();
 
     trace_list_t trace_list = trace_init();
+
+    create_temp_catalog(&handle,&trace_list);
     BOOST_TEST(unpack(&handle, &trace_list));
     trace_print(&trace_list);
  

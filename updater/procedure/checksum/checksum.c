@@ -8,8 +8,8 @@
 #include <md5/md5.h>
 
 #include "checksum.h"
+#include "priv_checksum.h"
 
-const char *checksum_label = "checksums";
 
 static void _autoclose(int *f) {
     if (*f > 0) {
@@ -33,7 +33,7 @@ bool checksum_verify(struct checksum_handle_s *handle, trace_list_t *tl) {
         goto exit;
     }
 
-    trace_t *trace = trace_append("checksum_verify", tl, strerror_checksum, NULL);
+    trace_t *trace = trace_append("checksum_verify", tl, strerror_checksum, strerror_checksum_ext);
 
     if (handle->file_to_verify == NULL || handle->file_version_json == NULL) {
         trace_write(trace, ChecksumInvalidFilePaths, errno);
@@ -43,6 +43,7 @@ bool checksum_verify(struct checksum_handle_s *handle, trace_list_t *tl) {
     AUTOCLOSE(file_to_verify_fd) = open(handle->file_to_verify, O_RDONLY);
     if (file_to_verify_fd <= 0) {
         trace_write(trace, ChecksumInvalidFilePaths, errno);
+        trace_printf(trace, handle->file_to_verify);
         goto exit;
     }
 
@@ -51,6 +52,7 @@ bool checksum_verify(struct checksum_handle_s *handle, trace_list_t *tl) {
     json = get_json(tl, handle->file_version_json);
     if (json == NULL) {
         trace_write(trace, ChecksumInvalidFilePaths, errno);
+        trace_printf(trace, handle->file_version_json);
         goto exit;
     }
 
@@ -84,43 +86,18 @@ const char *strerror_checksum(int err) {
             return "ChecksumJsonParseFailed";
         case ChecksumNotFoundInJson:
             return "ChecksumNotFoundInJson";
-        case ChecksumGenericError:
-            return "ChecksumGenericError";
     }
     return "Unknown";
 }
 
 const char *strerror_checksum_ext(int err, int err_ext) {
-    UNUSED(err);
-    UNUSED(err_ext);
-    return "Unknown";
-}
-
-const char *get_checksum(trace_list_t *tl, const cJSON *json, const char *file_name) {
-    const cJSON *checksums_tab = NULL;
-    const cJSON *file_checksum = NULL;
-
-    if (tl == NULL) {
-        goto exit;
+    switch(err)
+    {
+        case ChecksumJsonReadFailed:
+        case ChecksumJsonFileTooBig:
+        case ChecksumInvalidFilePaths:
+        case ChecksumNotFoundInJson:
+            return strerror(err_ext);
     }
-
-    trace_t *trace = trace_append("get_checksum", tl, strerror_checksum, NULL);
-
-    if (json != NULL && file_name != NULL) {
-        checksums_tab = get_from_json(tl, json, checksum_label);
-        file_checksum = get_from_json(tl, checksums_tab, file_name);
-        if (file_checksum != NULL) {
-            return file_checksum->valuestring;
-        } else {
-            trace_write(trace, ChecksumNotFoundInJson, errno);
-            goto exit;
-        }
-    }
-
-    exit:
-    return NULL;
-}
-
-bool compare_checksums(const char *checksum_l, const char *checksum_r) {
-    return (strcmp(checksum_l, checksum_r) == 0);
+    return "";
 }

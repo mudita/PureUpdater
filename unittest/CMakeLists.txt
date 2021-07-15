@@ -13,8 +13,9 @@ add_executable(
     test_update.cpp
     test_checksum.cpp
     test_json.cpp
-    dir_fixture.cpp
     test_trace.cpp
+    test_tmp.cpp
+    dir_fixture.cpp
     helper.cpp
 
     ${SRC_FILES}
@@ -23,7 +24,9 @@ add_executable(
     ${PROJECT_SOURCE_DIR}/updater/procedure/backup/dir_walker.c
     ${PROJECT_SOURCE_DIR}/updater/procedure/package_update/update.c
     ${PROJECT_SOURCE_DIR}/updater/procedure/package_update/priv_update.c
+    ${PROJECT_SOURCE_DIR}/updater/procedure/package_update/priv_tmp.c
     ${PROJECT_SOURCE_DIR}/updater/procedure/checksum/checksum.c
+    ${PROJECT_SOURCE_DIR}/updater/procedure/checksum/priv_checksum.c
     )
 
 target_compile_options( test_backup PRIVATE -Wall -Wextra)
@@ -34,6 +37,7 @@ target_include_directories(
     test_backup
     PRIVATE
     ${Boost_INCLUDE_DIRS}
+    ${PROJECT_SOURCE_DIR}/updater/
     ${PROJECT_SOURCE_DIR}/updater/procedure/backup/
     ${PROJECT_SOURCE_DIR}/updater/procedure/package_update/
     ${PROJECT_SOURCE_DIR}/updater/procedure/checksum/

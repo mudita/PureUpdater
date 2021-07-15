@@ -89,6 +89,9 @@ void recursive_dir_walker(const char *name, struct dir_handler_s *h, unsigned in
         }
     }
     closedir(dir);
+    if (h->callback_dir_closed != NULL && strcmp(h->root_catalog, name) != 0) {
+        h->error_callback = (*h->callback_dir_closed)(name, h, h->callback_data);
+    }
 }
 
 

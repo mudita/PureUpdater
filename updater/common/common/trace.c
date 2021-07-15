@@ -84,7 +84,6 @@ bool trace_list_ok(trace_list_t *tl)
 
 void trace_dumps(trace_list_t *tl, void *user_data, bool f(void *, char *, ...))
 {
-    (void)user_data;
     kliter_t(trace_list) *begin = kl_begin((kl_trace_list_t *)(tl->data));
     kliter_t(trace_list) *end = kl_end((kl_trace_list_t *)(tl->data));
     int i = 0;
@@ -95,30 +94,30 @@ void trace_dumps(trace_list_t *tl, void *user_data, bool f(void *, char *, ...))
         {
             if (trace_ok(t))
             {
-                f(NULL, "t:%d,name:\"%s\"", i, t->procedure_name);
+                f(user_data, "t:%d,name:\"%s\"", i, t->procedure_name);
             }
             else
             {
-                f(NULL, "t:%d,name:\"%s\",err:%d", i, t->procedure_name, t->err);
+                f(user_data, "t:%d,name:\"%s\",err:%d", i, t->procedure_name, t->err);
                 if (t->err_ext)
                 {
-                    f(NULL, ",ext_err:%d", t->err_ext);
+                    f(user_data, ",ext_err:%d", t->err_ext);
                 }
                 if (NULL != t->err_cstr)
                 {
-                    f(NULL, ",err_cstr:\"%s\"", t->err_cstr(t->err));
+                    f(user_data, ",err_cstr:\"%s\"", t->err_cstr(t->err));
                 }
                 if (NULL != t->err_ext_cstr)
                 {
-                    f(NULL, ",ext_err_cstr:\"%s\"", t->err_ext_cstr(t->err, t->err_ext));
+                    f(user_data, ",ext_err_cstr:\"%s\"", t->err_ext_cstr(t->err, t->err_ext));
                 }
-                f(NULL, ",file:\"%s\",line:%d", t->file, t->line);
+                f(user_data, ",file:\"%s\",line:%d", t->file, t->line);
                 if (NULL != t->opt_string)
                 {
-                    f(NULL, ",opt:%s", t->opt_string);
+                    f(user_data, ",opt:%s", t->opt_string);
                 }
             }
-            f(NULL, "%s", "\n");
+            f(user_data, "%s", "\n");
             ++i;
         }
         begin = kl_next(begin);
