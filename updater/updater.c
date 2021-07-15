@@ -67,7 +67,7 @@ int __attribute__((noinline, used)) main()
 
     static const vfs_mount_point_desc_t fstab[] = {
         {.disk = blkdev_emmc_user, .partition = 1, .type = vfs_fs_fat, "/os"},
-        {.disk = blkdev_emmc_user, .partition = 2, .type = vfs_fs_fat, "/backup"},
+        {.disk = blkdev_emmc_user, .partition = 2, .type = vfs_fs_littlefs, "/backup"},
         {.disk = blkdev_emmc_user, .partition = 3, .type = vfs_fs_littlefs, "/user"},
     };
 
@@ -84,7 +84,7 @@ int __attribute__((noinline, used)) main()
     backup_handle.backup_from_os = "/os/current";
     backup_handle.backup_from_user = "/user";
     backup_handle.backup_to = "/backup/backup.tar";
-    if(!backup_previous_firmware(&backup_handle, &tl))
+    if (!backup_previous_firmware(&backup_handle, &tl))
     {
         trace_write(t, ErrMainBackup, 0);
         goto exit;
