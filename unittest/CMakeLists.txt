@@ -12,6 +12,7 @@ add_executable(
     test_backup.cpp
     test_update.cpp
     test_checksum.cpp
+    test_json.cpp
     dir_fixture.cpp
     test_trace.cpp
     helper.cpp
@@ -35,7 +36,7 @@ target_include_directories(
     ${Boost_INCLUDE_DIRS}
     ${PROJECT_SOURCE_DIR}/updater/procedure/backup/
     ${PROJECT_SOURCE_DIR}/updater/procedure/package_update/
-    ${PROJECT_SOURCE_DIR}/updater/proazienka, tylko 2,5 m2, czy jest szansa na prysznic?cedure/checksum/
+    ${PROJECT_SOURCE_DIR}/updater/procedure/checksum/
     )
 
 target_compile_definitions(test_backup

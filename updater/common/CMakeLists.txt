@@ -6,7 +6,7 @@ file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS
 )
 
 target_sources( common PRIVATE ${SRC_FILES} )
-target_link_libraries(common microtar klib)
+target_link_libraries(common microtar klib cjson)
 
 target_include_directories(microtar
     PUBLIC
