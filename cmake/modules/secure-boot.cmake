@@ -43,7 +43,7 @@ if (ENABLE_SECURE_BOOT)
     message(STATUS "Using IMG key: ${IMG_KEY}")
 
     configure_file(
-        ${CMAKE_SOURCE_DIR}/config/imx_authenticated_hab.cmake_template
+        ${CMAKE_SOURCE_DIR}/cmake/config/imx_authenticated_hab.cmake_template
         ${CMAKE_BINARY_DIR}/imx_authenticated_hab.bd
         )
 endif ()

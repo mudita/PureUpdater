@@ -116,3 +116,18 @@ function(create_binary_output TARGET TYPE)
     COMMENT "Generating ${TARGET}.${TYPE}"
     )
 endfunction()
+
+function(create_signed_binary TARGET)
+    set(BIN_FILE  ${TARGET}.bin)
+    set(SREC_FILE  ${TARGET}.srec)
+    create_binary_output( ${TARGET} "srec" ${ARGV1})
+    add_custom_target( ${BIN_FILE} ${ARGV1}
+        COMMENT "Generate signed ${TARGET}.bin (Secure Boot)"
+        DEPENDS ${SREC_FILE}
+        COMMAND ${CMAKE_SOURCE_DIR}/cmake/config/elftosb_wrapper.sh "${ELFTOSB_PATH}" "${CST_PATH}" -f imx -V
+        -c ${CMAKE_BINARY_DIR}/imx_authenticated_hab.bd
+        -o ${BIN_FILE}
+        ${SREC_FILE}
+        VERBATIM
+    )
+endfunction()
