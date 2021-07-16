@@ -46,15 +46,15 @@ void _exit(int code);
 void _exit(int code)
 {
     printf("Program terminated by exit with code %i\n", code);
-    if (code > 0)
+    if (code >= 0)
     {
-        printf("Positive exit status - Reboot the system\n");
+        printf("Positive or success exit status - Reboot the system\n");
     }
     __asm volatile(
         "cpsid i\n"
         "dsb\n"
         "isb\n");
-    if (code > 0)
+    if (code >= 0)
     {
         for (volatile uint32_t i = 0; i < 50000000; ++i)
         {
