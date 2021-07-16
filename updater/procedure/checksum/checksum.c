@@ -96,55 +96,6 @@ const char *strerror_checksum_ext(int err, int err_ext) {
     return "Unknown";
 }
 
-cJSON *get_json(trace_list_t *tl, const char *json_path) {
-    cJSON *ret = NULL;
-    const uint16_t json_buffer_size = 1024;
-    char buffer[json_buffer_size];
-
-    off_t file_size = 0;
-    int bytes_read = 0;
-
-    if (tl == NULL) {
-        printf("get_json trace list null");
-        goto exit;
-    }
-
-    trace_t *trace = trace_append("get_json", tl, strerror_checksum, NULL);
-
-    AUTOCLOSE(json_fd) = open(json_path, O_RDONLY);
-    if (json_fd <= 0) {
-        trace_write(trace, ChecksumInvalidFilePaths, errno);
-        goto exit;
-    }
-
-    file_size = lseek(json_fd, 0, SEEK_END);
-    lseek(json_fd, 0, SEEK_SET);
-    if (file_size > json_buffer_size) {
-        trace_write(trace, ChecksumJsonFileTooBig, errno);
-        goto exit;
-    }
-
-    memset(buffer, 0, json_buffer_size);
-    bytes_read = read(json_fd, buffer, json_buffer_size);
-    if (bytes_read < 1) {
-        trace_write(trace, ChecksumJsonReadFailed, errno);
-        goto exit;
-    }
-
-    ret = cJSON_Parse(buffer);
-
-    if (ret == NULL) {
-        const char *err = cJSON_GetErrorPtr();
-        if (err != NULL) {
-            trace_write(trace, ChecksumJsonParseFailed, errno);
-            trace_printf(trace, err);
-        }
-    }
-
-    exit:
-    return ret;
-}
-
 const char *get_checksum(trace_list_t *tl, const cJSON *json, const char *file_name) {
     const cJSON *checksums_tab = NULL;
     const cJSON *file_checksum = NULL;
@@ -156,9 +107,9 @@ const char *get_checksum(trace_list_t *tl, const cJSON *json, const char *file_n
     trace_t *trace = trace_append("get_checksum", tl, strerror_checksum, NULL);
 
     if (json != NULL && file_name != NULL) {
-        checksums_tab = cJSON_GetObjectItemCaseSensitive(json, "checksums");
-        file_checksum = cJSON_GetObjectItemCaseSensitive(checksums_tab, file_name);
-        if (cJSON_IsString(file_checksum) && (file_checksum->valuestring != NULL)) {
+        checksums_tab = get_from_json(tl, json, checksum_label);
+        file_checksum = get_from_json(tl, checksums_tab, file_name);
+        if (file_checksum != NULL) {
             return file_checksum->valuestring;
         } else {
             trace_write(trace, ChecksumNotFoundInJson, errno);
