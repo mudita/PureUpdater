@@ -46,18 +46,7 @@ include(secure-boot)
 print_section_sizes(${UPDATER})
 
 if (ENABLE_SECURE_BOOT)
-    create_binary_output(${UPDATER} "srec")
-    add_custom_command(
-        COMMENT "Generate signed {${UPDATER}}.bin (Secure Boot)"
-        OUTPUT ${BIN_FILE}
-        DEPENDS ${SREC_FILE}
-        COMMAND ${CMAKE_SOURCE_DIR}/cmake/config/elftosb_wrapper.sh "${ELFTOSB_PATH}" "${CST_PATH}" -f imx -V
-        -c ${CMAKE_BINARY_DIR}/imx_authenticated_hab.bd
-        -o ${BIN_FILE}
-        ${SREC_FILE}
-        VERBATIM
-    )
+   create_signed_binary( ${UPDATER} ALL)
 else()
-    create_binary_output( ${UPDATER} "bin" ALL)
-    add_custom_target( updater DEPENDS ${UPDATER}.bin)
+   create_binary_output( ${UPDATER} "bin" ALL)
 endif()

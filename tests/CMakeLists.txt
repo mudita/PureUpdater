@@ -27,25 +27,15 @@ target_link_libraries( ${TARGET_TEST}
     seatest
 )
 
-include(secure-boot)
+#include(secure-boot)
 
 # Create binary format
 print_section_sizes( ${TARGET_TEST})
 
 
 if (ENABLE_SECURE_BOOT)
-    create_binary_output( ${TARGET_TEST} "srec")
-    add_custom_command(
-        COMMENT "Generate signed {$CMAKE_PROJECT_NAME}-test.bin (Secure Boot)"
-        OUTPUT ${BIN_FILE}
-        DEPENDS ${SREC_FILE}
-        COMMAND ${CMAKE_SOURCE_DIR}/cmake/config/elftosb_wrapper.sh "${ELFTOSB_PATH}" "${CST_PATH}" -f imx -V
-        -c ${CMAKE_BINARY_DIR}/imx_authenticated_hab.bd
-        -o ${BIN_FILE}
-        ${SREC_FILE}
-        VERBATIM
-    )
+    create_signed_binary( ${TARGET_TEST})
 else()
     create_binary_output( ${TARGET_TEST} "bin")
-    add_custom_target( tests  DEPENDS ${TARGET_TEST}.bin)
 endif()
+add_custom_target( tests  DEPENDS ${TARGET_TEST}.bin)
