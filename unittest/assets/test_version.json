@@ -24,7 +24,22 @@
   {
     "included": "true",
     "version": "1.0.12",
-    "filename": "ecoboot.bin"
+    "filename": "ecoboot.bin",
+    "md5sum": "456"
+  },
+  "boot":
+  {
+    "included": "true",
+    "version": "1.0.12",
+    "filename": "boot.bin",
+    "md5sum": "123"
+  },
+  "updater":
+  {
+    "included": "true",
+    "version": "1.0.12",
+    "filename": "updater.bin",
+    "md5sum": "AFAD6B1EAF2F7EA6306A9360836E5C0E"
   },
   "checksums":
   {

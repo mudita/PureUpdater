@@ -1,15 +1,11 @@
 #include <errno.h>
-#include <stdlib.h>
-#include <stdint.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <memory.h>
 #include <string.h>
 #include <md5/md5.h>
 
 #include "checksum.h"
-#include "priv_checksum.h"
-
+#include "checksum_priv.h"
 
 static void _autoclose(int *f) {
     if (*f > 0) {
@@ -20,53 +16,48 @@ static void _autoclose(int *f) {
 #define UNUSED(expr) do { (void)(expr); } while (0)
 #define AUTOCLOSE(var) int var __attribute__((__cleanup__(_autoclose)))
 
-bool checksum_verify(struct checksum_handle_s *handle, trace_list_t *tl) {
-    const size_t checksum_size = 16;
-    unsigned char file_md5_checksum[checksum_size];
-    bool ret = false;
+bool checksum_verify(trace_list_t *tl, verify_file_handle_s *handle) {
+    unsigned char calculated_checksum[16];
+    char calculated_checksum_readable[33];
 
-    cJSON *json = NULL;
-    char *checksum = NULL;
+    bool ret = false;
 
     if (tl == NULL || handle == NULL) {
         printf("checksum_verify trace/handle null error");
         goto exit;
     }
+    trace_t *trace = trace_append("checksum_verify", tl, strerror_checksum, NULL);
 
-    trace_t *trace = trace_append("checksum_verify", tl, strerror_checksum, strerror_checksum_ext);
+    if (handle->version_json.valid == false) {
+        trace_write(trace, ChecksumInvalidVersionJson, errno);
+        goto exit;
+    }
 
-    if (handle->file_to_verify == NULL || handle->file_version_json == NULL) {
+    if (handle->file_to_verify == NULL) {
         trace_write(trace, ChecksumInvalidFilePaths, errno);
+        trace_printf(trace, handle->file_to_verify);
         goto exit;
     }
 
     AUTOCLOSE(file_to_verify_fd) = open(handle->file_to_verify, O_RDONLY);
     if (file_to_verify_fd <= 0) {
         trace_write(trace, ChecksumInvalidFilePaths, errno);
-        trace_printf(trace, handle->file_to_verify);
-        goto exit;
-    }
-
-    MD5_File(file_md5_checksum, handle->file_to_verify);
-
-    json = get_json(tl, handle->file_version_json);
-    if (json == NULL) {
-        trace_write(trace, ChecksumInvalidFilePaths, errno);
         trace_printf(trace, handle->file_version_json);
         goto exit;
     }
 
-    checksum = (char *) get_checksum(tl, json, handle->file_to_verify);
-    if (checksum == NULL) {
+    MD5_File(calculated_checksum, handle->file_to_verify);
+    checksum_get_readable(calculated_checksum, calculated_checksum_readable);
+
+    version_json_file_s file_version = json_get_file_from_version(tl, &handle->version_json, handle->file_to_verify);
+    if(file_version.valid == false){
         trace_write(trace, ChecksumNotFoundInJson, errno);
         goto exit;
     }
 
-    ret = compare_checksums(checksum, (char *) file_md5_checksum);
+    ret = checksum_compare(file_version.md5sum, calculated_checksum_readable);
 
     exit:
-    cJSON_Delete(json);
-    free(checksum);
     return ret;
 }
 

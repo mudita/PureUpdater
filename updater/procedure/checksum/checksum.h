@@ -5,9 +5,10 @@ extern "C"
 {
 #endif
 
-#include <stdio.h>
 #include <stdbool.h>
 #include <common/trace.h>
+#include <common/json.h>
+#include <common/types.h>
 
 enum checksum_error_e {
     ChecksumOk,
@@ -17,17 +18,14 @@ enum checksum_error_e {
     ChecksumJsonReadFailed,
     ChecksumJsonParseFailed,
     ChecksumNotFoundInJson,
+    ChecksumInvalidVersionJson,
+    ChecksumGenericError,
 };
 
-/// all input data required for checksum
-struct checksum_handle_s {
-    const char *file_to_verify;
-    const char *file_version_json;
-};
-
-bool checksum_verify(struct checksum_handle_s *handle, trace_list_t *tl);
+bool checksum_verify(trace_list_t *tl, verify_file_handle_s *handle);
 
 const char *strerror_checksum(int err);
+
 const char *strerror_checksum_ext(int err, int err_ext);
 
 #ifdef __cplusplus

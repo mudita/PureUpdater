@@ -10,13 +10,15 @@
 #error Requires top dir to get assets
 #endif
 
-struct TestChecksum
+struct TestsConsts
 {
-    struct checksum_handle_s checksum_handle;
+    const std::string test_checksum_file_path {std::string(SOURCE_DIR) + "/assets/updater.bin"};
+    const unsigned char test_checksum_file_path_md5[33] = "AFAD6B1EAF2F7EA6306A9360836E5C0E";
+
+    const std::string mock_checksum1 = "0123456789abcdef";
+    const std::string mock_checksum2 = "123456789abcdef0";
+
     const std::string test_json_path {std::string(SOURCE_DIR) + "/assets/test_version.json"};
-    const std::string mock_checksum_boot = "0123456789abcdef";
-    const std::string mock_checksum_ecoboot = "123456789abcdef0";
-    const unsigned char test_json_md5_checksum[33] = "911EA6B3FFAB582651D82AC8A7CA3B65";
     const std::string test_json = "{\n"
                             "\t\"git\":\n"
                             "\t{\n"

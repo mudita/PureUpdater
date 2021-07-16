@@ -12,6 +12,7 @@ add_executable(
     test_backup.cpp
     test_update.cpp
     test_checksum.cpp
+    test_version.cpp
     test_json.cpp
     test_trace.cpp
     test_tmp.cpp
@@ -26,7 +27,9 @@ add_executable(
     ${PROJECT_SOURCE_DIR}/updater/procedure/package_update/priv_update.c
     ${PROJECT_SOURCE_DIR}/updater/procedure/package_update/priv_tmp.c
     ${PROJECT_SOURCE_DIR}/updater/procedure/checksum/checksum.c
-    ${PROJECT_SOURCE_DIR}/updater/procedure/checksum/priv_checksum.c
+    ${PROJECT_SOURCE_DIR}/updater/procedure/checksum/checksum_priv.c
+    ${PROJECT_SOURCE_DIR}/updater/procedure/version/version.c
+    ${PROJECT_SOURCE_DIR}/updater/procedure/version/version_priv.c
     )
 
 target_compile_options( test_backup PRIVATE -Wall -Wextra)
@@ -41,6 +44,7 @@ target_include_directories(
     ${PROJECT_SOURCE_DIR}/updater/procedure/backup/
     ${PROJECT_SOURCE_DIR}/updater/procedure/package_update/
     ${PROJECT_SOURCE_DIR}/updater/procedure/checksum/
+    ${PROJECT_SOURCE_DIR}/updater/procedure/version/
     )
 
 target_compile_definitions(test_backup
