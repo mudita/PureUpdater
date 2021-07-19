@@ -53,7 +53,9 @@ struct hal_i2c_dev *get_i2c_controller()
     {
         i2c_gen.error = hal_i2c_init(&i2c_gen, BOARD_KEYBOARD_I2C_CLOCK_FREQ);
         if (i2c_gen.error != kStatus_Success)
+        {
             i2c_gen.initialized = true;
+        }
     }
     return (i2c_gen.error == kStatus_Success) ? (&i2c_gen) : (NULL);
 }
@@ -64,6 +66,7 @@ enum system_boot_reason_code system_boot_reason(void)
     static const uint32_t eco_update_code = 0xbadc0000;
     static const uint32_t eco_recovery_code = 0xbadc0001;
     static const uint32_t eco_factory_rst_code = 0xbadc0002;
+    static const uint32_t eco_factory_pgm_keys = 0xbadc0003;
     const uint32_t boot_code = SNVS->LPGPR[0];
     SNVS->LPGPR[0] = 0;
     switch (boot_code)
@@ -74,6 +77,8 @@ enum system_boot_reason_code system_boot_reason(void)
         return system_boot_reason_recovery;
     case eco_factory_rst_code:
         return system_boot_reason_factory;
+    case eco_factory_pgm_keys:
+        return system_boot_reason_pgm_keys;
     default:
         return system_boot_reason_unknown;
     }
@@ -92,6 +97,8 @@ const char *system_boot_reason_str(enum system_boot_reason_code code)
         return "system_boot_reason_factory";
     case system_boot_reason_unknown:
         return "system_boot_reason_unknown";
+    case system_boot_reason_pgm_keys:
+        return "system_boot_reason_pgm_keys";
     default:
         return "not in enum system_boot_reason_code";
     }
