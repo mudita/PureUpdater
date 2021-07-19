@@ -14,6 +14,7 @@ enum system_boot_reason_code
     system_boot_reason_update,   //! Restart caused by the update request
     system_boot_reason_recovery, //! Restart caused by the recovery request
     system_boot_reason_factory,  //! Restart caused by the factory reset request
+    system_boot_reason_pgm_keys, //! Load keys request (close configuration)
     system_boot_reason_unknown,  //! Unknown boot reason code
 };
 
