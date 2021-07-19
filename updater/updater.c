@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <procedure/package_update/update.h>
 #include <procedure/backup/backup.h>
+#include <procedure/pgmkeys/pgmkeys.h>
 #include <common/enum_s.h>
 #include <string.h>
 
@@ -57,7 +58,8 @@ int __attribute__((noinline, used)) main()
 {
     trace_list_t tl;
     system_initialize();
-    printf("System boot reason code: %s\n", system_boot_reason_str(system_boot_reason()));
+    const enum system_boot_reason_code boot_reason = system_boot_reason();
+    printf("System boot reason code: %s\n", system_boot_reason_str(boot_reason));
 
     eink_clear_log();
     eink_log("Updater Init", false);
@@ -78,33 +80,53 @@ int __attribute__((noinline, used)) main()
         goto exit;
     }
 
-    eink_log_printf("processing backup please wait!");
-
-    struct backup_handle_s backup_handle;
-    backup_handle.backup_from_os = "/os/current";
-    backup_handle.backup_from_user = "/user";
-    backup_handle.backup_to = "/backup/backup.tar";
-    if (!backup_previous_firmware(&backup_handle, &tl))
+    switch (boot_reason)
     {
-        trace_write(t, ErrMainBackup, 0);
-        goto exit;
+    case system_boot_reason_update:
+        eink_log_printf("processing backup please wait!");
+
+        struct backup_handle_s backup_handle;
+        backup_handle.backup_from_os = "/os/current";
+        backup_handle.backup_from_user = "/user";
+        backup_handle.backup_to = "/backup/backup.tar";
+        if (!backup_previous_firmware(&backup_handle, &tl))
+        {
+            trace_write(t, ErrMainBackup, 0);
+            goto exit;
+        }
+
+        eink_log_printf("processing update please wait!");
+
+        struct update_handle_s handle = {0, 0, 0, 0};
+        handle.update_from = "/os/update.tar";
+        handle.update_os = "/os/current";
+        handle.update_user = "/user";
+        if (!update_firmware(&handle, &tl))
+        {
+            trace_write(t, ErrMainUpdate, 0);
+            goto exit;
+        }
+        break;
+    case system_boot_reason_pgm_keys:
+    {
+        const struct program_keys_handle pghandle = {
+            .srk_file = "/os/current/SRK_fuses.bin",
+            .chksum_srk_file = "/os/current/SRK_fuses.bin.md5"};
+        if (!program_keys(&pghandle, &tl))
+        {
+            trace_write(t, ErrMainUpdate, 0);
+            goto exit;
+        }
+        break;
     }
-
-    eink_log_printf("processing update please wait!");
-
-    struct update_handle_s handle = {0, 0, 0, 0};
-    handle.update_from = "/os/update.tar";
-    handle.update_os = "/os/current";
-    handle.update_user = "/user";
-    if (!update_firmware(&handle, &tl))
-    {
-        trace_write(t, ErrMainUpdate, 0);
-        goto exit;
+    default:
+        break;
     }
 
 exit:
     main_status(&tl);
     eink_log_printf("update procedure status: %d", trace_list_ok(&tl));
+    eink_log_refresh();
     msleep(5000);
     printf("Before device free\n");
     err = vfs_unmount_deinit();
