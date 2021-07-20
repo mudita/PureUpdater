@@ -60,8 +60,9 @@ void _exit(int code)
         {
         }
         NVIC_SystemReset();
-        while (1)
-        {
+        while (1) {
+          printf("waiting for reset");
+          for (volatile uint32_t i = 0; i < 50000000; ++i) {}
         }
     }
     else

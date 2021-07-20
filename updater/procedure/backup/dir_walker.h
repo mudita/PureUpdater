@@ -31,6 +31,9 @@ extern "C"
                         enum dir_handling_type_e what,
                         struct dir_handler_s *h,
                         void *);            /// callback to execute on node
+        int (*callback_dir_closed)(const char *path,
+                                   struct dir_handler_s *h,
+                                   void *); /// callback to execute after leaving catalog
         void *callback_data;                /// data passed to callback
         char *root_catalog;                 /// start catalog for recursion
         bool user_break;                    /// whether user requested stop in callback

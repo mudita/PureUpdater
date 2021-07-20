@@ -48,6 +48,7 @@ BOOST_AUTO_TEST_CASE( backup_entries_check_strings)
     auto data = wrong_data();
     for (auto &[p1, p2] : data.paths) {
         struct backup_handle_s h;
+        memset(&h, 0, sizeof h);
         trace_list_t tl = trace_init();
         h.backup_from_user = p1;
         h.backup_from_os = p1;
@@ -63,7 +64,8 @@ BOOST_AUTO_TEST_CASE( backup_entries_check_strings)
 /// test for proper input path
 BOOST_AUTO_TEST_CASE( backup_entries_check_success)
 {
-    struct backup_handle_s h{0,0};
+    struct backup_handle_s h;
+    memset(&h, 0, sizeof h);
     trace_list_t tl = trace_init();
     std::string yay="yay";
     std::string may="may";
@@ -78,7 +80,8 @@ BOOST_AUTO_TEST_CASE( backup_entries_check_success)
 /// test for wrong paths with existing partition
 BOOST_FIXTURE_TEST_CASE( backup_entries_no_to_directory, AssetEmptyImage)
 {
-    struct backup_handle_s h {0,0};
+    struct backup_handle_s h;
+    memset(&h, 0, sizeof h);
     trace_list_t tl = trace_init();
     BOOST_TEST(backup_whole_directory(&h, &tl) == false);
     BOOST_TEST(!trace_list_ok(&tl));
@@ -88,7 +91,8 @@ BOOST_FIXTURE_TEST_CASE( backup_entries_no_to_directory, AssetEmptyImage)
 /// test for success on no job to do
 BOOST_FIXTURE_TEST_CASE( backup_entries_success_no_data, AssetEmptyImage)
 {
-    struct backup_handle_s h={0,0};
+    struct backup_handle_s h;
+    memset(&h, 0, sizeof h);
     trace_list_t tl = trace_init();
     std::string from =  image.drive;
     std::string to =  disk.drive + "test.tar";
@@ -103,7 +107,8 @@ BOOST_FIXTURE_TEST_CASE( backup_entries_success_no_data, AssetEmptyImage)
 /// test for fail with too little space
 BOOST_FIXTURE_TEST_CASE( backup_entries_too_small_disk, TooSmall)
 {
-    struct backup_handle_s h {0,0};
+    struct backup_handle_s h;
+    memset(&h, 0, sizeof h);
     trace_list_t tl = trace_init();
     std::string from =  image.drive;
     std::string to =  disk.drive + "test.tar";
@@ -118,7 +123,8 @@ BOOST_FIXTURE_TEST_CASE( backup_entries_too_small_disk, TooSmall)
 /// test for tafing file - straight in catalog
 BOOST_FIXTURE_TEST_CASE( backup_entries_success_sample_data, AverageDisk)
 {
-    struct backup_handle_s h {0,0};
+    struct backup_handle_s h;
+    memset(&h, 0, sizeof h);
     trace_list_t tl = trace_init();
     std::string from =  image.drive;
     std::string to =  disk.drive + "test.tar";
@@ -134,7 +140,8 @@ BOOST_FIXTURE_TEST_CASE( backup_entries_success_sample_data, AverageDisk)
 /// test for taring file nested deep into the structure
 BOOST_FIXTURE_TEST_CASE( backup_entries_success_deep_sample_data, AverageDiskDeepImage)
 {
-    struct backup_handle_s h {0,0};
+    struct backup_handle_s h;
+    memset(&h, 0, sizeof h);
     trace_list_t tl = trace_init();
     std::string from =  image.drive;
     std::string to =  disk.drive + "test.tar";

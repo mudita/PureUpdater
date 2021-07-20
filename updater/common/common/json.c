@@ -80,6 +80,7 @@ cJSON *get_from_json(trace_list_t *tl, const cJSON * json, const char *name) {
         object = cJSON_GetObjectItemCaseSensitive(json, name);
     }else{
         trace_write(trace, JsonItemNotFound, errno);
+        trace_printf(trace, name);
     }
 
     exit:

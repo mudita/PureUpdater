@@ -9,8 +9,5 @@ else
 fi
 
 make -C build
-cp build/updater/PureUpdater_RT.bin /run/media/pholat/MUDITAOS/current/boot.bin
-udisksctl unmount -b "$SD"1
-udisksctl unmount -b "$SD"2
+cp build/updater/PureUpdater_RT.bin /run/media/pholat/MUDITAOS/current/updater.bin
 sudo eject "$SD"
-

@@ -4,6 +4,7 @@
 #include <microtar/microtar.h>
 #include <string.h>
 #include "priv_update.h"
+#include "procedure/checksum/checksum.h"
 
 bool is_os_file(const char *file)
 {
@@ -34,7 +35,6 @@ bool should_not_be_on_os_but_is(const char *file)
 static const char *unpack_strerror_ext(int err, int ext_err)
 {
     (void)err;
-    (void)ext_err;
     return mtar_strerror(ext_err);
 }
 
@@ -63,9 +63,9 @@ bool unpack(struct update_handle_s *handle, trace_list_t *trace_list)
                 break;
             }
 
-            const char *to = handle->update_user;
+            const char *to = handle->tmp_user;
             if (is_os_file(header.name) || should_not_be_on_os_but_is(header.name)) {
-                to = handle->update_os;
+                to = handle->tmp_os;
             }
 
             if (header.type == MTAR_TDIR) {

@@ -67,8 +67,11 @@ enum system_boot_reason_code system_boot_reason(void)
     static const uint32_t eco_recovery_code = 0xbadc0001;
     static const uint32_t eco_factory_rst_code = 0xbadc0002;
     static const uint32_t eco_factory_pgm_keys = 0xbadc0003;
-    const uint32_t boot_code = SNVS->LPGPR[0];
-    SNVS->LPGPR[0] = 0;
+    static uint32_t boot_code;
+    if (SNVS->LPGPR[0] != 0) {
+        boot_code = SNVS->LPGPR[0];
+        SNVS->LPGPR[0] = 0;
+    }
     switch (boot_code)
     {
     case eco_update_code:
