@@ -161,7 +161,7 @@ static const char *strerror_ext_pgm_keys(int err, int err_ext)
 
 static const char *strerror_pgm_keys(int err)
 {
-    switch (err)
+    switch ((enum program_keys_errors)err)
     {
     case error_pgm_keys_ok:
         return "SRK keys program success";
