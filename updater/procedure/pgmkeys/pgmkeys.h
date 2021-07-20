@@ -19,7 +19,8 @@ enum program_keys_errors
     error_pgm_keys_srk_key_size_error,     //! SRK files length error
     error_pgm_keys_chksum_file_size_error, //! Checksum file length error
     error_pgm_keys_chksum_content_error,   //! Checksum content error
-    error_pgk_keys_mismatch_checksum       //! Checksum mismatch
+    error_pgm_keys_mismatch_checksum,      //! Checksum mismatch
+    error_pgm_keys_mismatch_filename       //! Mismatch filename
 };
 
 /** Program security keys HAB 
