@@ -1,6 +1,7 @@
 #include <errno.h>
 #include <hal/tinyvfs.h>
 #include <stdlib.h>
+#include <reent.h>
 
 int mkdir(const char *path, mode_t mode)
 {
@@ -25,16 +26,17 @@ int _unlink(char *name)
     return err;
 }
 
-int _rename(const char *oldpath, const char *newpath)
+int _rename_r(struct _reent *reent, const char *oldpath, const char *newpath)
 {
     int err = vfs_rename(oldpath, newpath);
     if (err < 0)
     {
-        errno = -err;
+        reent->_errno = -err;
         err = -1;
     }
     return err;
 }
+
 int _stat(const char *file, struct stat *st)
 {
     int err = vfs_stat(file, st);

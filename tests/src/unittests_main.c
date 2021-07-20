@@ -47,5 +47,6 @@ int __attribute__((noinline, used)) main()
     {
         printf("Failed to umount VFS data errno %i\n", err);
     }
-    return 0;
+    // Do not reset
+    return -1;
 }

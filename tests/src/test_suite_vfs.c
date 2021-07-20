@@ -318,6 +318,31 @@ static void test_statvfs(void)
     assert_true(svfs.f_blocks > 100);
     assert_true(svfs.f_bfree > 10);
 }
+
+static void test_rename_with_base(const char *basedir)
+{
+    char oldf[PATH_MAX];
+    char newf[PATH_MAX];
+    snprintf(oldf, sizeof oldf, "%s/file_to_rename", basedir);
+    snprintf(newf, sizeof newf, "%s/file_renamed", basedir);
+    assert_int_equal(-1, rename("/os/not_exists", "/os/new_notexists"));
+    assert_int_equal(ENOENT, errno);
+    assert_int_equal(0, truncate(oldf, 16384));
+    assert_int_equal(0, rename(oldf, newf));
+    // Now new file should exists and can be deleted
+    assert_int_equal(0, unlink(newf));
+}
+
+static void test_rename_vfat(void)
+{
+    test_rename_with_base("/os");
+}
+
+static void test_rename_lfs(void)
+{
+    test_rename_with_base("/user");
+}
+
 // VFS test fixutre
 void test_fixture_vfs()
 {
@@ -332,5 +357,7 @@ void test_fixture_vfs()
     run_test(test_dir_traversal_lfs);
     run_test(test_dir_traversal_vfat);
     run_test(test_statvfs);
+    run_test(test_rename_vfat);
+    run_test(test_rename_lfs);
     test_fixture_end();
 }
