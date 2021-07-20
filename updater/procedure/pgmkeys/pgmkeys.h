@@ -20,7 +20,10 @@ enum program_keys_errors
     error_pgm_keys_chksum_file_size_error, //! Checksum file length error
     error_pgm_keys_chksum_content_error,   //! Checksum content error
     error_pgm_keys_mismatch_checksum,      //! Checksum mismatch
-    error_pgm_keys_mismatch_filename       //! Mismatch filename
+    error_pgm_keys_mismatch_filename,      //! Mismatch filename
+    error_pgm_keys_already_programmed,     //! Keys already programmed cfg is closed
+    error_pgm_keys_pgm_fail,               //! Programming keys fail
+    error_pgm_keys_efuse_verify            //! Efuse verify error
 };
 
 /** Program security keys HAB 

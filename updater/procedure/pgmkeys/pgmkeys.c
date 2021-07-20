@@ -8,11 +8,13 @@
 #include <limits.h>
 #include <md5/md5.h>
 #include <common/path_opts.h>
+#include <hal/security.h>
 
+//! Checksum structure information
 struct checksum_info
 {
-    unsigned char value[16];
-    char filename[128 - 32];
+    unsigned char value[16]; //Checksum value
+    char filename[128 - 32]; //Filename
 };
 
 //! Cleanup file descriptor
@@ -24,6 +26,12 @@ static void file_clean_up(FILE **fil)
     }
 }
 
+/** Convert hex ascii to the bin
+ * @param[out] data Output data bufer
+ * @param[in] size Destination buffer size
+ * @param[in] string Input Ascii Hex string
+ * @return converted buffer or NULL if error
+ */
 static uint8_t *datahex(unsigned char *data, size_t dsize, const char *string)
 {
 
@@ -123,7 +131,7 @@ static int read_checksum(const char *sum_file, struct checksum_info *chksum, tra
 }
 
 // Calculate checksum from the file
-static int validate_checksum_for_file(const char *srk_file, const char *sum_file, trace_t *trace)
+static int validate_checksum_srk_file(const char *srk_file, const char *sum_file, trace_t *trace)
 {
     int err;
     struct checksum_info cinfo = {};
@@ -173,9 +181,55 @@ static const char *strerror_pgm_keys(int err)
         return "SRK checksum mismatch";
     case error_pgm_keys_mismatch_filename:
         return "SRM checksum mismatch filename";
+    case error_pgm_keys_already_programmed:
+        return "SRK keys already programmed in the OTP";
+    case error_pgm_keys_pgm_fail:
+        return "SRK key burn eFUSES failure";
+    case error_pgm_keys_efuse_verify:
+        return "SRK key burn eFUSES verification failure";
     default:
         return "";
     }
+}
+
+// Burn efuses into hardware
+static int burn_efuses_from_file(const char *srk_file, trace_t *trace)
+{
+    if (!sec_configuration_is_open())
+    {
+        trace_write(trace, error_pgm_keys_already_programmed, 0);
+        return error_pgm_keys_already_programmed;
+    }
+    struct sec_srk_key keys = {};
+    if (sec_verify_efuses(&keys))
+    {
+        trace_write(trace, error_pgm_keys_already_programmed, 0);
+        return error_pgm_keys_already_programmed;
+    }
+    FILE *__attribute__((__cleanup__(file_clean_up))) fil = fopen(srk_file, "r");
+    if (!fil)
+    {
+        trace_write(trace, error_pgm_keys_vfs, -errno);
+        return -errno;
+    }
+    if (fread(keys.srk, sizeof keys.srk, 1, fil) != 1)
+    {
+        trace_write(trace, error_pgm_keys_vfs, -errno);
+        return -errno;
+    }
+    int error = 0;
+    if ((error = sec_burn_srk_keys(&keys)))
+    {
+        return error;
+    }
+    // Verify keys again
+    if ((error = sec_verify_efuses(&keys)))
+    {
+        return error;
+    }
+    // Lock bootloader when keys are successfully programmed
+    sec_lock_bootloader();
+    return error;
 }
 
 /** Program SRK fuses into the RT1051 fuses
@@ -246,8 +300,14 @@ int program_keys(const struct program_keys_handle *pgm_handle, trace_list_t *tl)
         trace_write(trace, error_pgm_keys_chksum_file_size_error, 0);
         return error_pgm_keys_chksum_file_size_error;
     }
-    if ((err = validate_checksum_for_file(pgm_handle->srk_file, pgm_handle->chksum_srk_file, trace)))
+    if ((err = validate_checksum_srk_file(pgm_handle->srk_file, pgm_handle->chksum_srk_file, trace)))
     {
+        trace_write(trace, error_pgm_keys_pgm_fail, 0);
+        return err;
+    }
+    if ((err = burn_efuses_from_file(pgm_handle->srk_file, trace)))
+    {
+        trace_write(trace, error_pgm_keys_efuse_verify, 0);
         return err;
     }
     return err;
