@@ -16,8 +16,7 @@ int __attribute__((noinline, used)) main()
 {
     trace_list_t tl;
     system_initialize();
-    const enum system_boot_reason_code boot_reason = system_boot_reason();
-    printf("System boot reason code: %s\n", system_boot_reason_str(boot_reason));
+    printf("System boot reason code: %s\n", system_boot_reason_str(system_boot_reason()));
 
     eink_clear_log();
     eink_log("Updater Init", false);
@@ -32,54 +31,66 @@ int __attribute__((noinline, used)) main()
     };
 
     int err = vfs_mount_init(fstab, sizeof fstab);
-    if (err) {
+    if (err)
+    {
         trace_write(t, ErrMainVfs, err);
         goto exit;
     }
 
     struct update_handle_s handle;
-    memset(&handle,0, sizeof handle);
-    handle.update_os              = "/os/current";
-    handle.update_user            = "/user";
-    handle.tmp_os                 = "/os/tmp";
-    handle.tmp_user               = "/user/tmp";
+    memset(&handle, 0, sizeof handle);
+    handle.update_os = "/os/current";
+    handle.update_user = "/user";
+    handle.tmp_os = "/os/tmp";
+    handle.tmp_user = "/user/tmp";
 
-    switch (system_boot_reason()) {
-    case system_boot_reason_update: {
-        handle.update_from            = "/user/update.tar";
-        handle.backup_full_path       = "/backup/backup.tar";
-        handle.enabled.backup         = true;
+    switch (system_boot_reason())
+    {
+    case system_boot_reason_update:
+    {
+        handle.update_from = "/user/update.tar";
+        handle.backup_full_path = "/backup/backup.tar";
+        handle.enabled.backup = true;
         handle.enabled.check_checksum = false; // TODO true: in implementation
-        handle.enabled.check_sign     = false; // TODO true: not implemented yet
-        handle.enabled.check_version  = false; // TODO true: in implementation
-        if (!update_firmware(&handle, &tl)) {
+        handle.enabled.check_sign = false;     // TODO true: not implemented yet
+        handle.enabled.check_version = false;  // TODO true: in implementation
+        if (!update_firmware(&handle, &tl))
+        {
             trace_write(t, ErrMainUpdate, 0);
             goto exit;
         }
-    } break;
-    case system_boot_reason_recovery: {
-        handle.update_from            = "/backup/backup.tar";
-        handle.enabled.backup         = false;
+    }
+    break;
+    case system_boot_reason_recovery:
+    {
+        handle.update_from = "/backup/backup.tar";
+        handle.enabled.backup = false;
         handle.enabled.check_checksum = true;
-        handle.enabled.check_sign     = false;  // TODO not implemented yet
-        handle.enabled.check_version  = false;
-        if (!update_firmware(&handle, &tl)) {
+        handle.enabled.check_sign = false; // TODO not implemented yet
+        handle.enabled.check_version = false;
+        if (!update_firmware(&handle, &tl))
+        {
             trace_write(t, ErrMainRecovery, 0);
             goto exit;
         }
-    } break;
-    case system_boot_reason_factory: {
-        handle.factory_full_path      = "/backup/factory.tar";
-        handle.enabled.backup         = true;
+    }
+    break;
+    case system_boot_reason_factory:
+    {
+        handle.factory_full_path = "/backup/factory.tar";
+        handle.enabled.backup = true;
         handle.enabled.check_checksum = true;
-        handle.enabled.check_sign     = false;  // TODO not implemented yet
-        handle.enabled.check_version  = false;
-        if (!update_firmware(&handle, &tl)) {
+        handle.enabled.check_sign = false; // TODO not implemented yet
+        handle.enabled.check_version = false;
+        if (!update_firmware(&handle, &tl))
+        {
             trace_write(t, ErrMainFactory, 0);
             goto exit;
         }
-    } break;
-    case system_boot_reason_pgm_keys: {
+    }
+    break;
+    case system_boot_reason_pgm_keys:
+    {
         const struct program_keys_handle pghandle = {
             .srk_file = "/os/current/SRK_fuses.bin",
             .chksum_srk_file = "/os/current/SRK_fuses.bin.md5"};
@@ -88,7 +99,8 @@ int __attribute__((noinline, used)) main()
             trace_write(t, ErrMainUpdate, 0);
             goto exit;
         }
-    } break;
+    }
+    break;
     default:
         printf("not handled %d", system_boot_reason());
         break;
@@ -100,7 +112,7 @@ exit:
     eink_log_refresh();
     msleep(5000);
     err = vfs_unmount_deinit();
-    printf("status %i : procedure: %i\n", err,trace_list_ok(&tl));
+    printf("status %i : procedure: %i\n", err, trace_list_ok(&tl));
 
     /*** Positive return code from main function 
      * or call exit with positive argument
