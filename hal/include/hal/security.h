@@ -1,6 +1,11 @@
 #pragma once
 #include <stdint.h>
 
+/** Initialize the security engines
+ * @return error codes
+ */
+int sec_initialize(void);
+
 /** Check if the secure configuration is open
  * @return 1 - open 0 - closed , negative error
  */

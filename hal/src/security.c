@@ -1,8 +1,12 @@
 #include <hal/security.h>
-#include "MIMXRT1051.h"
+#include <drivers/hab/hab.h>
+#include <drivers/fsl_dcp.h>
+#include <drivers/fsl_snvs_hp.h>
+#include <drivers/fsl_snvs_lp.h>
+#include <MIMXRT1051.h>
 #include <errno.h>
+#include <stdio.h>
 
-#define ARRAY_SIZE(n) (sizeof((n)) / sizeof((n)[0]))
 #define SEC_CONFIG1_MASK 0x02
 
 // ! Burn single efuse bit
@@ -95,4 +99,41 @@ int sec_verify_efuses(const struct sec_srk_key *srk_key)
         }
     }
     return 0;
+}
+
+// Initialize the security engine
+int sec_initialize(void)
+{
+    dcp_config_t dcp_config;
+    DCP_GetDefaultConfig(&dcp_config);
+    DCP_Init(DCP, &dcp_config);
+    if (sec_configuration_is_open())
+    {
+        printf("Open configuration skip HAB initialization skipped...\n");
+        return 0;
+    }
+    else
+    {
+        hab_status_t hab_status;
+        if ((hab_status = hab_entry()) != HAB_SUCCESS)
+        {
+            printf("Unable to initialize HAB sec engine status: %s\n", hab_status_to_str(hab_status));
+            return -EIO;
+        }
+        const uint32_t hab_version = hab_get_version();
+        hab_config_t hab_config;
+        hab_state_t hab_state;
+        if ((hab_status = hab_report_status(&hab_config, &hab_state)) == HAB_SUCCESS || hab_status == HAB_WARNING)
+        {
+            printf("HAB status: version = 0x%08lx, config = %s, state = %s\n",
+                   hab_version, hab_cfg_to_str(hab_config), hab_state_to_str(hab_state));
+        }
+        else
+        {
+            printf("%s: Error unable to get HAB version = 0x%08lx status = %s\n",
+                   __PRETTY_FUNCTION__, hab_version, hab_status_to_str(hab_status));
+            return -EIO;
+        }
+        return 0;
+    }
 }
