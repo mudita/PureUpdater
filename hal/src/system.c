@@ -12,6 +12,7 @@
 #include <prv/hal/i2c_dev.h>
 #include <hal/keyboard.h>
 #include <boot/board.h>
+#include <hal/security.h>
 #include <stdio.h>
 
 static struct hal_i2c_dev i2c_gen = {.base = (uintptr_t)BOARD_KEYBOARD_I2C_BASEADDR, .initialized = false};
@@ -42,7 +43,12 @@ void system_initialize(void)
     }
     if (kbd_init())
     {
-        printf("Unable to initialize keyboard");
+        printf("Unable to initialize keyboard\n");
+    }
+    // Initialize the security engine
+    if (sec_initialize())
+    {
+        printf("Unable to initialize security engine\n");
     }
 }
 
@@ -68,7 +74,8 @@ enum system_boot_reason_code system_boot_reason(void)
     static const uint32_t eco_factory_rst_code = 0xbadc0002;
     static const uint32_t eco_factory_pgm_keys = 0xbadc0003;
     static uint32_t boot_code;
-    if (SNVS->LPGPR[0] != 0) {
+    if (SNVS->LPGPR[0] != 0)
+    {
         boot_code = SNVS->LPGPR[0];
         SNVS->LPGPR[0] = 0;
     }
