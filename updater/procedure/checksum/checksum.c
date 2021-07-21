@@ -42,7 +42,7 @@ bool checksum_verify(trace_list_t *tl, verify_file_handle_s *handle) {
     AUTOCLOSE(file_to_verify_fd) = open(handle->file_to_verify, O_RDONLY);
     if (file_to_verify_fd <= 0) {
         trace_write(trace, ChecksumInvalidFilePaths, errno);
-        trace_printf(trace, handle->file_version_json);
+        trace_printf(trace, handle->file_to_verify);
         goto exit;
     }
 
