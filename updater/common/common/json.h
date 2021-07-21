@@ -2,6 +2,7 @@
 
 #include <common/trace.h>
 #include <cJSON/cJSON.h>
+#include "types.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -17,13 +18,13 @@ enum json_error_e {
     JsonItemNotFound,
 };
 
+version_json_s json_get_version_struct(trace_list_t *tl, const char *json_path);
+
+version_json_file_s json_get_file_from_version(trace_list_t *tl, const version_json_s *version_json, const char *name);
+
 const char *strerror_json(int err);
 
 const char *strerror_json_ext(int err, int err_ext);
-
-cJSON *get_json(trace_list_t *tl, const char *json_path);
-
-cJSON *get_from_json(trace_list_t *tl, const cJSON *json, const char *name);
 
 #ifdef __cplusplus
 }
