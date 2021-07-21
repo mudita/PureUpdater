@@ -5,6 +5,7 @@
 #include "priv_update.h"
 #include "priv_tmp.h"
 #include "procedure/checksum/checksum.h"
+#include "procedure/version/version.h"
 #include "procedure/backup/backup.h"
 
 const char *update_strerror(int e)
@@ -31,13 +32,6 @@ bool signature_check(const char* name, trace_list_t *tl)
 }
 
 struct version_handle_t{};
-bool version_check(struct version_handle_t *h, trace_list_t *tl)
-{
-    (void)h;
-    (void)tl;
-    return false;
-}
-
 
 void update_firmware_init(struct update_handle_s *h)
 {
@@ -51,6 +45,10 @@ bool update_firmware(struct update_handle_s *handle, trace_list_t *tl)
     struct backup_handle_s backup_handle = {.backup_from_os   = handle->update_os,
                                             .backup_from_user = handle->update_user,
                                             .backup_to        = handle->backup_full_path};
+
+    verify_file_handle_s verify_handle;
+    verify_handle.version_json = json_get_version_struct(tl, handle->tmp_os);
+    verify_handle.current_version_json = json_get_version_struct(tl, "/os/current/version.json");
 
     if (handle->enabled.check_sign) {
         if (!signature_check(handle->update_from, tl)) {
@@ -76,20 +74,17 @@ bool update_firmware(struct update_handle_s *handle, trace_list_t *tl)
         goto exit;
     }
 
+
     if (handle->enabled.check_checksum) {
         /// TODO only check files that actually exists from list: {boot, update, ecoboot}.bin
-        struct checksum_handle_s checksum_handle = {.file_to_verify    = "/os/current/boot.bin",
-                                                    .file_version_json = "/os/current/version.json"};
-
-        if (!checksum_verify(&checksum_handle, tl)) {
+        if (!checksum_verify(tl, &verify_handle)) {
             trace_write(t, ErrorChecksums, 0);
             goto exit;
         }
     }
 
-    struct version_handle_t version_handle;
     if (handle->enabled.check_version) {
-        if (!version_check(&version_handle, tl)) {
+        if (!version_check(tl, &verify_handle)) {
             trace_write(t, ErrorChecksums, 0);
             goto exit;
         }

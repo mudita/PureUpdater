@@ -5,7 +5,7 @@
 
 #define UNUSED(expr) do { (void)(expr); } while (0)
 
-bool version_verify(trace_list_t *tl, verify_file_handle_s *handle) {
+bool version_check(trace_list_t *tl, verify_file_handle_s *handle) {
     bool ret = false;
 
     if (tl == NULL || handle == NULL) {

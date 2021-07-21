@@ -20,7 +20,7 @@ enum version_error_e {
     VersionAllocError,
 };
 
-bool version_verify(trace_list_t *tl, verify_file_handle_s *handle);
+bool version_check(trace_list_t *tl, verify_file_handle_s *handle);
 
 const char *strerror_version(int err);
 
