@@ -6,7 +6,7 @@
 #include <hal/tinyvfs.h>
 #include <hal/blk_dev.h>
 #include <procedure/package_update/update.h>
-#include <procedure/pgmkeys/pgmkeys.h>
+#include <procedure/security/pgmkeys.h>
 #include <string.h>
 #include <stdbool.h>
 #include "common/trace.h"
@@ -25,9 +25,9 @@ int __attribute__((noinline, used)) main()
     trace_t *t = trace_append("main", &tl, strerror_main, strerror_main_ext);
 
     static const vfs_mount_point_desc_t fstab[] = {
-        {.disk = blkdev_emmc_user, .partition = 1, .type = vfs_fs_fat, "/os"},
-        {.disk = blkdev_emmc_user, .partition = 2, .type = vfs_fs_littlefs, "/backup"},
-        {.disk = blkdev_emmc_user, .partition = 3, .type = vfs_fs_littlefs, "/user"},
+        {.disk = blkdev_emmc_user, .partition = 1, .type = vfs_fs_fat, .mount_point = "/os"},
+        {.disk = blkdev_emmc_user, .partition = 2, .type = vfs_fs_littlefs, .mount_point = "/backup"},
+        {.disk = blkdev_emmc_user, .partition = 3, .type = vfs_fs_littlefs, .mount_point = "/user"},
     };
 
     int err = vfs_mount_init(fstab, sizeof fstab);
