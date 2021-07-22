@@ -39,8 +39,6 @@ static const char* strerror_ext(int err, int ext_err)
     return "";
 }
 
-
-
 int unlink_callback(const char *path, enum dir_handling_type_e what, struct dir_handler_s *h, void *d)
 {
 
@@ -185,9 +183,22 @@ int mv_callback(const char *path, enum dir_handling_type_e what, struct dir_hand
     switch (what) {
     case DirHandlingDir:
         ret = mkdir(final_path, 0666);
+        if (ret != 0 && errno == EEXIST) {
+            printf("mkdir: %s %d\n", final_path, ret);
+            ret = 0;
+        }
         printf("mkdir: %s %d\n", final_path, ret);
         break;
     case DirHandlingFile: {
+        struct stat data;
+        ret = stat(final_path, &data);
+        if (ret == 0) {
+            ret = unlink(final_path);
+            if (ret != 0) {
+                printf("unlink old file failed");
+                goto exit;
+            }
+        }
         ret = rename(path, final_path);
         if (ret)
             printf("rename %s -> %s: %d %d %s\n", path, final_path, ret, errno, strerror(errno));
@@ -195,8 +206,9 @@ int mv_callback(const char *path, enum dir_handling_type_e what, struct dir_hand
     default:
         break;
     }
+exit:
     if (ret != 0) {
-        trace_write(data->t, 1, ret);
+        trace_write(data->t, ErrorTmpFs, errno);
     }
     free(final_path);
     free(dir_root);
