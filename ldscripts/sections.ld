@@ -179,7 +179,7 @@ SECTIONS
     {
         *(.intramnoncacheable)
         *(.intramnoncacheable.*)
-    } > SRAM_OC
+    } > SRAM_DTC
 
     /* Place system stack at the very end of DTCM */
     _StackSize = 0x10000;
