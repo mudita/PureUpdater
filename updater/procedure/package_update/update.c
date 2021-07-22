@@ -46,10 +46,6 @@ bool update_firmware(struct update_handle_s *handle, trace_list_t *tl)
                                             .backup_from_user = handle->update_user,
                                             .backup_to        = handle->backup_full_path};
 
-    verify_file_handle_s verify_handle;
-    verify_handle.version_json = json_get_version_struct(tl, handle->tmp_os);
-    verify_handle.current_version_json = json_get_version_struct(tl, "/os/current/version.json");
-
     if (handle->enabled.check_sign) {
         if (!signature_check(handle->update_from, tl)) {
             trace_write(t, ErrorSignCheck, 0);
@@ -74,7 +70,11 @@ bool update_firmware(struct update_handle_s *handle, trace_list_t *tl)
         goto exit;
     }
 
-
+    verify_file_handle_s verify_handle;
+    if (handle->enabled.check_checksum || handle->enabled.check_version) 
+    {
+        // TODO fill verify handle for both these enablements ^
+    }
     if (handle->enabled.check_checksum) {
         /// TODO only check files that actually exists from list: {boot, update, ecoboot}.bin
         if (!checksum_verify(tl, &verify_handle)) {
