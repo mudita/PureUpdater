@@ -6,6 +6,11 @@
  */
 int sec_initialize(void);
 
+/** Deinitialize security library
+ *  @note Some cleanup is needed for HAB library
+ */
+void sec_deinitialize(void);
+
 /** Check if the secure configuration is open
  * @return 1 - open 0 - closed , negative error
  */

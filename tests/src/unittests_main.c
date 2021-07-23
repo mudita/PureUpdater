@@ -11,10 +11,12 @@
 #include <stdio.h>
 #include <seatest/seatest.h>
 #include "test_suite_vfs.h"
+#include "test_suite_crypto.h"
 
 static void all_tests(void)
 {
     test_fixture_vfs();
+    test_suite_crypto();
 }
 
 int __attribute__((noinline, used)) main()
@@ -47,6 +49,7 @@ int __attribute__((noinline, used)) main()
     {
         printf("Failed to umount VFS data errno %i\n", err);
     }
+    system_deinitialize();
     // Do not reset
     return -1;
 }

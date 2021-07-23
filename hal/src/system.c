@@ -52,6 +52,12 @@ void system_initialize(void)
     }
 }
 
+/** System deinitialize */
+void system_deinitialize(void)
+{
+    sec_deinitialize();
+}
+
 /** Get I2C bus controller */
 struct hal_i2c_dev *get_i2c_controller()
 {

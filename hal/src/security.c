@@ -1,3 +1,6 @@
+/** HAB updater security module
+ * Author: Lucjan Bryndza
+ */
 #include <hal/security.h>
 #include <drivers/hab/hab.h>
 #include <drivers/fsl_dcp.h>
@@ -101,16 +104,15 @@ int sec_verify_efuses(const struct sec_srk_key *srk_key)
     return 0;
 }
 
+// Global state if security module is intialized
+static bool g_hab_initialized;
+
 // Initialize the security engine
 int sec_initialize(void)
 {
-    dcp_config_t dcp_config;
-    DCP_GetDefaultConfig(&dcp_config);
-    DCP_Init(DCP, &dcp_config);
     if (sec_configuration_is_open())
     {
         printf("Open configuration skip HAB initialization skipped...\n");
-        return 0;
     }
     else
     {
@@ -120,6 +122,12 @@ int sec_initialize(void)
             printf("Unable to initialize HAB sec engine status: %s\n", hab_status_to_str(hab_status));
             return -EIO;
         }
+        if (g_hab_initialized)
+        {
+            printf("HAB already initialized\n");
+            return -EEXIST;
+        }
+        g_hab_initialized = true;
         const uint32_t hab_version = hab_get_version();
         hab_config_t hab_config;
         hab_state_t hab_state;
@@ -134,6 +142,25 @@ int sec_initialize(void)
                    __PRETTY_FUNCTION__, hab_version, hab_status_to_str(hab_status));
             return -EIO;
         }
-        return 0;
+    }
+    {
+        // DCP init
+        dcp_config_t dcp_config;
+        DCP_GetDefaultConfig(&dcp_config);
+        DCP_Init(DCP, &dcp_config);
+    }
+    return 0;
+}
+
+/** Security destructor
+ * we need to ensure that the HAB is deintialized when updater
+ * terminates
+ */
+void sec_deinitialize(void)
+{
+    if (g_hab_initialized)
+    {
+        hab_exit();
+        g_hab_initialized = false;
     }
 }
