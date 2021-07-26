@@ -10,7 +10,7 @@ extern "C"
 
     enum update_error_e
     {
-        ErrorUpdateOk = 0,
+        ErrorUpdateOk,
         ErrorSignCheck,
         ErrorUnpack,
         ErrorChecksums,

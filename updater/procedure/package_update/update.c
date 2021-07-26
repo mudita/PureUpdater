@@ -73,19 +73,20 @@ bool update_firmware(struct update_handle_s *handle, trace_list_t *tl)
     verify_file_handle_s verify_handle;
     if (handle->enabled.check_checksum || handle->enabled.check_version) 
     {
-        // TODO fill verify handle for both these enablements ^
+        verify_handle.version_json = json_get_version_struct(t, "/os/tmp/version.json");
+        verify_handle.current_version_json = json_get_version_struct(t, "/os/current/version.json");
     }
+
     if (handle->enabled.check_checksum) {
-        /// TODO only check files that actually exists from list: {boot, update, ecoboot}.bin
-        if (!checksum_verify(tl, &verify_handle)) {
+        if (!checksum_verify_all(tl, &verify_handle, handle->tmp_os)) {
             trace_write(t, ErrorChecksums, 0);
             goto exit;
         }
     }
 
     if (handle->enabled.check_version) {
-        if (!version_check(tl, &verify_handle)) {
-            trace_write(t, ErrorChecksums, 0);
+        if (!version_check_all(tl, &verify_handle, handle->tmp_os)) {
+            trace_write(t, ErrorVersion, 0);
             goto exit;
         }
     }

@@ -22,6 +22,8 @@ enum checksum_error_e {
     ChecksumGenericError,
 };
 
+bool checksum_verify_all(trace_list_t *tl, verify_file_handle_s *handle, const char *tmp_path);
+
 bool checksum_verify(trace_list_t *tl, verify_file_handle_s *handle);
 
 const char *strerror_checksum(int err);

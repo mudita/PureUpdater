@@ -4,17 +4,16 @@
 #include "version.h"
 #include "version_priv.h"
 
-version_s version_get(trace_list_t *tl, const version_json_s *version_json, const char *file_name) {
+version_s version_get(trace_t *trace, const version_json_s *version_json, const char *file_name) {
     version_s version;
 
-    if (tl == NULL) {
+    if (trace == NULL) {
         printf("get_version trace/handle null error");
         goto exit;
     }
-    trace_t *trace = trace_append("get_version", tl, strerror_version, NULL);
 
     if (version_json->valid && file_name != NULL) {
-        if (version_parse_str(tl, &version, json_get_file_from_version(tl, version_json, file_name).version) < 0) {
+        if (version_parse_str(trace, &version, json_get_file_from_version(trace, version_json, file_name).version) < 0) {
             trace_write(trace, VersionInvalidStringParse, errno);
             goto exit;
         }
@@ -62,19 +61,17 @@ bool version_is_lhs_newer(const version_s *version_l, const version_s *version_r
     return ret;
 }
 
-int version_parse_str(trace_list_t *tl, version_s *version, const char *version_str) {
+int version_parse_str(trace_t *trace, version_s *version, const char *version_str) {
     int ret = 0;
     char *version_str_copy = NULL;
     char *token = NULL;
     version_s version_temp;
     version_temp.valid = true;
 
-    if (tl == NULL) {
+    if (trace == NULL) {
         printf("parse_version_str trace null error");
         goto fail;
     }
-
-    trace_t *trace = trace_append("parse_version_str", tl, strerror_version, NULL);
 
     if (version == NULL || version_str == NULL) {
         trace_write(trace, VersionInvalidStringParse, errno);
