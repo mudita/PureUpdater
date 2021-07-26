@@ -10,6 +10,6 @@ bool checksum_compare(const char *checksum_l, const char *checksum_r) {
 void checksum_get_readable(const unsigned char *hex, char * readable){
     char *ptr = &readable[0];
     for(size_t i = 0; i < 16; ++i){
-        ptr += sprintf(ptr, "%02X", hex[i]);
+        ptr += sprintf(ptr, "%02x", hex[i]);
     }
 }

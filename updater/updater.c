@@ -51,9 +51,9 @@ int __attribute__((noinline, used)) main()
         handle.update_from = "/user/update.tar";
         handle.backup_full_path = "/backup/backup.tar";
         handle.enabled.backup = true;
-        handle.enabled.check_checksum = false; // TODO true: in implementation
+        handle.enabled.check_checksum = true;
         handle.enabled.check_sign = false;     // TODO true: not implemented yet
-        handle.enabled.check_version = false;  // TODO true: in implementation
+        handle.enabled.check_version = true;
         if (!update_firmware(&handle, &tl))
         {
             trace_write(t, ErrMainUpdate, 0);

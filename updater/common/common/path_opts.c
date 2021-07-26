@@ -58,3 +58,8 @@ const char *path_basename_const(const char *path)
     const char *ret;
     return (ret = strrchr(path, '/')) ? ++ret : (ret = path);
 }
+
+bool path_check_if_exists(const char *path){
+    struct stat buf;
+    return (stat(path, &buf) == 0);
+}

@@ -17,20 +17,13 @@ static void _autoclose(int *f) {
 #define UNUSED(expr) do { (void)(expr); } while (0)
 #define AUTOCLOSE(var) int var __attribute__((__cleanup__(_autoclose)))
 
-cJSON *json_get(trace_list_t *tl, const char *json_path) {
+cJSON *json_get(trace_t *trace, const char *json_path) {
     cJSON *ret = NULL;
     const uint16_t json_buffer_size = 1024;
     char buffer[json_buffer_size];
 
     off_t file_size = 0;
     int bytes_read = 0;
-
-    if (tl == NULL) {
-        printf("json_get trace list null");
-        goto exit;
-    }
-
-    trace_t *trace = trace_append("json_get", tl, strerror_json, NULL);
 
     AUTOCLOSE(json_fd) = open(json_path, O_RDONLY);
     if (json_fd <= 0) {
@@ -66,15 +59,8 @@ cJSON *json_get(trace_list_t *tl, const char *json_path) {
     return ret;
 }
 
-cJSON *json_get_item_from(trace_list_t *tl, const cJSON *json, const char *name) {
+cJSON *json_get_item_from(trace_t *trace, const cJSON *json, const char *name) {
     cJSON *object = NULL;
-
-    if (tl == NULL) {
-        printf("json_get_item_from trace list null");
-        goto exit;
-    }
-
-    trace_t *trace = trace_append("json_get_item_from", tl, strerror_json, NULL);
 
     if (json != NULL && name != NULL) {
         object = cJSON_GetObjectItemCaseSensitive(json, name);
@@ -82,11 +68,10 @@ cJSON *json_get_item_from(trace_list_t *tl, const cJSON *json, const char *name)
         trace_write(trace, JsonItemNotFound, errno);
     }
 
-    exit:
     return object;
 }
 
-version_json_file_s json_get_file_struct(trace_list_t *tl, const cJSON *json, const char *filename_arg) {
+version_json_file_s json_get_file_struct(trace_t *trace, const cJSON *json, const char *filename_arg) {
     version_json_file_s file_version;
     file_version.valid = true;
     cJSON *name = NULL;
@@ -94,34 +79,26 @@ version_json_file_s json_get_file_struct(trace_list_t *tl, const cJSON *json, co
     cJSON *checksum = NULL;
     cJSON *version = NULL;
 
-    if (tl == NULL) {
-        printf("json_get_file_struct trace list null");
-        file_version.valid = false;
+    name = json_get_item_from(trace, json, filename_arg);
+    if (name == NULL) {
         goto exit;
     }
 
-    trace_t *trace = trace_append("json_get_file_struct", tl, strerror_json, NULL);
-
-    name = json_get_item_from(tl, json, filename_arg);
-    if (name == NULL) {
-        goto fail;
-    }
-
-    filename = json_get_item_from(tl, name, "filename");
+    filename = json_get_item_from(trace, name, "filename");
     if (cJSON_IsString(filename) && filename->valuestring != NULL) {
         strcpy(file_version.name, filename->valuestring);
     } else {
         goto fail;
     }
 
-    checksum = json_get_item_from(tl, name, "md5sum");
+    checksum = json_get_item_from(trace, name, "md5sum");
     if (cJSON_IsString(checksum) && checksum->valuestring != NULL) {
         strcpy(file_version.md5sum, checksum->valuestring);
     } else {
         goto fail;
     }
 
-    version = json_get_item_from(tl, name, "version");
+    version = json_get_item_from(trace, name, "version");
     if (cJSON_IsString(version) && version->valuestring != NULL) {
         strcpy(file_version.version, version->valuestring);
     } else {

@@ -84,7 +84,7 @@ bool unpack(struct update_handle_s *handle, trace_list_t *trace_list)
                 break;
             }
 
-            if ( tar_next(&ctx))
+            if (tar_next(&ctx))
             {
                 trace_write(t, ErrorUnpack,0);
                 ret = false;
