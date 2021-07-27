@@ -7,6 +7,7 @@
 #include <hal/blk_dev.h>
 #include <procedure/package_update/update.h>
 #include <procedure/security/pgmkeys.h>
+#include <procedure/factory/factory.h>
 #include <string.h>
 #include <stdbool.h>
 #include "common/trace.h"
@@ -77,12 +78,10 @@ int __attribute__((noinline, used)) main()
     break;
     case system_boot_reason_factory:
     {
-        handle.factory_full_path = "/backup/factory.tar";
-        handle.enabled.backup = true;
-        handle.enabled.check_checksum = true;
-        handle.enabled.check_sign = false; // TODO not implemented yet
-        handle.enabled.check_version = false;
-        if (!update_firmware(&handle, &tl))
+        const struct factory_reset_handle frhandle = {
+                .user_dir = handle.update_user
+        };
+        if (!factory_reset(&frhandle, &tl))
         {
             trace_write(t, ErrMainFactory, 0);
             goto exit;
