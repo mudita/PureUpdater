@@ -29,7 +29,7 @@ bool backup_boot_partition(struct backup_handle_s *handle, trace_list_t *tl)
         }
 
         for (size_t i = 0; i < backup_boot_files_list_size; ++i) {
-            const char *filename = backup_boot_files_list[i];
+            const char *filename = backup_boot_files[i];
             char *filename_from  = (char *)calloc(1,strlen(filename) + strlen(handle->backup_from_os) + 2);
             char *filename_to    = (char *)calloc(1,strlen(filename) + strlen(handle->backup_to) + 2);
             sprintf(filename_from, "%s/%s", handle->backup_from_os, filename);

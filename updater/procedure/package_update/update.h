@@ -16,6 +16,7 @@ extern "C"
         ErrorChecksums,
         ErrorTmp,
         ErrorBackup,
+        ErrorFactory,
         ErrorVersion,
         ErrorMove,
     };

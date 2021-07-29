@@ -1,17 +1,25 @@
 #include "boot_files.h"
 
-const uint16_t backup_boot_files_list_size = 3;
-const char *backup_boot_files_list[] =
+const size_t backup_boot_files_list_size = 3;
+const char *backup_boot_files[] =
         {
                 "updater.bin",
                 "boot.bin",
                 "version.json",
         };
 
-const uint16_t verify_files_list_size = 3;
-const char *verify_files_list[] =
+const size_t verify_files_list_size = 3;
+const char *verify_files[] =
         {
                 "updater.bin",
                 "boot.bin",
                 "ecoboot.bin",
+        };
+
+const size_t db_extensions_list_size = 3;
+const char *db_extensions[] =
+        {
+                ".db",
+                ".db-journal",
+                ".db-wal",
         };

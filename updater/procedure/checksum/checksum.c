@@ -23,7 +23,7 @@ bool checksum_verify_all(trace_list_t *tl, verify_file_handle_s *handle, const c
     bool ret = true;
 
     for (size_t i = 0; i < verify_files_list_size; ++i) {
-        const char *filename = verify_files_list[i];
+        const char *filename = verify_files[i];
         char *filepath = (char *) calloc(1, strlen(filename) + strlen(tmp_path) + 1);
         sprintf(filepath, "%s/%s", tmp_path, filename);
         if (!path_check_if_exists(filepath)) {
