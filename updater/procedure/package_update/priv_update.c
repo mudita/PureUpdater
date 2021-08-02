@@ -59,7 +59,7 @@ bool unpack(struct update_handle_s *handle, trace_list_t *trace_list)
         while ((lib_error = (mtar_read_header(&ctx.tar, &header))) != MTAR_ENULLRECORD) {
             lib_error = mtar_read_header(&ctx.tar, &header);
 
-            if (0 != lib_error && lib_error != MTAR_ENULLRECORD) {
+            if (lib_error != 0 && lib_error != MTAR_ENULLRECORD) {
                 break;
             }
 
@@ -73,9 +73,6 @@ bool unpack(struct update_handle_s *handle, trace_list_t *trace_list)
             }
             else if (header.type == MTAR_TREG) {
                 result = un_tar_file(&ctx, &header, to);
-            }
-            else {
-                trace_write(t, ErrorUnpack, 1);
             }
 
             if (result != 0) {
