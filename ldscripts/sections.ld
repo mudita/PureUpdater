@@ -181,6 +181,13 @@ SECTIONS
         *(.intramnoncacheable.*)
     } > SRAM_DTC
 
+    /* Internal place for the image signature buffer */
+    .signaturespace (NOLOAD) : ALIGN(4) 
+    {
+        *(.signaturespace)
+        *(.signaturespace.*)
+    } > BOARD_SDRAM_SIG
+
     /* Place system stack at the very end of DTCM */
     _StackSize = 0x10000;
     .stack ORIGIN(SRAM_DTC) + LENGTH(SRAM_DTC) - _StackSize - 0 : ALIGN(4)

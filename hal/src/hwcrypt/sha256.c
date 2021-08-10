@@ -134,7 +134,7 @@ int sha256_finish(struct sha256_context *ctx, struct sha256_hash *hash)
     return err;
 }
 
-//! Cleanup file descriptor
+// Cleanup file descriptor
 static void file_clean_up(FILE **fil)
 {
     if (*fil)
@@ -143,11 +143,13 @@ static void file_clean_up(FILE **fil)
     }
 }
 
+// Cleanup allocated memory
 static void free_clean_up(uint8_t **ptr)
 {
     free(*ptr);
 }
 
+// Cleanup sha resources
 static void sha_clean_up(struct sha256_context **ctx)
 {
     if (*ctx)

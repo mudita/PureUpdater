@@ -10,8 +10,12 @@
 #include <procedure/factory/factory.h>
 #include <string.h>
 #include <stdbool.h>
+#include <hal/hwcrypt/signature.h>
 #include "common/trace.h"
 #include "main_trace.h"
+
+// Temporary test
+#include <hal/hwcrypt/sha256.h>
 
 int __attribute__((noinline, used)) main()
 {
@@ -45,6 +49,12 @@ int __attribute__((noinline, used)) main()
     handle.tmp_os = "/os/tmp";
     handle.tmp_user = "/user/tmp";
 
+    {
+        //xx
+        int err = sec_verify_executable("/os/current/signature.sig");
+        printf("SIGNATURE verification XXXX %i\n", err);
+        return -1;
+    }
     switch (system_boot_reason())
     {
     case system_boot_reason_update:
@@ -112,6 +122,7 @@ exit:
     msleep(5000);
     err = vfs_unmount_deinit();
     printf("status %i : procedure: %i\n", err, trace_list_ok(&tl));
+    system_deinitialize();
 
     /*** Positive return code from main function 
      * or call exit with positive argument
