@@ -8,7 +8,7 @@ enum ecoboot_update_errors
     error_eco_update_ok,
     // With errno
     error_eco_vfs,    //! Errno related to vfs
-    error_eco_blkdev, //! Errrno related to blkdev
+    error_eco_blkdev, //! Errno related to blkdev
     error_eco_system, //! Generic system error
     //Without errno
     error_eco_update_no_reg_file, //! Not a regular file
@@ -17,8 +17,9 @@ enum ecoboot_update_errors
 };
 
 /** Update the ecoboot from the seleted file
- * @param[in] path Path to ecoboot binary file
+ * @param[in] workdir Working directory
+ * @param[in] filename Filename with ecoboot.bin file
  * @param[in] tl Logger object
  * @return 0 if success -errno on failure
  */
-int ecoboot_update(const char *path, trace_list_t *tl);
+int ecoboot_update(const char *workdir, const char *filename, trace_list_t *tl);

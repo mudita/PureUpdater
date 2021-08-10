@@ -1,10 +1,11 @@
-#include "priv_update_ecoboot.h"
+#include "update_ecoboot.h"
 #include <sys/stat.h>
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <hal/blk_dev.h>
 
 //! Ecooboot partition handle
@@ -14,6 +15,12 @@
 
 //! For cleanup dynamic resources
 static void free_clean_up(uint8_t **ptr)
+{
+    free(*ptr);
+}
+
+// Char cleanup
+static void free_str_clean_up(char **ptr)
 {
     free(*ptr);
 }
@@ -252,20 +259,34 @@ static int verify_ecoboot(const char *path, trace_t *trace)
 }
 
 // Update the ecoboot
-int ecoboot_update(const char *path, trace_list_t *tl)
+int ecoboot_update(const char *workdir, const char *filename, trace_list_t *tl)
 {
     int ret;
+    char *path __attribute__((__cleanup__(free_str_clean_up))) = malloc(strlen(workdir) + strlen(filename) + sizeof("/"));
     trace_t *trace = trace_append(__PRETTY_FUNCTION__, tl, strerror_pgm_keys, strerror_ext_pgm_keys);
+    // Append path
+    strcpy(path, workdir);
+    strcat(path, "/");
+    strcat(path, filename);
     do
     {
+        // Program flash
         ret = flash_ecoboot(path, trace);
         if (ret)
         {
             break;
         }
+        // Verify flaash
         ret = verify_ecoboot(path, trace);
         if (ret)
         {
+            break;
+        }
+        // Remove file
+        ret = unlink(path);
+        if (ret)
+        {
+            ret = error_eco_vfs;
             break;
         }
     } while (0);
