@@ -19,6 +19,7 @@ extern "C"
         ErrorFactory,
         ErrorVersion,
         ErrorMove,
+        ErrorUpdateEcoboot
     };
 
     struct update_handle_s
