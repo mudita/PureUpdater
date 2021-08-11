@@ -82,6 +82,7 @@ static int open_ecoboot_file(const char *path, FILE **file, trace_t *trace)
     if (stat(path, &st))
     {
         trace_write(trace, error_eco_vfs, -errno);
+        printf("%s: File %s doesnt exists\n", __PRETTY_FUNCTION__, path);
         return -errno;
     }
     if (!S_ISREG(st.st_mode))

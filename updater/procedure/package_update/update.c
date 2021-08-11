@@ -109,7 +109,7 @@ bool update_firmware(struct update_handle_s *handle, trace_list_t *tl)
     }
 
     // Finally update the ecoboot bin
-    const int eco_status = ecoboot_update(handle->update_user, "ecoboot.bin", tl);
+    const int eco_status = ecoboot_update(handle->update_os, "ecoboot.bin", tl);
     if (eco_status != error_eco_update_ok)
     {
         if (eco_status != error_eco_vfs && errno != ENOENT)
