@@ -112,6 +112,7 @@ exit:
     msleep(5000);
     err = vfs_unmount_deinit();
     printf("status %i : procedure: %i\n", err, trace_list_ok(&tl));
+    system_deinitialize();
 
     /*** Positive return code from main function 
      * or call exit with positive argument
