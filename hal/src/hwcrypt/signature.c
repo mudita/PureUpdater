@@ -1,15 +1,21 @@
 #include <hal/hwcrypt/signature.h>
+#include <hal/hwcrypt/sha256.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <drivers/hab/hab.h>
 #include <hal/security.h>
 #include <stdint.h>
+#include <string.h>
 
 //! Maximum allowed file size
 #define IVT_OFFSET 0x400
+//! Where the SHA is stored
+#define SHA_OFFSET 0x1000
 
+//! Temporary signature buffer
 static __attribute__((section(".signaturespace"))) uint8_t signature[65535];
+
 // Cleanup file descriptor
 static void file_clean_up(FILE **fil)
 {
@@ -37,48 +43,24 @@ static void *load_file_int_sig_space(const char *path)
     {
         return NULL;
     }
-    const long fil_siz = ftell(filp);
+    const long file_siz = ftell(filp);
     if (fseek(filp, 0, SEEK_SET))
     {
         return NULL;
     }
-    if ((size_t)fil_siz > sizeof signature)
+    if ((size_t)file_siz > sizeof signature)
     {
         errno = -E2BIG;
         return NULL;
     }
-    if (fread(signature, fil_siz, 1, filp) != 1)
+    if (fread(signature, file_siz, 1, filp) != 1)
     {
         return NULL;
     }
-    printf("After fread\n");
     return signature;
 }
 
-//! Debug only
-static void Print_Image_Info(const hab_ivt_t *ivt)
-{
-    printf("IVT ver. 0x%02x:\n", ivt->hdr.ver);
-    printf("    entry:     0x%08x\n", (unsigned)ivt->entry);
-    printf("    dcd:       0x%08x\n", (unsigned)ivt->dcd);
-    printf("    boot_data: 0x%08x\n", (unsigned)ivt->boot_data);
-    printf("    csf:       0x%08x\n", (unsigned)ivt->csf);
-
-    if (ivt->boot_data != NULL)
-    {
-        printf("Boot data:\n");
-        printf("image_start: 0x%08x\n", (unsigned)ivt->boot_data->image_start);
-        printf("image_size:  0x%x\n", (unsigned)ivt->boot_data->image_size);
-        printf("plugin_flag: %u\n", (unsigned)ivt->boot_data->plugin_flag);
-    }
-
-    if (ivt->csf)
-    {
-        printf("CSF ver. 0x%02x\n", ivt->csf->hdr.ver);
-    }
-}
-
-void HAB_Print_Audit_Log(void)
+static void hab_print_audit_log(void)
 {
     uint32_t hab_event_index = 0;
     for (hab_status_t hab_status = HAB_SUCCESS; hab_status == HAB_SUCCESS; ++hab_event_index)
@@ -93,9 +75,9 @@ void HAB_Print_Audit_Log(void)
         {
             if (hab_event_index == 0)
             {
-                printf("HAB audit log:\n");
+                printf("%s: HAB audit log:\n", __PRETTY_FUNCTION__);
             }
-            printf("    event %lu: status = %s, reason = %s, context = %s\n",
+            printf("%s: event %lu: status = %s, reason = %s, context = %s\n", __PRETTY_FUNCTION__,
                    hab_event_index, hab_status_to_str(hab_evt->status),
                    hab_reason_to_str(hab_evt->reason), hab_ctx_to_str(hab_evt->ctx));
         }
@@ -109,73 +91,87 @@ static hab_status_t authenticate_image(const hab_ivt_t *ivt)
     void *image_load_addr = ivt->boot_data->image_start;
     size_t image_size = ivt->boot_data->image_size;
 
-    /*
-    ivt->entry = (hab_image_entry_f)((uintptr_t)ivt->entry - (uintptr_t)ivt->boot_data->image_start + (uintptr_t)base);
-    ivt->csf = (hab_csf_t *)((uintptr_t)ivt->csf - (uintptr_t)ivt->boot_data->image_start + (uintptr_t)base);
-    ivt->boot_data = (hab_boot_data_t *)((uintptr_t)ivt->boot_data - (uintptr_t)ivt->boot_data->image_start + (uintptr_t)base);
-    ivt->self = (void *)((uintptr_t)ivt->self - (uintptr_t)ivt->boot_data->image_start + (uintptr_t)base);
-    ivt->boot_data->image_start = base;
-    */
-
     //  Check target boot memory region
-    /*
-    if (hab_check_target(HAB_TGT_ANY, ivt->boot_data->image_start,
+    if (hab_check_target(HAB_TGT_MEMORY, ivt->boot_data->image_start,
                          ivt->boot_data->image_size) != HAB_SUCCESS)
     {
-        printf("Check target failed\n");
+        printf("%s: Check target failed\n", __PRETTY_FUNCTION__);
         return HAB_FAILURE;
     }
-    */
 
-    printf("imgstart %p ivt_offs %i img_size %u\n", image_load_addr, ivt_offset, image_size);
     hab_image_entry_f entry = hab_authenticate_image_no_dcd(0, ivt_offset,
                                                             &image_load_addr, &image_size, NULL);
-    printf("XXX HAB entry XXX %p\n", entry);
     // Check the authentication result
     const hab_status_t auth_status = hab_assert(HAB_ASSERT_BLOCK, entry, 0x1000);
-
     if (entry == NULL || auth_status != HAB_SUCCESS)
     {
-        printf("Auth fail entry %p status %02x\n", entry, auth_status);
-        HAB_Print_Audit_Log();
+        printf("%s: Auth fail entry %p status %02x\n", __PRETTY_FUNCTION__, entry, auth_status);
+        hab_print_audit_log();
         return HAB_FAILURE;
     }
-
     return HAB_SUCCESS;
 }
 
 //! Verify executable binary signature
-int sec_verify_executable(const char *path_bin)
+static int verify_sig_bin_blob(const char *path_bin, uint8_t **buffer)
 {
     if (sec_configuration_is_open())
     {
-        printf("Open configuration\n");
+        printf("%s: Configuration is open unable to verify signature\n", __PRETTY_FUNCTION__);
         return sec_verify_openconfig;
     }
     uint8_t *binary = load_file_int_sig_space(path_bin);
     if (!binary)
     {
-        printf("IOerror errno %i\n", errno);
+        printf("%s: Unable to load file %s\n", __PRETTY_FUNCTION__, path_bin);
         return sec_verify_ioerror;
     }
     hab_ivt_t *img_ivt = (hab_ivt_t *)(binary + IVT_OFFSET);
     if (img_ivt->hdr.tag != HAB_TAG_IVT || img_ivt->boot_data == NULL ||
         img_ivt->entry == NULL)
     {
-        printf("Invalid evt\n");
+        printf("%s: Invalid evt vector in signature\n", __PRETTY_FUNCTION__);
         return sec_verify_invalevt;
     }
-    Print_Image_Info(img_ivt);
 
     if (authenticate_image(img_ivt) == HAB_SUCCESS)
     {
-        printf("Sec verify sucess\n");
+        if (buffer)
+        {
+            *buffer = binary;
+        }
         return sec_verify_ok;
     }
     else
     {
-        printf("Sec verify invalid sign\n");
         return sec_verify_invalsign;
     }
-    return sec_verify_ok;
+}
+
+//! Verify signature for the file
+int sec_verify_file(const char *file, const char *signature_file)
+{
+    struct sha256_hash sha;
+    int err = sha256_file(file, &sha);
+    if (err)
+    {
+        errno = -err;
+        printf("%s: Unable to calculate checksum errno %i\n", __PRETTY_FUNCTION__, -err);
+        return sec_verify_ioerror;
+    }
+    uint8_t *buf;
+    err = verify_sig_bin_blob(signature_file, &buf);
+    if (err)
+    {
+        return err;
+    }
+    if (memcmp(buf + SHA_OFFSET, sha.value, sizeof sha.value) == 0)
+    {
+        return sec_verify_ok;
+    }
+    else
+    {
+        printf("%s: SHA mismatch in the signature\n", __PRETTY_FUNCTION__);
+        return sec_verify_invalid_sha;
+    }
 }

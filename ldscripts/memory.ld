@@ -16,5 +16,6 @@ MEMORY
 	SRAM_DTC (rwx) : ORIGIN = 0x20000000, LENGTH = 0x70000 /* 448K bytes (alias RAM3) */
 	BOARD_SDRAM_TEXT (rx) : ORIGIN = 0x80000000, LENGTH = 0x0620000 /* 5.something M bytes for application code */
 	BOARD_SDRAM_HEAP (rwx) : ORIGIN = 0x80620000, LENGTH = 0x9d0000 /* 9.somethin M bytes for heap (alias RAM4) */
-	BOARD_SDRAM_SIG (rwx) : ORIGIN = 0x80ff0000, LENGTH = 0x10000 /* 9.somethin M bytes for heap (alias RAM4) */
+	BOARD_SDRAM_SIG (rwx) : ORIGIN = 0x80ff0000, LENGTH = 0x10000 /* Scratch area for validate signatures */
 }
+
