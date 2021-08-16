@@ -9,6 +9,7 @@
 #include <md5/md5.h>
 #include <common/path_opts.h>
 #include <hal/security.h>
+#include <hal/delay.h>
 
 //! Checksum structure information
 struct checksum_info
@@ -219,11 +220,6 @@ static int burn_efuses_from_file(const char *srk_file, trace_t *trace)
     }
     int error = 0;
     if ((error = sec_burn_srk_keys(&keys)))
-    {
-        return error;
-    }
-    // Verify keys again
-    if ((error = sec_verify_efuses(&keys)))
     {
         return error;
     }
