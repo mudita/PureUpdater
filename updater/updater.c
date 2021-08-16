@@ -53,7 +53,7 @@ int __attribute__((noinline, used)) main()
         handle.backup_full_path = "/backup/backup.tar";
         handle.enabled.backup = true;
         handle.enabled.check_checksum = true;
-        handle.enabled.check_sign = false;     // TODO true: not implemented yet
+        handle.enabled.check_sign = false; // TODO true: not implemented yet
         handle.enabled.check_version = true;
         if (!update_firmware(&handle, &tl))
         {
@@ -79,8 +79,7 @@ int __attribute__((noinline, used)) main()
     case system_boot_reason_factory:
     {
         const struct factory_reset_handle frhandle = {
-                .user_dir = handle.update_user
-        };
+            .user_dir = handle.update_user};
         if (!factory_reset(&frhandle, &tl))
         {
             trace_write(t, ErrMainFactory, 0);
@@ -93,7 +92,7 @@ int __attribute__((noinline, used)) main()
         const struct program_keys_handle pghandle = {
             .srk_file = "/os/current/SRK_fuses.bin",
             .chksum_srk_file = "/os/current/SRK_fuses.bin.md5"};
-        if (!program_keys(&pghandle, &tl))
+        if (program_keys(&pghandle, &tl))
         {
             trace_write(t, ErrMainUpdate, 0);
             goto exit;
