@@ -293,3 +293,25 @@ int ecoboot_update(const char *workdir, const char *filename, trace_list_t *tl)
     } while (0);
     return ret;
 }
+
+int ecoboot_in_package(const char *workdir, const char *filename)
+{
+    char *path __attribute__((__cleanup__(free_str_clean_up))) = malloc(strlen(workdir) + strlen(filename) + sizeof("/") + 1);
+
+    struct stat st;
+    if (!filename) {
+        printf("%s: Filename not provided\n", __PRETTY_FUNCTION__);
+        return -EINVAL;
+    }
+
+    sprintf(path, "%s/%s", workdir, filename);
+
+    if (stat(path, &st)) {
+        printf("%s: File %s %s\n", __PRETTY_FUNCTION__, path, strerror(errno));
+        if (errno == EEXIST) {
+            return 0;
+        }
+        return -errno;
+    }
+    return 1;
+}

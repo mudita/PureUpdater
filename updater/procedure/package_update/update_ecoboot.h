@@ -23,3 +23,11 @@ enum ecoboot_update_errors
  * @return 0 if success -errno on failure
  */
 int ecoboot_update(const char *workdir, const char *filename, trace_list_t *tl);
+
+/** Check if there is ecoboot in the package
+ * @param[in] workdir Working directory
+ * @param[in] filename Filename with ecoboot.bin file
+ * @param[in] tl Logger object
+ * @return 1 if ecoboot in package, 0 if not -errno on failure
+ */
+int ecoboot_in_package(const char *workdir, const char *filename);

@@ -84,6 +84,9 @@ bool checksum_verify(trace_list_t *tl, verify_file_handle_s *handle) {
 
     ret = checksum_compare(file_version.md5sum, calculated_checksum_readable);
     if (!ret) {
+        char text[128];
+        snprintf(text, 128, "checksum mismatch: %s : %s", file_version.md5sum, calculated_checksum_readable);
+        trace_printf(trace, text);
         trace_write(trace, ChecksumInvalid, errno);
         goto exit;
     }

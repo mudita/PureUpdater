@@ -109,23 +109,23 @@ bool update_firmware(struct update_handle_s *handle, trace_list_t *tl)
     }
 
     // Finally update the ecoboot bin
-    const int eco_status = ecoboot_update(handle->update_os, "ecoboot.bin", tl);
-    if (eco_status != error_eco_update_ok)
-    {
-        if (eco_status != error_eco_vfs && errno != ENOENT)
-        {
-            trace_write(t, ErrorUpdateEcoboot, 0);
-            goto exit;
+    int ecoboot_package_status = ecoboot_in_package(handle->update_os, "ecoboot.bin");
+    if (ecoboot_package_status == 1) {
+        const int eco_status = ecoboot_update(handle->update_os, "ecoboot.bin", tl);
+        if (eco_status != error_eco_update_ok) {
+            if (eco_status != error_eco_vfs && errno != ENOENT) {
+                trace_write(t, ErrorUpdateEcoboot, 0);
+                goto exit;
+            }
         }
-        else
-        {
-            printf("No ecoboot.bin in package\n");
+        else {
+            printf("Ecoboot update success\n");
         }
     }
-    else
-    {
-        printf("Ecoboot update success\n");
+    else {
+        printf("No ecoboot.bin in package, %d\n", ecoboot_package_status);
     }
+
 exit:
     return trace_ok(t);
 }
