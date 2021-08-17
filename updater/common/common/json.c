@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <memory.h>
 #include <common/match.h>
+#include <common/path_opts.h>
 
 #include "json.h"
 #include "json_priv.h"
@@ -26,10 +27,6 @@ version_json_s json_get_version_struct(trace_t *trace, const char *json_path) {
     version_json.bootloader = json_get_file_struct(trace, json, "bootloader");
     version_json.boot = json_get_file_struct(trace, json, "boot");
     version_json.updater = json_get_file_struct(trace, json, "updater");
-
-    /*if (version_json.boot.valid && version_json.bootloader.valid && version_json.updater.valid) {
-        version_json.valid = true;
-    }*/
 
     exit:
     cJSON_Delete(json);
@@ -52,6 +49,23 @@ version_json_file_s json_get_file_from_version(trace_t *trace, const version_jso
     }
 
     return failure_return;
+}
+
+version_json_s json_get_fallback()
+{
+    version_json_s j = {.boot       = {.name = "boot.bin", .md5sum = "", .version = "0.0.0", .valid = true},
+                        .bootloader = {.name = "ecoboot.bin", .md5sum = "", .version = "0.0.0", .valid = true},
+                        .updater    = {.name = "updater.bin", .md5sum = "", .version = "0.0.0", .valid = true}};
+    return j;
+}
+
+verify_file_handle_s json_get_verify_files(trace_t *t, const char *new_version, const char *current_version)
+{
+    verify_file_handle_s verify_handle;
+    verify_handle.version_json = json_get_version_struct(t, new_version);
+    verify_handle.current_version_json =
+        path_check_if_exists(current_version) ? json_get_version_struct(t, current_version) : json_get_fallback();
+    return verify_handle;
 }
 
 const char *strerror_json(int err) {
