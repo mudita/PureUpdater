@@ -46,3 +46,9 @@ int sha256_file(const char *path, struct sha256_hash *hash);
  * @return 0 on sucess -errno on failure
  */
 int sha256_mem(const void *buf, size_t len, struct sha256_hash *hash);
+
+/** Print SHA256 hash on the standard output 
+ * @param[in] msg Initial message
+ * @param[in] hash Input hash
+ */
+void sha256_print_hash(const char *msg, const struct sha256_hash *hash);
