@@ -33,6 +33,7 @@ extern "C"
         const char *factory_full_path;     /// full path where from to take factory img
         const char *tmp_os;                /// temporary os catalog to perform unpack - to not mv between fs-es
         const char *tmp_user;              /// temporary user catalog to perform unpack - to not mv between fs-es
+        bool unsigned_tar;                 /// returns true when tar doesn't have a valid signature in closed secure mode
 
         /// options to perform with update_firmware
         struct

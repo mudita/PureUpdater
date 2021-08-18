@@ -172,6 +172,8 @@ int sec_verify_file(const char *file, const char *signature_file)
     else
     {
         printf("%s: SHA mismatch in the signature\n", __PRETTY_FUNCTION__);
+        sha256_print_hash("Calculated hash", &sha);
+        sha256_print_hash("Signature hash", (struct sha256_hash *)(buf + SHA_OFFSET));
         return sec_verify_invalid_sha;
     }
 }

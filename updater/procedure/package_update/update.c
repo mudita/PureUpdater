@@ -1,7 +1,10 @@
 #include <string.h>
 #include <errno.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <common/enum_s.h>
+#include <hal/security.h>
+#include <hal/hwcrypt/signature.h>
 #include "common/trace.h"
 #include "update.h"
 #include "priv_update.h"
@@ -28,11 +31,43 @@ const char *update_strerror(int e)
     return "UNKNOWN";
 }
 
-bool signature_check(const char *name, trace_list_t *tl)
+static const char *update_strerr_ext(int err, int ext_err)
 {
-    (void)name;
-    (void)tl;
-    return false;
+    if (err == ErrorSignCheck)
+    {
+        switch (ext_err)
+        {
+            ENUMS(sec_verify_ok);
+            ENUMS(sec_verify_openconfig);
+            ENUMS(sec_verify_invalsign);
+            ENUMS(sec_verify_ioerror);
+            ENUMS(sec_verify_invalevt);
+            ENUMS(sec_verify_confopen);
+            ENUMS(sec_verify_invalid_sha);
+        }
+    }
+    return "";
+}
+
+static void str_clean_up(char **str)
+{
+    if (str)
+    {
+        free(*str);
+    }
+}
+
+static int signature_check(const char *name)
+{
+    if (sec_configuration_is_open())
+    {
+        return sec_verify_ok;
+    }
+    const char sig_ext[] = ".sig";
+    char *signature_name __attribute__((__cleanup__(str_clean_up))) = malloc(strlen(name) + sizeof(sig_ext));
+    strcpy(signature_name, name);
+    strcat(signature_name, sig_ext);
+    return sec_verify_file(name, signature_name);
 }
 
 void update_firmware_init(struct update_handle_s *h)
@@ -42,18 +77,27 @@ void update_firmware_init(struct update_handle_s *h)
 
 bool update_firmware(struct update_handle_s *handle, trace_list_t *tl)
 {
-    trace_t *t = trace_append("update", tl, update_strerror, NULL);
+    trace_t *t = trace_append("update", tl, update_strerror, update_strerr_ext);
 
     struct backup_handle_s backup_handle = {.backup_from_os = handle->update_os,
                                             .backup_from_user = handle->update_user,
                                             .backup_to = handle->backup_full_path};
     if (handle->enabled.check_sign)
     {
-        if (!signature_check(handle->update_from, tl))
+        const int err = signature_check(handle->update_from);
+        if (err)
         {
-            trace_write(t, ErrorSignCheck, 0);
-            goto exit;
+            handle->unsigned_tar = true;
         }
+        else
+        {
+            handle->unsigned_tar = false;
+        }
+        printf("Package is signed: %s\n", handle->unsigned_tar ? "FALSE" : "TRUE");
+    }
+    else
+    {
+        printf("Package signature check skipped\n");
     }
 
     if (handle->enabled.backup)
@@ -102,19 +146,24 @@ bool update_firmware(struct update_handle_s *handle, trace_list_t *tl)
 
     // Finally update the ecoboot bin
     int ecoboot_package_status = ecoboot_in_package(handle->update_os, "ecoboot.bin");
-    if (ecoboot_package_status == 1) {
+    if (ecoboot_package_status == 1)
+    {
         const int eco_status = ecoboot_update(handle->update_os, "ecoboot.bin", tl);
-        if (eco_status != error_eco_update_ok) {
-            if (eco_status != error_eco_vfs && errno != ENOENT) {
+        if (eco_status != error_eco_update_ok)
+        {
+            if (eco_status != error_eco_vfs && errno != ENOENT)
+            {
                 trace_write(t, ErrorUpdateEcoboot, 0);
                 goto exit;
             }
         }
-        else {
+        else
+        {
             printf("Ecoboot update success\n");
         }
     }
-    else {
+    else
+    {
         printf("No ecoboot.bin in package, %d\n", ecoboot_package_status);
     }
 

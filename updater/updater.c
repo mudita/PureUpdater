@@ -53,12 +53,18 @@ int __attribute__((noinline, used)) main()
         handle.backup_full_path = "/backup/backup.tar";
         handle.enabled.backup = true;
         handle.enabled.check_checksum = true;
-        handle.enabled.check_sign = false; // TODO true: not implemented yet
+        handle.enabled.check_sign = true;
         handle.enabled.check_version = true;
         if (!update_firmware(&handle, &tl))
         {
             trace_write(t, ErrMainUpdate, 0);
             goto exit;
+        }
+        if (handle.unsigned_tar)
+        {
+            eink_log_printf("Warn: OS Update package");
+            eink_log_printf("is not signed by Mudita");
+            msleep(1000);
         }
     }
     break;
@@ -67,7 +73,7 @@ int __attribute__((noinline, used)) main()
         handle.update_from = "/backup/backup.tar";
         handle.enabled.backup = false;
         handle.enabled.check_checksum = true;
-        handle.enabled.check_sign = false; // TODO not implemented yet
+        handle.enabled.check_sign = false;
         handle.enabled.check_version = false;
         if (!update_firmware(&handle, &tl))
         {
