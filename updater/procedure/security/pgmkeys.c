@@ -308,3 +308,18 @@ int program_keys(const struct program_keys_handle *pgm_handle, trace_list_t *tl)
     }
     return err;
 }
+
+// Check if key programming is needed
+bool program_keys_is_needed(const struct program_keys_handle *pgm_handle)
+{
+    if (!sec_configuration_is_open())
+    {
+        return false;
+    }
+    struct stat st;
+    if (stat(pgm_handle->srk_file, &st))
+    {
+        return false;
+    }
+    return true;
+}

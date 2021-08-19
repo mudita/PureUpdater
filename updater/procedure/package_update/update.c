@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <common/enum_s.h>
 #include <hal/security.h>
 #include <hal/hwcrypt/signature.h>
@@ -13,6 +14,7 @@
 #include "procedure/version/version.h"
 #include "procedure/backup/backup.h"
 #include "procedure/package_update/update_ecoboot.h"
+#include <procedure/security/pgmkeys.h>
 
 const char *update_strerror(int e)
 {
@@ -27,6 +29,7 @@ const char *update_strerror(int e)
         ENUMS(ErrorVersion);
         ENUMS(ErrorMove);
         ENUMS(ErrorUpdateEcoboot);
+        ENUMS(ErrorKeyPgm);
     }
     return "UNKNOWN";
 }
@@ -75,6 +78,37 @@ void update_firmware_init(struct update_handle_s *h)
     memset(h, 0, sizeof *h);
 }
 
+// Program the keys if it is needed
+static void program_secure_fuses(const struct update_handle_s *handle, trace_list_t *tl)
+{
+    trace_t *t = trace_append(__PRETTY_FUNCTION__, tl, update_strerror, update_strerr_ext);
+    const char key_fn[] = "/SRK_fuses.bin";
+    const char sum_fn[] = "/SRK_fuses.bin.md5";
+    struct program_keys_handle khandle;
+    khandle.srk_file = malloc(strlen(handle->tmp_os) + sizeof(key_fn));
+    khandle.chksum_srk_file = malloc(strlen(handle->tmp_os) + sizeof(sum_fn));
+    strcpy(khandle.srk_file, handle->tmp_os);
+    strcat(khandle.srk_file, key_fn);
+    strcpy(khandle.chksum_srk_file, handle->tmp_os);
+    strcat(khandle.chksum_srk_file, sum_fn);
+    if (program_keys_is_needed(&khandle))
+    {
+        printf("Program keys required key: %s sum: %s\n", khandle.srk_file, khandle.chksum_srk_file);
+        if (program_keys(&khandle, tl))
+        {
+            trace_write(t, ErrorKeyPgm, 0);
+        }
+        unlink(khandle.srk_file);
+        unlink(khandle.chksum_srk_file);
+        free(khandle.srk_file);
+        free(khandle.chksum_srk_file);
+    }
+    else
+    {
+        printf("Program keys not needed\n");
+    }
+}
+
 bool update_firmware(struct update_handle_s *handle, trace_list_t *tl)
 {
     trace_t *t = trace_append("update", tl, update_strerror, update_strerr_ext);
@@ -121,22 +155,29 @@ bool update_firmware(struct update_handle_s *handle, trace_list_t *tl)
         goto exit;
     }
 
-    if (handle->enabled.check_checksum || handle->enabled.check_version) {
+    if (handle->enabled.check_checksum || handle->enabled.check_version)
+    {
         verify_file_handle_s verify_handle = json_get_verify_files(t, "/os/tmp/version.json", "/os/current/version.json");
 
-        if (handle->enabled.check_checksum) {
-            if (!checksum_verify_all(tl, &verify_handle, handle->tmp_os)) {
+        if (handle->enabled.check_checksum)
+        {
+            if (!checksum_verify_all(tl, &verify_handle, handle->tmp_os))
+            {
                 trace_write(t, ErrorChecksums, 0);
                 goto exit;
             }
         }
-        if (handle->enabled.check_version) {
-            if (!version_check_all(tl, &verify_handle, handle->tmp_os)) {
+        if (handle->enabled.check_version)
+        {
+            if (!version_check_all(tl, &verify_handle, handle->tmp_os))
+            {
                 trace_write(t, ErrorVersion, 0);
                 goto exit;
             }
         }
     }
+
+    program_secure_fuses(handle, tl);
 
     if (!tmp_files_move(handle, tl))
     {

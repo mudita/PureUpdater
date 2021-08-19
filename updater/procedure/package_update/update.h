@@ -19,7 +19,8 @@ extern "C"
         ErrorFactory,
         ErrorVersion,
         ErrorMove,
-        ErrorUpdateEcoboot
+        ErrorUpdateEcoboot,
+        ErrorKeyPgm
     };
 
     struct update_handle_s
