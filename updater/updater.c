@@ -10,6 +10,7 @@
 #include <procedure/factory/factory.h>
 #include <string.h>
 #include <stdbool.h>
+#include <unistd.h>
 #include "common/trace.h"
 #include "main_trace.h"
 
@@ -101,8 +102,10 @@ int __attribute__((noinline, used)) main()
         if (program_keys(&pghandle, &tl))
         {
             trace_write(t, ErrMainUpdate, 0);
-            goto exit;
         }
+        unlink(pghandle.srk_file);
+        unlink(pghandle.chksum_srk_file);
+        goto exit;
     }
     break;
     default:
