@@ -21,7 +21,7 @@ int __attribute__((noinline, used)) main()
     printf("System boot reason code: %s\n", system_boot_reason_str(system_boot_reason()));
 
     eink_clear_log();
-    eink_log("Updater Init", false);
+    eink_log("run updater", true);
 
     tl = trace_init();
     trace_t *t = trace_append("main", &tl, strerror_main, strerror_main_ext);
@@ -50,6 +50,7 @@ int __attribute__((noinline, used)) main()
     {
     case system_boot_reason_update:
     {
+        eink_log("system update ", true);
         handle.update_from = "/user/update.tar";
         handle.backup_full_path = "/backup/backup.tar";
         handle.enabled.backup = true;
@@ -58,8 +59,11 @@ int __attribute__((noinline, used)) main()
         handle.enabled.check_version = true;
         if (!update_firmware(&handle, &tl))
         {
+            eink_log("update failure", true);
             trace_write(t, ErrMainUpdate, 0);
             goto exit;
+        } else {
+            eink_log("update success", true);
         }
         if (handle.unsigned_tar)
         {
@@ -71,6 +75,7 @@ int __attribute__((noinline, used)) main()
     break;
     case system_boot_reason_recovery:
     {
+        eink_log("system recovery ", true);
         handle.update_from = "/backup/backup.tar";
         handle.enabled.backup = false;
         handle.enabled.check_checksum = true;
@@ -85,6 +90,7 @@ int __attribute__((noinline, used)) main()
     break;
     case system_boot_reason_factory:
     {
+        eink_log("factory reset", true);
         const struct factory_reset_handle frhandle = {
             .user_dir = handle.update_user};
         if (!factory_reset(&frhandle, &tl))
@@ -96,6 +102,7 @@ int __attribute__((noinline, used)) main()
     break;
     case system_boot_reason_pgm_keys:
     {
+        eink_log("burn keys", true);
         const struct program_keys_handle pghandle = {
             .srk_file = "/os/current/SRK_fuses.bin",
             .chksum_srk_file = "/os/current/SRK_fuses.bin.md5"};
@@ -115,7 +122,7 @@ int __attribute__((noinline, used)) main()
 
 exit:
     main_status(&tl);
-    eink_log_printf("update procedure status: %d", trace_list_ok(&tl));
+    eink_log_printf("updater status %s", trace_list_ok(&tl) == true ? "OK" : "FAIL");
     eink_log_refresh();
     msleep(5000);
     err = vfs_unmount_deinit();

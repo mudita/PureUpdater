@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <common/enum_s.h>
+#include <hal/display.h>
 #include <hal/security.h>
 #include <hal/hwcrypt/signature.h>
 #include "common/trace.h"
@@ -118,6 +119,7 @@ bool update_firmware(struct update_handle_s *handle, trace_list_t *tl)
                                             .backup_to = handle->backup_full_path};
     if (handle->enabled.check_sign)
     {
+        eink_log("sign check ", true);
         const int err = signature_check(handle->update_from);
         if (err)
         {
@@ -136,6 +138,7 @@ bool update_firmware(struct update_handle_s *handle, trace_list_t *tl)
 
     if (handle->enabled.backup)
     {
+        eink_log("backup", true);
         if (handle->enabled.backup && !backup_previous_firmware(&backup_handle, tl))
         {
             trace_write(t, ErrorBackup, 0);
@@ -145,18 +148,21 @@ bool update_firmware(struct update_handle_s *handle, trace_list_t *tl)
 
     if (!tmp_create_catalog(handle, tl))
     {
+        eink_log("setup /tmp", true);
         trace_write(t, ErrorBackup, 0);
         goto exit;
     }
 
     if (!unpack(handle, tl))
     {
+        eink_log("unpack", true);
         trace_write(t, ErrorUnpack, 0);
         goto exit;
     }
 
     if (handle->enabled.check_checksum || handle->enabled.check_version)
     {
+        eink_log("verify", true);
         verify_file_handle_s verify_handle = json_get_verify_files(t, "/os/tmp/version.json", "/os/current/version.json");
 
         if (handle->enabled.check_checksum)
@@ -181,6 +187,7 @@ bool update_firmware(struct update_handle_s *handle, trace_list_t *tl)
 
     if (!tmp_files_move(handle, tl))
     {
+        eink_log("finalize", true);
         trace_write(t, ErrorMove, 0);
         goto exit;
     }
