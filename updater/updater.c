@@ -28,8 +28,8 @@ int __attribute__((noinline, used)) main()
 
     static const vfs_mount_point_desc_t fstab[] = {
         {.disk = blkdev_emmc_user, .partition = 1, .type = vfs_fs_fat, .mount_point = "/os"},
-        {.disk = blkdev_emmc_user, .partition = 2, .type = vfs_fs_littlefs, .mount_point = "/backup"},
-        {.disk = blkdev_emmc_user, .partition = 3, .type = vfs_fs_littlefs, .mount_point = "/user"},
+        {.disk = blkdev_emmc_user, .partition = 2, .type = vfs_fs_auto, .mount_point = "/backup"},
+        {.disk = blkdev_emmc_user, .partition = 3, .type = vfs_fs_auto, .mount_point = "/user"},
     };
 
     int err = vfs_mount_init(fstab, sizeof fstab);

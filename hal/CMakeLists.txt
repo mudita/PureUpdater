@@ -13,6 +13,7 @@ target_link_libraries( ${LIB_NAME}
 PUBLIC
     fatfs
     littlefs
+    lwext4
 PRIVATE
     system
 )

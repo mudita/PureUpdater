@@ -19,3 +19,7 @@
 [submodule "thirdparty/cjson/src/cJSON"]
 	path = thirdparty/cjson/src/cJSON
 	url = https://github.com/DaveGamble/cJSON.git
+[submodule "thirdparty/lwext4/src"]
+	path = thirdparty/lwext4/src
+	url = ../lwext4.git
+	branch = mudita

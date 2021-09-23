@@ -2,11 +2,11 @@
 
 #include <stddef.h>
 #include <sys/types.h>
-/* Tiny virtual filesystem implementation 
+/* Tiny virtual filesystem implementation
  * Note: currently only the emmc user disc is supported
  * due to mappings in the fat driver
  * Example init usage
- * vfs_mount_point_desc fstab[] = 
+ * vfs_mount_point_desc fstab[] =
  * {
  *     { .disk = blldev_emmcuser, .partition = 1, .type = vfs_fs_fat, "/muditaos" },
  *     { .disk = blldev_emmcuser, .partition = 3, .type = vfs_fs_littlefs, "/user" },
@@ -23,8 +23,10 @@ struct statvfs;
 //! Filesystem type
 typedef enum vfs_filesystem_type
 {
-    vfs_fs_fat,
-    vfs_fs_littlefs
+    vfs_fs_auto,        //! Auto mount
+    vfs_fs_fat,         //! File type fat
+    vfs_fs_littlefs,    //! File type littlefs
+    vfs_fs_ext4         //! File type ext4
 } vfs_filesystem_type_t;
 
 //! Tiny VFS mount point
@@ -55,7 +57,7 @@ struct vfs_dir
     void *dirp;                       // Structure directory pointer
 };
 
-/** 
+/**
  * Initialize the mini virtual file system by the mount points given as an argument
  * @param[in] mnt_desc Mount point table
  * @param[in] mnt_len  Size of of the mount point table
@@ -68,7 +70,7 @@ int vfs_mount_init(const struct vfs_mount_point_desc mnt_desc[], size_t mnt_size
  */
 int vfs_unmount_deinit();
 
-/** 
+/*
  * Register the filesystem
  * @param type Filesystem type
  * @param fops File system operation structure
@@ -80,7 +82,7 @@ int vfs_register_filesystem(int type, const struct vfs_filesystem_ops *fops);
  */
 void vfs_unregister_all_filesystems(void);
 
-/** Mount filesystem 
+/** Mount filesystem
  *  Mount the selected filesystem;
  * @param  mp Mount point
  * @param device Device partition for scan the FS
@@ -118,27 +120,27 @@ ssize_t vfs_write(struct vfs_file *filp, const void *ptr, size_t size);
  */
 ssize_t vfs_seek(struct vfs_file *filp, off_t offset, int whence);
 /** VFS tell entry
- * @see man tell 
+ * @see man tell
  */
 off_t vfs_tell(struct vfs_file *filp);
 /** VFS truncate entry
- * @see man ftruncate 
+ * @see man ftruncate
  */
 int vfs_ftruncate(struct vfs_file *filp, off_t length);
 /** VFS sync entry
- * @see man sync 
+ * @see man sync
  */
 int vfs_sync(struct vfs_file *filp);
 /** VFS opendir entry
- * @see man opendir 
+ * @see man opendir
  */
 int vfs_opendir(struct vfs_dir *dirp, const char *abs_path);
 /** VFS readdir entry
- * @see man readdir 
+ * @see man readdir
  */
 int vfs_readdir(struct vfs_dir *dirp, struct dirent *entry);
 /** VFS readdir entry
- * @see man close dir 
+ * @see man close dir
  */
 int vfs_closedir(struct vfs_dir *dirp);
 
@@ -162,7 +164,7 @@ int vfs_rename(const char *from, const char *to);
  */
 int vfs_stat(const char *abs_path, struct stat *entry);
 
-/** VFS chmod 
+/** VFS chmod
  * @See man chmod
  */
 int vfs_chmod(const char *abs_path, mode_t mode);

@@ -13,3 +13,12 @@ uint32_t get_jiffiess(void);
  * @param delay Amount delay of the ms
  */
 void msleep(uint32_t delay);
+
+static inline uint32_t jiffiess_timer_diff( uint32_t t1, uint32_t t2 )
+{
+    if( t2 >= t1 )  //Not overflow
+	return t2 - t1;
+    else       //Overflow
+	return t1 - t2;
+}
+

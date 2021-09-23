@@ -2,6 +2,7 @@
 #include <hal/blk_dev.h>
 #include <prv/tinyvfs/vfs_littlefs.h>
 #include <prv/tinyvfs/vfs_vfat.h>
+#include <prv/tinyvfs/vfs_ext4.h>
 #include <prv/tinyvfs/vfs_priv_data.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,6 +46,12 @@ int vfs_mount_init(const struct vfs_mount_point_desc mnt_points[], size_t mnt_si
         printf("vfs: Unable to register vfat filesystem");
         return err;
     }
+    err = vfs_priv_enable_ext4_filesystem();
+    if (err)
+    {
+        printf("vfs: Unable to register ext4 filesystem");
+        return err;
+    }
     const size_t nitems = mnt_size / sizeof(vfs_mount_point_desc_t);
     ctx.mps = calloc(nitems, sizeof(struct vfs_mount));
     if (!ctx.mps)
@@ -58,8 +65,34 @@ int vfs_mount_init(const struct vfs_mount_point_desc mnt_points[], size_t mnt_si
         const vfs_mount_point_desc_t *desc = &mnt_points[n];
         struct vfs_mount *mp = &ctx.mps[n];
         mp->mnt_point = strndup(desc->mount_point, PATH_MAX);
-        mp->type = desc->type;
         const int device = blk_disk_handle(desc->disk, desc->partition);
+        if(desc->type == vfs_fs_auto)
+        {
+            blk_partition_t pinfo;
+            err = blk_get_partition(device,&pinfo);
+            if(err) {
+                printf("vfs: Unable to read partition info %i\n",err);
+                return err;
+            }
+            switch(pinfo.type) {
+                case blk_part_type_ext4:
+                    mp->type = vfs_fs_ext4;
+                    break;
+                case blk_part_type_lfs:
+                    mp->type = vfs_fs_littlefs;
+                    break;
+                case blk_part_type_vfat:
+                    mp->type = vfs_fs_fat;
+                    break;
+                default:
+                    printf("vfs: unable to detect filesystem type. Part code %i\n", pinfo.type);
+                    return -ENXIO;
+            }
+        }
+        else
+        {
+            mp->type = desc->type;
+        }
         const int err = vfs_mount(mp, device);
         if (err)
         {

@@ -38,8 +38,9 @@ typedef struct blk_partition
 //! MBR partition codes
 enum blk_part_types
 {
-    blk_part_type_vfat = 0x0b, //! VFAT partition
-    blk_part_type_lfs = 0x9e   //! Little fs partition
+    blk_part_type_vfat = 0x0b,  //! VFAT partition
+    blk_part_type_lfs = 0x9e,   //! Little fs partition
+    blk_part_type_ext4 = 0x83   //! Ext4 filesystem
 };
 
 /** Retrive disk handle based on the disk and partition
