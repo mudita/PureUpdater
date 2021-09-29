@@ -31,7 +31,6 @@ extern "C"
 	{
 		unsigned char d_type;
 		char d_name[NAME_MAX + 1];
-		size_t d_size; //File size
 	};
 
 	struct __dirstream;

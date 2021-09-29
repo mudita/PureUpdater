@@ -448,7 +448,6 @@ static int ffat_readdir(struct vfs_dir *dirp, struct dirent *entry)
 		if (entry->d_name[0] != 0)
 		{
 			entry->d_type = (fno.fattrib & AM_DIR) ? DT_DIR : DT_REG;
-			entry->d_size = fno.fsize;
 		}
 	}
 

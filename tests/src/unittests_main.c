@@ -33,7 +33,7 @@ int __attribute__((noinline, used)) main()
     // fstab filesystem mounts
     static const vfs_mount_point_desc_t fstab[] = {
         {.disk = blkdev_emmc_user, .partition = 1, .type = vfs_fs_fat, "/os"},
-        {.disk = blkdev_emmc_user, .partition = 3, .type = vfs_fs_littlefs, "/user"},
+        {.disk = blkdev_emmc_user, .partition = 3, .type = vfs_fs_auto, "/user"},
     };
     printf("Initializing VFS subsystem...\n");
     int err = vfs_mount_init(fstab, sizeof fstab);

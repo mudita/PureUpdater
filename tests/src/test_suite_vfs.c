@@ -9,8 +9,17 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <sys/statvfs.h>
+#include <hal/delay.h>
+
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+#define AUTO_BUF(var) char *var __attribute__((__cleanup__(_free_clean_up_buf)))
+
+static void _free_clean_up_buf(char **str)
+{
+    free((void *)*str);
+    *str = NULL;
+}
 
 /** Tests for the basic read functionality
  * using the FILE stdio access interface
@@ -47,7 +56,7 @@ static void test_basic_file_read_api()
 }
 
 /** Test for write data
- */
+*/
 static void test_basic_write_files(void)
 {
     const char *files_to_write[] = {
@@ -70,7 +79,7 @@ static void test_basic_write_files(void)
         else
         {
             assert_ulong_equal(ARRAY_SIZE(arr_to_wr),
-                               fwrite(arr_to_wr, sizeof(arr_to_wr[0]), ARRAY_SIZE(arr_to_wr), file));
+                    fwrite(arr_to_wr, sizeof(arr_to_wr[0]), ARRAY_SIZE(arr_to_wr), file));
             assert_int_equal(sizeof(arr_to_wr), ftell(file));
             assert_int_equal(0, fclose(file));
         }
@@ -87,7 +96,7 @@ static void test_basic_write_files(void)
         {
             memset(arr_to_rd, 0, sizeof arr_to_rd);
             assert_ulong_equal(ARRAY_SIZE(arr_to_rd),
-                               fread(arr_to_rd, sizeof(arr_to_rd[0]), ARRAY_SIZE(arr_to_rd), file));
+                    fread(arr_to_rd, sizeof(arr_to_rd[0]), ARRAY_SIZE(arr_to_rd), file));
             assert_int_equal(sizeof(arr_to_rd), ftell(file));
             assert_int_equal(0, fclose(file));
             assert_n_array_equal(arr_to_wr, arr_to_rd, ARRAY_SIZE(arr_to_rd));
@@ -184,6 +193,7 @@ static void test_directory_create_remove_stat_base(const char *basedir)
     assert_int_equal(0, unlink(path));
     for (size_t d = 0; d < 20; ++d)
     {
+        struct stat st;
         snprintf(path, sizeof path, "%s/dirtest/dir%i", basedir, d);
         assert_int_equal(0, stat(path, &st));
         assert_true(S_ISDIR(st.st_mode));
@@ -267,7 +277,6 @@ static void test_dir_traversal(const char *basedir)
             {
                 fcnt++;
                 assert_string_equal("filx", dent->d_name);
-                assert_ulong_equal(16384, dent->d_size);
             }
             if (dent->d_type == DT_DIR)
             {
@@ -313,8 +322,8 @@ static void test_statvfs(void)
     assert_true(svfs.f_bfree > 10);
     memset(&svfs, 0, sizeof svfs);
     assert_int_equal(0, statvfs("/user/test", &svfs));
-    assert_int_equal(32768, svfs.f_bsize);
-    assert_int_equal(32768, svfs.f_frsize);
+    assert_true(svfs.f_bsize>0);
+    assert_true(svfs.f_frsize>0);
     assert_true(svfs.f_blocks > 100);
     assert_true(svfs.f_bfree > 10);
 }
@@ -333,6 +342,59 @@ static void test_rename_with_base(const char *basedir)
     assert_int_equal(0, unlink(newf));
 }
 
+static void test_speed(const char* basedir)
+{
+    const size_t chunk_size = 16 * 1024;
+    const size_t file_size = 8 * 1024 * 1024;
+    const size_t iobuf_size = 64 * 1024;
+
+    char path[PATH_MAX];
+    snprintf(path, sizeof path, "%s/speed_file", basedir);
+
+    AUTO_BUF(buf) = malloc(chunk_size);
+    AUTO_BUF(iobuf) = malloc(iobuf_size);
+
+    FILE *fil = fopen(path, "w");
+    assert_true(fil!=NULL);
+    if(!fil) {
+        printf("Fatal unable to open file skip speed write tests\n");
+        return;
+    }
+    assert_int_equal(0, setvbuf(fil, iobuf, _IOFBF, iobuf_size));
+    uint32_t t1 = get_jiffiess();
+    for(size_t ch=0; ch<file_size/chunk_size; ++ch)
+    {
+        assert_int_equal(1, fwrite(buf, chunk_size, 1, fil));
+    }
+    fclose(fil);
+    uint32_t t2 = get_jiffiess();
+    uint32_t tdiff = jiffiess_timer_diff(t1,t2);
+    printf("%s partition write speed %lu kb/s time %lu ms\n", basedir,
+            ((file_size*1000)/tdiff)/1024U, tdiff);
+
+    // Read test
+    fil = fopen(path, "r");
+    // Read test
+    assert_true(fil!=NULL);
+    if(!fil) {
+        printf("Fatal unable to open file skip speed read tests\n");
+        unlink(path);
+        return;
+    }
+    assert_int_equal(0, setvbuf(fil, iobuf, _IOFBF, 64*1024));
+    t1 = get_jiffiess();
+    for(size_t ch=0; ch<file_size/chunk_size; ++ch)
+    {
+        assert_int_equal(1, fread(buf, chunk_size, 1, fil));
+    }
+    fclose(fil);
+    t2 = get_jiffiess();
+    tdiff = jiffiess_timer_diff(t1,t2);
+    printf("%s partition read speed %lu kb/s time %lu ms\n", basedir,
+            ((file_size*1000)/tdiff)/1024U, tdiff);
+    unlink(path);
+}
+
 static void test_rename_vfat(void)
 {
     test_rename_with_base("/os");
@@ -341,6 +403,17 @@ static void test_rename_vfat(void)
 static void test_rename_lfs(void)
 {
     test_rename_with_base("/user");
+}
+
+static void test_speed_vfat(void)
+{
+    test_speed("/os");
+}
+
+
+static void test_speed_lfs(void)
+{
+    test_speed("/user");
 }
 
 // VFS test fixutre
@@ -359,5 +432,7 @@ void test_fixture_vfs()
     run_test(test_statvfs);
     run_test(test_rename_vfat);
     run_test(test_rename_lfs);
+    run_test(test_speed_vfat);
+    run_test(test_speed_lfs);
     test_fixture_end();
 }
