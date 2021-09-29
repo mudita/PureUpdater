@@ -289,6 +289,12 @@ static int ext_unlink(struct vfs_mount *mountp, const char *path)
     }
 }
 
+static int ext_rmdir(struct vfs_mount *mountp, const char *path)
+{
+    VFS_UNUSED(mountp);
+    return -ext4_dir_rm(path);
+}
+
 static int ext_rename(struct vfs_mount *mountp, const char *from, const char *to)
 {
     VFS_UNUSED(mountp);
@@ -393,11 +399,13 @@ static const struct vfs_filesystem_ops ext4_fops =
     .mount = ext_mount,
     .unmount = ext_unmount,
     .unlink = ext_unlink,
+    .rmdir  = ext_rmdir,
     .rename = ext_rename,
     .mkdir = ext_mkdir,
     .stat = ext_stat,
     .statvfs = ext_statvfs,
-    .chmod = ext_chmod};
+    .chmod = ext_chmod
+};
 
 /** Enable littlefs filesystem
  * @return error code

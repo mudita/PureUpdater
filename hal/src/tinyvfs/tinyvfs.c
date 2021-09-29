@@ -95,7 +95,7 @@ static int fs_get_mnt_point(struct vfs_mount **mnt_pntp, const char *name, size_
     return 0;
 }
 
-/** 
+/**
  * Register the filesystem
  * @param type Filesystem type
  * @param fops File system operation structure
@@ -303,7 +303,7 @@ int vfs_open(struct vfs_file *filp, const char *file_name, int flags, mode_t mod
     }
     else
     {
-        return -EINVAL;
+        err = -ENOTSUP;
     }
     return err;
 }
@@ -324,6 +324,10 @@ int vfs_close(struct vfs_file *filp)
             return err;
         }
     }
+    else
+    {
+        err = -ENOTSUP;
+    }
     filp->mp = NULL;
     return err;
 }
@@ -343,6 +347,10 @@ ssize_t vfs_read(struct vfs_file *filp, void *ptr, size_t size)
             printf("vfs: %s File read error %i\n", __PRETTY_FUNCTION__, err);
         }
     }
+    else
+    {
+        err = -ENOTSUP;
+    }
     return err;
 }
 
@@ -360,6 +368,10 @@ ssize_t vfs_write(struct vfs_file *filp, const void *ptr, size_t size)
         {
             printf("vfs: %s File write error %i\n", __PRETTY_FUNCTION__, err);
         }
+    }
+    else
+    {
+        err = -ENOTSUP;
     }
     return err;
 }
@@ -379,6 +391,10 @@ ssize_t vfs_seek(struct vfs_file *filp, off_t offset, int whence)
             printf("vfs: %s File seek error %i\n", __PRETTY_FUNCTION__, err);
         }
     }
+    else
+    {
+        err = -ENOTSUP;
+    }
     return err;
 }
 
@@ -397,7 +413,10 @@ off_t vfs_tell(struct vfs_file *filp)
             printf("vfs: %s File tell error %i\n", __PRETTY_FUNCTION__, err);
         }
     }
-
+    else
+    {
+        err = -ENOTSUP;
+    }
     return err;
 }
 
@@ -415,6 +434,10 @@ int vfs_ftruncate(struct vfs_file *filp, off_t length)
         {
             printf("vfs: %s File truncate error %i\n", __PRETTY_FUNCTION__, err);
         }
+    }
+    else
+    {
+        err = -ENOTSUP;
     }
     return err;
 }
@@ -446,6 +469,10 @@ int vfs_sync(struct vfs_file *filp)
         {
             printf("vfs: %s File sync error %i\n", __PRETTY_FUNCTION__, err);
         }
+    }
+    else
+    {
+        err = -ENOTSUP;
     }
     return err;
 }
@@ -485,7 +512,10 @@ int vfs_opendir(struct vfs_dir *dirp, const char *abs_path)
             printf("vfs: %s Directory open error %i\n", __PRETTY_FUNCTION__, err);
         }
     }
-
+    else
+    {
+        err = -ENOTSUP;
+    }
     return err;
 }
 
@@ -524,7 +554,10 @@ int vfs_readdir(struct vfs_dir *dirp, struct dirent *entry)
                 printf("vfs: %s Directory read error %i\n", __PRETTY_FUNCTION__, err);
             }
         }
-
+        else
+        {
+            err = -ENOTSUP;
+        }
         return err;
     }
 
@@ -588,7 +621,10 @@ int vfs_closedir(struct vfs_dir *dirp)
             return err;
         }
     }
-
+    else
+    {
+        err = -ENOTSUP;
+    }
     dirp->mp = NULL;
     return err;
 }
@@ -622,7 +658,10 @@ int vfs_mkdir(const char *abs_path)
             printf("vfs: %s Unable to create directory %i\n", __PRETTY_FUNCTION__, err);
         }
     }
-
+    else
+    {
+        err = -ENOTSUP;
+    }
     return err;
 }
 
@@ -653,7 +692,44 @@ int vfs_unlink(const char *abs_path)
             printf("vfs: %s Failed to unlink %i\n", __PRETTY_FUNCTION__, err);
         }
     }
+    else
+    {
+        err = -ENOTSUP;
+    }
+    return err;
+}
 
+int vfs_rmdir(const char *abs_path)
+{
+    struct vfs_mount *mp;
+    int err = -EINVAL;
+
+    if ((abs_path == NULL) ||
+            (strlen(abs_path) <= 1) || (abs_path[0] != '/'))
+    {
+        printf("vfs: %s Invalid filename\n", __PRETTY_FUNCTION__);
+        return -EINVAL;
+    }
+
+    err = fs_get_mnt_point(&mp, abs_path, NULL);
+    if (err < 0)
+    {
+        printf("vfs: %s Mount point not found\n", __PRETTY_FUNCTION__);
+        return err;
+    }
+
+    if (mp->fs->rmdir != NULL)
+    {
+        err = mp->fs->rmdir(mp, abs_path);
+        if (err < 0)
+        {
+            printf("vfs: %s Failed to rmdir %i\n", __PRETTY_FUNCTION__, err);
+        }
+    }
+    else
+    {
+        err = -ENOTSUP;
+    }
     return err;
 }
 
@@ -692,6 +768,10 @@ int vfs_rename(const char *from, const char *to)
             printf("vfs: %s Failed to rename %i\n", __PRETTY_FUNCTION__, err);
         }
     }
+    else
+    {
+        err = -ENOTSUP;
+    }
     return err;
 }
 
@@ -722,6 +802,10 @@ int vfs_stat(const char *abs_path, struct stat *entry)
             printf("vfs: %s Failed to stat %i\n", __PRETTY_FUNCTION__, err);
         }
     }
+    else
+    {
+        err = -ENOTSUP;
+    }
     return err;
 }
 
@@ -751,6 +835,10 @@ int vfs_statvfs(const char *abs_path, struct statvfs *stat)
         {
             printf("vfs: %s Failed to vfstat %i\n", __PRETTY_FUNCTION__, err);
         }
+    }
+    else
+    {
+        err = -ENOTSUP;
     }
 
     return err;
@@ -807,6 +895,10 @@ int vfs_chmod(const char *abs_path, mode_t mode)
             printf("vfs: %s Failed to chmod %i\n", __PRETTY_FUNCTION__, err);
         }
     }
-
+    else
+    {
+        err = -ENOTSUP;
+    }
     return err;
 }
+

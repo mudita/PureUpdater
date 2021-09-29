@@ -240,6 +240,18 @@ static int ffat_unlink(struct vfs_mount *mountp, const char *path)
 	return translate_error(res);
 }
 
+static int ffat_rmdir(struct vfs_mount *mountp, const char *path)
+{
+	FRESULT res;
+	AUTO_PATH(opath) = path_translate(path, mountp);
+	if (!opath)
+	{
+		return -ERANGE;
+	}
+	res = f_rmdir(opath);
+	return translate_error(res);
+}
+
 static int ffat_chmod(struct vfs_mount *mountp, const char *path, mode_t mode)
 {
 	FRESULT res;
@@ -541,26 +553,28 @@ static int ffat_unmount(struct vfs_mount *mountp)
 
 // VFAT fileystem operations private structure
 static const struct vfs_filesystem_ops vfat_fops =
-	{
-		.open = ffat_open,
-		.read = ffat_read,
-		.write = ffat_write,
-		.lseek = ffat_seek,
-		.tell = ffat_tell,
-		.truncate = ffat_truncate,
-		.sync = ffat_sync,
-		.close = ffat_close,
-		.opendir = ffat_opendir,
-		.readdir = ffat_readdir,
-		.closedir = ffat_closedir,
-		.mount = ffat_mount,
-		.unmount = ffat_unmount,
-		.unlink = ffat_unlink,
-		.rename = ffat_rename,
-		.mkdir = ffat_mkdir,
-		.stat = ffat_stat,
-		.statvfs = ffat_statvfs,
-		.chmod = ffat_chmod};
+{
+    .open = ffat_open,
+    .read = ffat_read,
+    .write = ffat_write,
+    .lseek = ffat_seek,
+    .tell = ffat_tell,
+    .truncate = ffat_truncate,
+    .sync = ffat_sync,
+    .close = ffat_close,
+    .opendir = ffat_opendir,
+    .readdir = ffat_readdir,
+    .closedir = ffat_closedir,
+    .mount = ffat_mount,
+    .unmount = ffat_unmount,
+    .unlink = ffat_unlink,
+    .rmdir = ffat_rmdir,
+    .rename = ffat_rename,
+    .mkdir = ffat_mkdir,
+    .stat = ffat_stat,
+    .statvfs = ffat_statvfs,
+    .chmod = ffat_chmod
+};
 
 /** Enable vfat filesystem
  * @return error code

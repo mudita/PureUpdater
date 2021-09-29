@@ -363,6 +363,7 @@ static const struct vfs_filesystem_ops lfs_fops =
     .mount = dlfs_mount,
     .unmount = dlfs_unmount,
     .unlink = dlfs_unlink,
+    .rmdir = dlfs_unlink,
     .rename = dlfs_rename,
     .mkdir = dlfs_mkdir,
     .stat = dlfs_stat,
