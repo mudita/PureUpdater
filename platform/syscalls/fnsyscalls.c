@@ -28,7 +28,13 @@ int _unlink(char *name)
 
 int rmdir(char *name)
 {
-    return _unlink(name);
+    int err = vfs_rmdir(name);
+    if (err < 0)
+    {
+        errno = -err;
+        err = -1;
+    }
+    return err;
 }
 
 int _rename_r(struct _reent *reent, const char *oldpath, const char *newpath)

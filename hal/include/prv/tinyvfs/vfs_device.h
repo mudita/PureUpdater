@@ -38,4 +38,5 @@ struct vfs_filesystem_ops
     int (*stat)(struct vfs_mount *mountp, const char *path, struct stat *entry);
     int (*statvfs)(struct vfs_mount *mountp, const char *path, struct statvfs *stat);
     int (*chmod)(struct vfs_mount *mountp, const char *path, mode_t mode);
+    int (*rmdir)(struct vfs_mount *mountp, const char* name);
 };

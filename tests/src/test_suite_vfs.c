@@ -202,11 +202,14 @@ static void test_directory_create_remove_stat_base(const char *basedir)
     for (size_t d = 0; d < 20; ++d)
     {
         snprintf(path, sizeof path, "%s/dirtest/dir%i", basedir, d);
-        assert_int_equal(0, unlink(path));
+        assert_int_equal(0, rmdir(path));
     }
     // Last dir remove
     snprintf(path, sizeof path, "%s/dirtest", basedir);
-    assert_int_equal(0, unlink(path));
+    assert_int_equal(0, rmdir(path));
+
+    assert_int_equal(-1, rmdir(path));
+    assert_int_equal(ENOENT, errno);
 }
 
 static void test_directory_create_remove_stat_lfs(void)
@@ -256,7 +259,7 @@ static void test_dir_traversal(const char *basedir)
     assert_int_equal(0, mkdir(path, 0755));
     for (size_t d = 0; d < 20; ++d)
     {
-        snprintf(path, sizeof path, "%s/dirtest/dir%i", basedir, d);
+        snprintf(path, sizeof path, "%s/dirtest/dir%u", basedir, d);
         assert_int_equal(0, mkdir(path, 0755));
     }
     snprintf(path, sizeof path, "%s/dirtest/filx", basedir);
@@ -290,14 +293,14 @@ static void test_dir_traversal(const char *basedir)
     // Delete resources
     for (size_t d = 0; d < 20; ++d)
     {
-        snprintf(path, sizeof path, "%s/dirtest/dir%i", basedir, d);
-        assert_int_equal(0, unlink(path));
+        snprintf(path, sizeof path, "%s/dirtest/dir%u", basedir, d);
+        assert_int_equal(0, rmdir(path));
     }
     snprintf(path, sizeof path, "%s/dirtest/filx", basedir);
     assert_int_equal(0, unlink(path));
     // Last dir remove
     snprintf(path, sizeof path, "%s/dirtest", basedir);
-    assert_int_equal(0, unlink(path));
+    assert_int_equal(0, rmdir(path));
 }
 
 static void test_dir_traversal_lfs(void)

@@ -154,6 +154,11 @@ int vfs_mkdir(const char *abs_path);
  */
 int vfs_unlink(const char *abs_path);
 
+/** VFS unlink
+ * @see man rmdir
+ */
+int vfs_rmdir(const char *abs_path);
+
 /** VFS rename
  * @see man rename
  */
