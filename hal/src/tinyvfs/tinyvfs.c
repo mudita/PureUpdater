@@ -297,7 +297,7 @@ int vfs_open(struct vfs_file *filp, const char *file_name, int flags, mode_t mod
         err = filp->mp->fs->open(filp, file_name, flags, mode);
         if (err < 0)
         {
-            printf("vfs: %s File open error %i\n", __PRETTY_FUNCTION__, err);
+            printf("vfs: %s File open error %i path %s\n", __PRETTY_FUNCTION__, err, file_name);
             return err;
         }
     }
@@ -509,7 +509,7 @@ int vfs_opendir(struct vfs_dir *dirp, const char *abs_path)
         err = dirp->mp->fs->opendir(dirp, abs_path);
         if (err < 0)
         {
-            printf("vfs: %s Directory open error %i\n", __PRETTY_FUNCTION__, err);
+            printf("vfs: %s Directory open error %i path %s\n", __PRETTY_FUNCTION__, err, abs_path);
         }
     }
     else

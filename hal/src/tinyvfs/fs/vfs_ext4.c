@@ -221,7 +221,27 @@ static int ext_opendir(struct vfs_dir *dp, const char *path)
     {
         return -ENOMEM;
     }
-    int err = ext4_dir_open(dp->dirp, path);
+    const char* mod_path;
+    bool path_allocated;
+    // Fix for buggy opendir on root path in lwext4
+    if(!strcmp(path, dp->mp->mnt_point))
+    {
+        char* lpath = malloc(dp->mp->mountp_len+1);
+        strcpy(lpath, path);
+        strcat(lpath, "/");
+        mod_path = lpath;
+        path_allocated = true;
+    }
+    else
+    {
+        mod_path = path;
+        path_allocated = false;
+    }
+    int err = ext4_dir_open(dp->dirp, mod_path);
+    if(path_allocated)
+    {
+        free((void*)mod_path);
+    }
     if (err)
     {
         free(dp->dirp);
