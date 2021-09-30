@@ -301,6 +301,10 @@ static void test_dir_traversal(const char *basedir)
     // Last dir remove
     snprintf(path, sizeof path, "%s/dirtest", basedir);
     assert_int_equal(0, rmdir(path));
+    // Test for opening base directory
+    dirh = opendir(basedir);
+    assert_true(dirh != NULL);
+    assert_int_equal(0, closedir(dirh));
 }
 
 static void test_dir_traversal_lfs(void)
@@ -439,3 +443,4 @@ void test_fixture_vfs()
     run_test(test_speed_lfs);
     test_fixture_end();
 }
+
