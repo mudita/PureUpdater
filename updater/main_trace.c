@@ -26,14 +26,20 @@ static bool _trace_file_print(void *ptr, char *data, ...)
 void main_status(trace_list_t *tl)
 {
     const char *fname = "/user/updater.log";
+    const size_t iobuf_size = 32768;
     trace_print(tl);
     struct file_trace t;
     t.file = fopen(fname, "w");
     if (t.file != NULL) {
+        char* iobuf = malloc(iobuf_size);
+        if(iobuf) {
+            setvbuf(t.file, iobuf, _IOFBF, iobuf_size);
+        }
         fprintf(t.file, "update status: %s\n", (trace_list_ok(tl)==true)?"OK":"FAIL");
         trace_dumps(tl, &t, _trace_file_print);
         printf("file saved %s", fname);
         fclose(t.file);
+        free(iobuf);
     }
     else {
         printf("cant open file %s", fname);

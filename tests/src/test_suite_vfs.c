@@ -388,7 +388,7 @@ static void test_speed(const char* basedir)
         unlink(path);
         return;
     }
-    assert_int_equal(0, setvbuf(fil, iobuf, _IOFBF, 64*1024));
+    assert_int_equal(0, setvbuf(fil, iobuf, _IOFBF, iobuf_size));
     t1 = get_jiffiess();
     for(size_t ch=0; ch<file_size/chunk_size; ++ch)
     {
