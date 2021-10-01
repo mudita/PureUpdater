@@ -345,11 +345,12 @@ static void test_rename_with_base(const char *basedir)
     assert_int_equal(0, unlink(newf));
 }
 
-static void test_speed(const char* basedir)
+
+
+static void test_speed(const char* basedir, size_t iobuf_size)
 {
     const size_t chunk_size = 16 * 1024;
     const size_t file_size = 8 * 1024 * 1024;
-    const size_t iobuf_size = 64 * 1024;
 
     char path[PATH_MAX];
     snprintf(path, sizeof path, "%s/speed_file", basedir);
@@ -372,8 +373,8 @@ static void test_speed(const char* basedir)
     fclose(fil);
     uint32_t t2 = get_jiffiess();
     uint32_t tdiff = jiffiess_timer_diff(t1,t2);
-    printf("%s partition write speed %lu kb/s time %lu ms\n", basedir,
-            ((file_size*1000)/tdiff)/1024U, tdiff);
+    printf("%s partition write speed %lu kB/s time %lu ms iobuf_size %ukB\n", basedir,
+            ((file_size*1000)/tdiff)/1024U, tdiff, iobuf_size/1024u);
 
     // Read test
     fil = fopen(path, "r");
@@ -384,7 +385,7 @@ static void test_speed(const char* basedir)
         unlink(path);
         return;
     }
-    assert_int_equal(0, setvbuf(fil, iobuf, _IOFBF, 64*1024));
+    assert_int_equal(0, setvbuf(fil, iobuf, _IOFBF, iobuf_size));
     t1 = get_jiffiess();
     for(size_t ch=0; ch<file_size/chunk_size; ++ch)
     {
@@ -393,8 +394,8 @@ static void test_speed(const char* basedir)
     fclose(fil);
     t2 = get_jiffiess();
     tdiff = jiffiess_timer_diff(t1,t2);
-    printf("%s partition read speed %lu kb/s time %lu ms\n", basedir,
-            ((file_size*1000)/tdiff)/1024U, tdiff);
+    printf("%s partition read speed %lu kb/s time %lu ms iobuf_size %ukB\n", basedir,
+            ((file_size*1000)/tdiff)/1024U, tdiff, iobuf_size/1024u);
     unlink(path);
 }
 
@@ -410,13 +411,19 @@ static void test_rename_lfs(void)
 
 static void test_speed_vfat(void)
 {
-    test_speed("/os");
+    for(unsigned i = 1; i < 256; i=i*2)
+    {
+        test_speed("/os", i*1024);
+    }
 }
 
 
 static void test_speed_lfs(void)
 {
-    test_speed("/user");
+    for(unsigned i = 1; i < 256; i=i*2)
+    {
+        test_speed("/user", i*1024);
+    }
 }
 
 // VFS test fixutre
