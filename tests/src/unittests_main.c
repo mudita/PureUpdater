@@ -1,8 +1,6 @@
 #include <hal/system.h>
 #include <hal/delay.h>
 #include <hal/display.h>
-#include <hal/tinyvfs.h>
-#include <hal/blk_dev.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <dirent.h>
@@ -30,25 +28,14 @@ int __attribute__((noinline, used)) main()
     eink_log("Please wait...", false);
     eink_log_refresh();
 
-    // fstab filesystem mounts
-    static const vfs_mount_point_desc_t fstab[] = {
-        {.disk = blkdev_emmc_user, .partition = 1, .type = vfs_fs_fat, "/os"},
-        {.disk = blkdev_emmc_user, .partition = 3, .type = vfs_fs_auto, "/user"},
-    };
-    printf("Initializing VFS subsystem...\n");
-    int err = vfs_mount_init(fstab, sizeof fstab);
-    if (err)
-    {
-        printf("Failed to initialize VFS errno %i\n", err);
-    }
-    err = run_tests(all_tests);
+    mount_all();
+
+    int err = run_tests(all_tests);
     eink_log_printf("Finished with code %i", err);
     eink_log_refresh();
-    err = vfs_unmount_deinit();
-    if (err)
-    {
-        printf("Failed to umount VFS data errno %i\n", err);
-    }
+    
+    umount_all();
+
     system_deinitialize();
     // Do not reset
     return -1;

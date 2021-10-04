@@ -5,3 +5,6 @@
 
 //Test fixture VFS
 void test_fixture_vfs();
+
+void mount_all();
+void umount_all();
