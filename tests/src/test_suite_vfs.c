@@ -10,7 +10,8 @@
 #include <dirent.h>
 #include <sys/statvfs.h>
 #include <hal/delay.h>
-
+#include <hal/tinyvfs.h>
+#include <hal/blk_dev.h>
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 #define AUTO_BUF(var) char *var __attribute__((__cleanup__(_free_clean_up_buf)))
@@ -28,12 +29,10 @@ static void test_basic_file_read_api()
 {
     // Open the boot json on master partition
     FILE *file = fopen("/os/.boot.json", "r");
-    if (!file)
-    {
+    if (!file) {
         assert_fail("Fopen error skip other tests for fat");
     }
-    else
-    {
+    else {
         assert_int_equal(0, ftell(file));
         assert_int_equal(0, fseek(file, 0, SEEK_END));
         assert_true(ftell(file) > 100);
@@ -41,13 +40,11 @@ static void test_basic_file_read_api()
     }
     // Try the second littlefs partition
     file = fopen("/user/db/contacts_001.sql", "r");
-    if (!file)
-    {
+    if (!file) {
 
         assert_fail("Fopen error skip other tests for lfs");
     }
-    else
-    {
+    else {
         assert_int_equal(0, ftell(file));
         assert_int_equal(0, fseek(file, 0, SEEK_END));
         assert_true(ftell(file) > 100);
@@ -55,48 +52,61 @@ static void test_basic_file_read_api()
     }
 }
 
+void mount_all()
+{
+    // fstab filesystem mounts
+    static const vfs_mount_point_desc_t fstab[] = {
+        {.disk = blkdev_emmc_user, .partition = 1, .type = vfs_fs_fat, "/os"},
+        {.disk = blkdev_emmc_user, .partition = 3, .type = vfs_fs_auto, "/user"},
+    };
+    printf("Initializing VFS subsystem...\n");
+    int err = vfs_mount_init(fstab, sizeof fstab);
+    if (err) {
+        printf("Failed to initialize VFS errno %i\n", err);
+    }
+}
+
+void umount_all()
+{
+    int err = vfs_unmount_deinit();
+    if (err) {
+        printf("Failed to umount VFS data errno %i\n", err);
+    }
+}
+
 /** Test for write data
-*/
+ */
 static void test_basic_write_files(void)
 {
-    const char *files_to_write[] = {
-        "/user/test001.bin",
-        "/os/test002.bin"};
+    const char *files_to_write[] = {"/user/test001.bin", "/os/test002.bin"};
     int arr_to_wr[100];
     int arr_to_rd[100];
-    for (size_t n = 0; n < ARRAY_SIZE(arr_to_wr); ++n)
-    {
+    for (size_t n = 0; n < ARRAY_SIZE(arr_to_wr); ++n) {
         arr_to_wr[n] = n;
     }
-    for (size_t fno = 0; fno < ARRAY_SIZE(files_to_write); ++fno)
-    {
+    for (size_t fno = 0; fno < ARRAY_SIZE(files_to_write); ++fno) {
         const char *fname = files_to_write[fno];
-        FILE *file = fopen(fname, "w");
-        if (!file)
-        {
+        FILE *file        = fopen(fname, "w");
+        if (!file) {
             assert_fail("Unable to open file for write");
         }
-        else
-        {
+        else {
             assert_ulong_equal(ARRAY_SIZE(arr_to_wr),
-                    fwrite(arr_to_wr, sizeof(arr_to_wr[0]), ARRAY_SIZE(arr_to_wr), file));
+                               fwrite(arr_to_wr, sizeof(arr_to_wr[0]), ARRAY_SIZE(arr_to_wr), file));
             assert_int_equal(sizeof(arr_to_wr), ftell(file));
             assert_int_equal(0, fclose(file));
         }
     }
-    for (size_t fno = 0; fno < ARRAY_SIZE(files_to_write); ++fno)
-    {
+    for (size_t fno = 0; fno < ARRAY_SIZE(files_to_write); ++fno) {
         const char *fname = files_to_write[fno];
-        FILE *file = fopen(fname, "r");
-        if (!file)
-        {
+        FILE *file        = fopen(fname, "r");
+        if (!file) {
             assert_fail("Unable to open file for write");
         }
-        else
-        {
+        else {
             memset(arr_to_rd, 0, sizeof arr_to_rd);
             assert_ulong_equal(ARRAY_SIZE(arr_to_rd),
-                    fread(arr_to_rd, sizeof(arr_to_rd[0]), ARRAY_SIZE(arr_to_rd), file));
+                               fread(arr_to_rd, sizeof(arr_to_rd[0]), ARRAY_SIZE(arr_to_rd), file));
             assert_int_equal(sizeof(arr_to_rd), ftell(file));
             assert_int_equal(0, fclose(file));
             assert_n_array_equal(arr_to_wr, arr_to_rd, ARRAY_SIZE(arr_to_rd));
@@ -122,12 +132,10 @@ static void test_failed_to_open_files(void)
 static ssize_t file_length(const char *path)
 {
     FILE *file = fopen(path, "r");
-    if (!file)
-    {
+    if (!file) {
         return -1;
     }
-    if (fseek(file, 0, SEEK_END) < 0)
-    {
+    if (fseek(file, 0, SEEK_END) < 0) {
         fclose(file);
         return -1;
     }
@@ -139,35 +147,29 @@ static ssize_t file_length(const char *path)
 // Create and remove files
 static void test_create_and_remove_files(void)
 {
-    const char *files_to_check[] = {
-        "/user/test003.bin",
-        "/os/test004.bin"};
+    const char *files_to_check[]   = {"/user/test003.bin", "/os/test004.bin"};
     static const size_t trunc_size = 256 * 1024;
-    for (size_t fno = 0; fno < ARRAY_SIZE(files_to_check); ++fno)
-    {
+    for (size_t fno = 0; fno < ARRAY_SIZE(files_to_check); ++fno) {
         const char *fname = files_to_check[fno];
         assert_int_equal(0, truncate(fname, trunc_size));
     }
-    //Open and check for sizes
-    for (size_t fno = 0; fno < ARRAY_SIZE(files_to_check); ++fno)
-    {
+    // Open and check for sizes
+    for (size_t fno = 0; fno < ARRAY_SIZE(files_to_check); ++fno) {
         const char *fname = files_to_check[fno];
         assert_int_equal(trunc_size, file_length(fname));
     }
     // Unlink
-    for (size_t fno = 0; fno < ARRAY_SIZE(files_to_check); ++fno)
-    {
+    for (size_t fno = 0; fno < ARRAY_SIZE(files_to_check); ++fno) {
         const char *fname = files_to_check[fno];
         assert_int_equal(0, unlink(fname));
     }
-    //Check for sizes again
-    for (size_t fno = 0; fno < ARRAY_SIZE(files_to_check); ++fno)
-    {
+    // Check for sizes again
+    for (size_t fno = 0; fno < ARRAY_SIZE(files_to_check); ++fno) {
         const char *fname = files_to_check[fno];
         assert_int_equal(-1, file_length(fname));
         assert_int_equal(ENOENT, errno);
     }
-    //Unlink unexistient
+    // Unlink unexistient
     assert_int_equal(-1, unlink("/os/non_existientfile"));
     assert_int_equal(ENOENT, errno);
 }
@@ -178,8 +180,7 @@ static void test_directory_create_remove_stat_base(const char *basedir)
     char path[96];
     snprintf(path, sizeof path, "%s/dirtest", basedir);
     assert_int_equal(0, mkdir(path, 0755));
-    for (size_t d = 0; d < 20; ++d)
-    {
+    for (size_t d = 0; d < 20; ++d) {
         snprintf(path, sizeof path, "%s/dirtest/dir%i", basedir, d);
         assert_int_equal(0, mkdir(path, 0755));
     }
@@ -191,16 +192,14 @@ static void test_directory_create_remove_stat_base(const char *basedir)
     assert_true(S_ISREG(st.st_mode));
     assert_int_equal(16384, st.st_size);
     assert_int_equal(0, unlink(path));
-    for (size_t d = 0; d < 20; ++d)
-    {
+    for (size_t d = 0; d < 20; ++d) {
         struct stat st;
         snprintf(path, sizeof path, "%s/dirtest/dir%i", basedir, d);
         assert_int_equal(0, stat(path, &st));
         assert_true(S_ISDIR(st.st_mode));
     }
-    //Try to remove the directories
-    for (size_t d = 0; d < 20; ++d)
-    {
+    // Try to remove the directories
+    for (size_t d = 0; d < 20; ++d) {
         snprintf(path, sizeof path, "%s/dirtest/dir%i", basedir, d);
         assert_int_equal(0, rmdir(path));
     }
@@ -230,18 +229,15 @@ static void test_dir_travesal_intervfs(void)
     assert_int_equal(ENOENT, errno);
     assert_true(opendir("/user/xxx") == NULL);
     assert_int_equal(ENOENT, errno);
-    //Traverse inter mount point
+    // Traverse inter mount point
     DIR *dir = opendir("/");
-    if (!dir)
-    {
+    if (!dir) {
         assert_fail("opendir error skip other tests");
     }
-    else
-    {
+    else {
         struct dirent *dent;
         int count = 0;
-        while ((dent = readdir(dir)) != NULL)
-        {
+        while ((dent = readdir(dir)) != NULL) {
             count++;
         }
         // Two mount points
@@ -257,8 +253,7 @@ static void test_dir_traversal(const char *basedir)
     // Create resources
     snprintf(path, sizeof path, "%s/dirtest", basedir);
     assert_int_equal(0, mkdir(path, 0755));
-    for (size_t d = 0; d < 20; ++d)
-    {
+    for (size_t d = 0; d < 20; ++d) {
         snprintf(path, sizeof path, "%s/dirtest/dir%u", basedir, d);
         assert_int_equal(0, mkdir(path, 0755));
     }
@@ -269,20 +264,16 @@ static void test_dir_traversal(const char *basedir)
     snprintf(path, sizeof path, "%s/dirtest", basedir);
     DIR *dirh = opendir(path);
     assert_true(dirh != NULL);
-    if (dirh)
-    {
+    if (dirh) {
         struct dirent *dent;
         int dcnt = 0;
         int fcnt = 0;
-        while ((dent = readdir(dirh)) != NULL)
-        {
-            if (dent->d_type == DT_REG)
-            {
+        while ((dent = readdir(dirh)) != NULL) {
+            if (dent->d_type == DT_REG) {
                 fcnt++;
                 assert_string_equal("filx", dent->d_name);
             }
-            if (dent->d_type == DT_DIR)
-            {
+            if (dent->d_type == DT_DIR) {
                 dcnt++;
             }
         }
@@ -291,8 +282,7 @@ static void test_dir_traversal(const char *basedir)
         assert_int_equal(0, closedir(dirh));
     }
     // Delete resources
-    for (size_t d = 0; d < 20; ++d)
-    {
+    for (size_t d = 0; d < 20; ++d) {
         snprintf(path, sizeof path, "%s/dirtest/dir%u", basedir, d);
         assert_int_equal(0, rmdir(path));
     }
@@ -329,8 +319,8 @@ static void test_statvfs(void)
     assert_true(svfs.f_bfree > 10);
     memset(&svfs, 0, sizeof svfs);
     assert_int_equal(0, statvfs("/user/test", &svfs));
-    assert_true(svfs.f_bsize>0);
-    assert_true(svfs.f_frsize>0);
+    assert_true(svfs.f_bsize > 0);
+    assert_true(svfs.f_frsize > 0);
     assert_true(svfs.f_blocks > 100);
     assert_true(svfs.f_bfree > 10);
 }
@@ -349,60 +339,6 @@ static void test_rename_with_base(const char *basedir)
     assert_int_equal(0, unlink(newf));
 }
 
-
-
-static void test_speed(const char* basedir, size_t iobuf_size)
-{
-    const size_t chunk_size = 16 * 1024;
-    const size_t file_size = 8 * 1024 * 1024;
-
-    char path[PATH_MAX];
-    snprintf(path, sizeof path, "%s/speed_file", basedir);
-
-    AUTO_BUF(buf) = malloc(chunk_size);
-    AUTO_BUF(iobuf) = malloc(iobuf_size);
-
-    FILE *fil = fopen(path, "w");
-    assert_true(fil!=NULL);
-    if(!fil) {
-        printf("Fatal unable to open file skip speed write tests\n");
-        return;
-    }
-    assert_int_equal(0, setvbuf(fil, iobuf, _IOFBF, iobuf_size));
-    uint32_t t1 = get_jiffiess();
-    for(size_t ch=0; ch<file_size/chunk_size; ++ch)
-    {
-        assert_int_equal(1, fwrite(buf, chunk_size, 1, fil));
-    }
-    fclose(fil);
-    uint32_t t2 = get_jiffiess();
-    uint32_t tdiff = jiffiess_timer_diff(t1,t2);
-    printf("%s partition write speed %lu kB/s time %lu ms iobuf_size %ukB\n", basedir,
-            ((file_size*1000)/tdiff)/1024U, tdiff, iobuf_size/1024u);
-
-    // Read test
-    fil = fopen(path, "r");
-    // Read test
-    assert_true(fil!=NULL);
-    if(!fil) {
-        printf("Fatal unable to open file skip speed read tests\n");
-        unlink(path);
-        return;
-    }
-    assert_int_equal(0, setvbuf(fil, iobuf, _IOFBF, iobuf_size));
-    t1 = get_jiffiess();
-    for(size_t ch=0; ch<file_size/chunk_size; ++ch)
-    {
-        assert_int_equal(1, fread(buf, chunk_size, 1, fil));
-    }
-    fclose(fil);
-    t2 = get_jiffiess();
-    tdiff = jiffiess_timer_diff(t1,t2);
-    printf("%s partition read speed %lu kb/s time %lu ms iobuf_size %ukB\n", basedir,
-            ((file_size*1000)/tdiff)/1024U, tdiff, iobuf_size/1024u);
-    unlink(path);
-}
-
 static void test_rename_vfat(void)
 {
     test_rename_with_base("/os");
@@ -413,21 +349,229 @@ static void test_rename_lfs(void)
     test_rename_with_base("/user");
 }
 
-static void test_speed_vfat(void)
+//////////////////// Performance tests //////////////////////////////////////
+
+static int num = 0;
+static void initFilePathGenerator(int seed)
 {
-    for(unsigned i = 1; i < 256; i=i*2)
-    {
-        test_speed("/os", i*1024);
+    num = seed;
+}
+static void generateFilePath(const char *const base_dir, size_t max_path_length, char *path)
+{
+    snprintf(path, max_path_length, "%s/speed_file%d", base_dir, num++);
+}
+
+static uint32_t calculateSpeed(size_t file_size, uint32_t tdiff)
+{
+    return (uint32_t)((((uint64_t)file_size * 1000) / tdiff) / 1024U);
+}
+
+struct Stats
+{
+    uint32_t min;
+    uint32_t max;
+    uint32_t avg;
+};
+
+/// initally min should be set to max uint32_t
+static uint32_t calcMin(uint32_t current_min, uint32_t new_val)
+{
+    return new_val < current_min ? new_val : current_min;
+}
+
+/// initally max should be set to 0
+static uint32_t calcMax(uint32_t current_max, uint32_t new_val)
+{
+    return new_val > current_max ? new_val : current_max;
+}
+
+static uint32_t calcAvg(uint32_t current_avg, uint32_t sample_count, uint32_t new_val)
+{
+    int64_t temp = current_avg;
+    temp += ((int64_t)new_val - temp) / (int64_t)sample_count;
+    return (uint32_t)temp;
+}
+
+static void calcStats(struct Stats *stats, uint32_t sample_count, uint32_t new_value)
+{
+    if (stats == NULL)
+        return;
+
+    stats->min = calcMin(stats->min, new_value);
+    stats->max = calcMax(stats->max, new_value);
+    stats->avg = calcAvg(stats->avg, sample_count, new_value);
+}
+
+static uint32_t test_write_speed(const char *path, size_t file_size, size_t chunk_size, size_t iobuf_size)
+{
+    AUTO_BUF(buf)   = malloc(chunk_size);
+    AUTO_BUF(iobuf) = malloc(iobuf_size);
+
+    FILE *fil = fopen(path, "w");
+    assert_true(fil != NULL);
+    if (!fil) {
+        printf("Fatal unable to open file skip speed write tests\n");
+        return 0;
+    }
+    assert_int_equal(0, setvbuf(fil, iobuf, _IOFBF, iobuf_size));
+    uint32_t t1 = get_jiffiess();
+    for (size_t ch = 0; ch < file_size / chunk_size; ++ch) {
+        assert_int_equal(1, fwrite(buf, chunk_size, 1, fil));
+    }
+    fclose(fil);
+    uint32_t t2         = get_jiffiess();
+    uint32_t tdiff      = jiffiess_timer_diff(t1, t2);
+    uint32_t writeSpeed = calculateSpeed(file_size, tdiff);
+
+    printf("    %s - write speed %lu kB/s time %lu ms iobuf_size %u kB\n", path, writeSpeed, tdiff, iobuf_size / 1024u);
+
+    return writeSpeed;
+}
+
+static uint32_t test_read_speed(const char *path, size_t chunk_size, size_t iobuf_size)
+{
+    AUTO_BUF(buf)   = malloc(chunk_size);
+    AUTO_BUF(iobuf) = malloc(iobuf_size);
+
+    ssize_t file_size = file_length(path);
+
+    FILE *fil = fopen(path, "r");
+
+    // Read test
+    assert_true(fil != NULL);
+    if (!fil) {
+        printf("Fatal unable to open file skip speed read tests\n");
+        unlink(path);
+        return 0;
+    }
+    assert_int_equal(0, setvbuf(fil, iobuf, _IOFBF, iobuf_size));
+    uint32_t t1 = get_jiffiess();
+    for (size_t ch = 0; ch < file_size / chunk_size; ++ch) {
+        assert_int_equal(1, fread(buf, chunk_size, 1, fil));
+    }
+    fclose(fil);
+    uint32_t t2        = get_jiffiess();
+    uint32_t tdiff     = jiffiess_timer_diff(t1, t2);
+    uint32_t readSpeed = calculateSpeed(file_size, tdiff);
+
+    printf("    %s - read speed %lu kB/s time %lu ms iobuf_size %u kB\n", path, readSpeed, tdiff, iobuf_size / 1024u);
+
+    return readSpeed;
+}
+
+static void test_seq_write_and_read_speed_os(
+    char *base_dir, uint32_t number_of_files, size_t file_size, size_t chunk_size, size_t iobuf_size)
+{
+    struct Stats write_stats = {0xFFFFFFFF, 0, 0};
+    struct Stats read_stats  = {0xFFFFFFFF, 0, 0};
+
+    initFilePathGenerator(0);
+    char path[PATH_MAX];
+
+    printf("  Performance test number of files %lu file size %u chunk size %u iobuf size %u\n",
+           number_of_files,
+           file_size,
+           chunk_size,
+           iobuf_size);
+
+    for (unsigned i = 0; i < number_of_files; i++) {
+        generateFilePath(base_dir, sizeof(path), path);
+        uint32_t speed = test_write_speed(path, file_size, chunk_size, iobuf_size);
+        calcStats(&write_stats, i + 1, speed);
+    }
+
+    printf("   write speed - min %lu kB/s, max %lu kB/s, avg %lu kB/s\n",
+           write_stats.min,
+           write_stats.max,
+           write_stats.avg);
+
+    initFilePathGenerator(0);
+    for (unsigned i = 0; i < number_of_files; i++) {
+        generateFilePath(base_dir, sizeof(path), path);
+        uint32_t speed = test_read_speed(path, chunk_size, iobuf_size);
+        calcStats(&read_stats, i + 1, speed);
+    }
+
+    printf(
+        "   read speed - min %lu kB/s, max %lu kB/s, avg %lu kB/s\n", read_stats.min, read_stats.max, read_stats.avg);
+
+    initFilePathGenerator(0);
+    for (unsigned i = 0; i < number_of_files; i++) {
+        generateFilePath(base_dir, sizeof(path), path);
+        unlink(path);
     }
 }
 
-
-static void test_speed_lfs(void)
+static void test_seq_write_after_umount(char *base_dir,
+                                        uint32_t number_of_serires,
+                                        uint32_t number_of_files,
+                                        size_t file_size,
+                                        size_t chunk_size,
+                                        size_t iobuf_size)
 {
-    for(unsigned i = 1; i < 256; i=i*2)
-    {
-        test_speed("/user", i*1024);
+    struct Stats write_stats = {0xFFFFFFFF, 0, 0};
+
+    initFilePathGenerator(0);
+    char path[PATH_MAX];
+
+    for (uint32_t i = 0; i < number_of_serires; i++) {
+        umount_all();
+        mount_all();
+
+        printf("  Performance test number of files %lu file size %u chunk size %u iobuf size %u\n",
+               number_of_files,
+               file_size,
+               chunk_size,
+               iobuf_size);
+
+        for (unsigned i = 0; i < number_of_files; i++) {
+            generateFilePath(base_dir, sizeof(path), path);
+            uint32_t speed = test_write_speed(path, file_size, chunk_size, iobuf_size);
+            calcStats(&write_stats, i + 1, speed);
+        }
+
+        printf("   write speed - min %lu kB/s, max %lu kB/s, avg %lu kB/s\n",
+               write_stats.min,
+               write_stats.max,
+               write_stats.avg);
+
+        struct statvfs stat;
+        
+        uint32_t t1        = get_jiffiess();
+        vfs_statvfs(base_dir, &stat);
+        uint32_t t2        = get_jiffiess();
+        uint32_t tdiff     = jiffiess_timer_diff(t1, t2);
+        printf("   statvfs time %lu ms\n", tdiff);
     }
+
+    initFilePathGenerator(0);
+    for (unsigned i = 0; i < number_of_files * number_of_serires; i++) {
+        generateFilePath(base_dir, sizeof(path), path);
+        unlink(path);
+    }
+}
+
+static void test_speed_os()
+{
+    printf("Performance test os - iobuffer size\n");
+    for (unsigned i = 1; i <= 512; i = i * 2) {
+        test_seq_write_and_read_speed_os("/os", 5, 4 * 1024 * 1024, 16 * 1024, i * 1024);
+    }
+    printf("Performance test os - stability test\n");
+    test_seq_write_and_read_speed_os("/os", 100, 4 * 1024 * 1024, 16 * 1024, 64 * 1024);
+}
+
+static void test_speed_user(void)
+{
+    printf("Performance test user - iobuffer size\n");
+    for (unsigned i = 1; i <= 512; i = i * 2) {
+        test_seq_write_and_read_speed_os("/user", 5, 4 * 1024 * 1024, 16 * 1024, i * 1024);
+    }
+    printf("Performance test user - stability test\n");
+    test_seq_write_and_read_speed_os("/user", 100, 4 * 1024 * 1024, 16 * 1024, 64 * 1024);
+    
+    printf("Performance test user - stability test with umounts\n");
+    test_seq_write_after_umount("/user", 10, 100, 4 * 1024 * 1024, 16 * 1024, 64 * 1024);
 }
 
 // VFS test fixutre
@@ -446,8 +590,7 @@ void test_fixture_vfs()
     run_test(test_statvfs);
     run_test(test_rename_vfat);
     run_test(test_rename_lfs);
-    run_test(test_speed_vfat);
-    run_test(test_speed_lfs);
+    // run_test(test_speed_os);
+    // run_test(test_speed_user);
     test_fixture_end();
 }
-
