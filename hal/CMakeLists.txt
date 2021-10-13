@@ -1,5 +1,5 @@
 # System library for all targets
-set( LIB_NAME hal)
+set( LIB_NAME hal-common)
 add_library( ${LIB_NAME} STATIC )
 
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS  
@@ -11,6 +11,7 @@ target_sources( ${LIB_NAME} PRIVATE ${SRC_FILES} )
 #Libraries
 target_link_libraries( ${LIB_NAME} 
 PUBLIC
+    hal
     fatfs
     littlefs
     lwext4

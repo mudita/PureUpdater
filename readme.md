@@ -61,42 +61,66 @@ HAL provides following functionality:
         }
 ```
 
-
-
 ## How to build
 
-__WARNING__ Updater binary or test binary can be run via ***Ecoboot*** bootloader like standard OS binary.
+__WARNING__ 
+Updater binary or test binary can be run via ***Ecoboot*** bootloader like standard OS binary. 
 You need to change ***.boot.json*** for run the updater or updater tests.
 
-### updater app
+### Updater app
 
-Application can be build for the RT1051 using standard CMAKE file
+#### Configuring 
+
+Application can be configured for the RT1051 using standard CMake file or provided 
+_configure.sh_ script.
+
+##### Standard CMake
 ```shell
     mkdir build
     cd build
     cmake -DCMAKE_BUILD_TYPE=Debug ..
+```
+
+##### configure.sh
+
+```shell
+    ./configure.sh <product> <target> <build_type> [other cmake options]
+```
+Example for Pure: 
+```shell
+    ./configure.sh pure rt1051 Debug
+```
+To check available options use:
+```shell
+    ./configure.sh --help
+```
+
+_build-[product]-[target]-[build_type]_ directory will be created.
+
+#### Building
+
+##### Application
+
+```shell
+    cd <build_dir>
     ninja 
 ```
 
-Then updater catalog will have _PureUpdater_RT.bin_ to be run on rt1051 ready
+Then updater catalog will have _PureUpdater_RT.bin_ to be run on rt1051 ready.
 
-### tests app - RT1051
+##### Hardware tests application - RT1051
 
 Updater also has unit test framework which is able to run directly on the RT1051 platform.
-Tests can be build by invoke target: 
-```shell 
-    cmake tests
-```
+To build it use custom target.
 
 ```shell
-    mkdir build
-    cd build
-    cmake -DCMAKE_BUILD_TYPE=Debug ..
+    cd <build_dir>
     ninja tests
 ```
 
-Then tests catalog will have _PureUpdater-test.bin_ tests to be run on rt1051 ready
+Then tests catalog will have _PureUpdater-test.bin_ tests to be run on rt1051 ready.
 
-### unit tests on PC
+### Unit tests on PC
 
-Tests which can be written and tested on PC easilly. See: [unittest/README.md](./unittest/README.md)
+Tests which can be written and tested on PC easily. 
+See: [unittest/README.md](./unittest/README.md)

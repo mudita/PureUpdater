@@ -13,7 +13,7 @@ file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS
 )
 
 target_sources( ${LIB_NAME} PRIVATE ${SRC_FILES} )
-target_link_libraries( ${LIB_NAME} PUBLIC hal )
+target_link_libraries( ${LIB_NAME} PUBLIC hal-common )
 
 file(GLOB_RECURSE SRC_RUNTIME CONFIGURE_DEPENDS
     "syscalls/*.c*"
