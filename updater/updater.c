@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <hal/system.h>
+#include <hal/boot_reason.h>
 #include <hal/delay.h>
 #include <hal/display.h>
 #include <hal/keyboard.h>
@@ -62,7 +63,9 @@ int __attribute__((noinline, used)) main()
             eink_log("update failure", true);
             trace_write(t, ErrMainUpdate, 0);
             goto exit;
-        } else {
+        }
+        else
+        {
             eink_log("update success", true);
         }
         if (handle.unsigned_tar)

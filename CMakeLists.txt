@@ -1,9 +1,19 @@
 cmake_minimum_required(VERSION 3.20)
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 
-if (NOT DEFINED PLATFORM)
+include(Product)
+include(Board)
+
+validate_product_selection()
+select_board()
+
+message("Selected product: ${PRODUCT}")
+message("Selected board:   ${BOARD}")
+
+if (NOT DEFINED TARGET)
     message(WARNING "using default RT1051 platform")
-    set(PLATFORM RT1051)
+    set(TARGET RT1051)
 endif()
 
 macro(use_rt1051)
@@ -17,10 +27,9 @@ macro(use_rt1051)
     include(rt1051)
 endmacro()
 
+message("Target: ${TARGET}")
 
-message("Platform: ${PLATFORM}")
-
-if(DEFINED PLATFORM AND ${PLATFORM} STREQUAL linux)
+if(DEFINED TARGET AND ${TARGET} STREQUAL linux)
     add_custom_target(${CMAKE_PROJECT_NAME} DEPENDS test_backup)
 else()
     use_rt1051()
@@ -29,11 +38,12 @@ endif()
 
 project(PureUpdater LANGUAGES C CXX ASM)
 
+add_subdirectory( products )
 add_subdirectory( thirdparty )
 add_subdirectory( platform )
 add_subdirectory( hal )
 add_subdirectory( updater/common )
-if(DEFINED PLATFORM AND ${PLATFORM} STREQUAL linux)
+if(DEFINED TARGET AND ${TARGET} STREQUAL linux)
     add_subdirectory( unittest )
 else()
     add_subdirectory( updater )
