@@ -13,6 +13,7 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include "common/trace.h"
+#include "common/ui_screens.h"
 #include "main_trace.h"
 
 int __attribute__((noinline, used)) main()
@@ -51,13 +52,18 @@ int __attribute__((noinline, used)) main()
     {
     case system_boot_reason_update:
     {
-        eink_log("system update ", true);
+        // eink_log("system update ", true);
+        printf("system update\n");
         handle.update_from = "/user/update.tar";
         handle.backup_full_path = "/backup/backup.tar";
         handle.enabled.backup = true;
         handle.enabled.check_checksum = true;
         handle.enabled.check_sign = true;
         handle.enabled.check_version = true;
+        printf("Showing logo %d/%d\n", logo_width, logo_height);
+
+        EinkDisplayImage(0, 0, logo_width, logo_height, (uint8_t *)logo_image);
+
         if (!update_firmware(&handle, &tl))
         {
             eink_log("update failure", true);
@@ -132,7 +138,7 @@ exit:
     printf("status %i : procedure: %i\n", err, trace_list_ok(&tl));
     system_deinitialize();
 
-    /*** Positive return code from main function 
+    /*** Positive return code from main function
      * or call exit with positive argument
      * casues a system reboot. Zero or negative value
      * only halts the system permanently

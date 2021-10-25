@@ -1,7 +1,7 @@
 
 add_library(common STATIC)
 
-file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS  
+file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS
     "common/*.c"
 )
 
@@ -11,5 +11,6 @@ target_link_libraries(common microtar klib cjson)
 target_include_directories(microtar
     PUBLIC
     ./
+    ../../hal/src/display/
     PRIVATE
 )

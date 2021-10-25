@@ -197,7 +197,7 @@ void eink_log(const char *text, bool flush)
     eink_text_buf[0][EINK_LINE_LEN] = '\0';
     if (flush)
     {
-        eink_log_refresh();
+        // eink_log_refresh();
     }
 }
 
