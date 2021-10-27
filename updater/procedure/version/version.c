@@ -8,14 +8,22 @@
 
 #define UNUSED(expr) do { (void)(expr); } while (0)
 
+static void version_cleanup(version_s *handle)
+{
+    if (handle && handle->str)
+    {
+        free(handle->str);
+    }
+}
+
 bool version_check_all(trace_list_t *tl, verify_file_handle_s *handle, const char *tmp_path){
     bool ret = true;
 
     for (size_t i = 0; i < verify_files_list_size; ++i) {
         const char *filename = verify_files[i];
-        char *filepath  = (char *)calloc(1,strlen(filename) + strlen(tmp_path) + 1);
-        sprintf(filepath, "%s/%s", tmp_path, filename);
-        if (!path_check_if_exists(filepath)) {
+        char *filepath = NULL;
+        asprintf(&filepath, "%s/%s", tmp_path, filename);
+        if (!filepath || !path_check_if_exists(filepath)) {
             free(filepath);
             break;
         }
@@ -52,13 +60,17 @@ bool version_check(trace_list_t *tl, verify_file_handle_s *handle) {
         goto exit;
     }
 
-    version_s new_file_version = version_get(trace, &handle->version_json, handle->file_to_verify);
+    version_s new_file_version __attribute__((__cleanup__(version_cleanup))) =
+        version_get(trace, &handle->version_json, handle->file_to_verify);
+
     if (!new_file_version.valid) {
         trace_write(trace, VersionInvalidStringParse, errno);
         goto exit;
     }
 
-    version_s current_file_version = version_get(trace, &handle->current_version_json, handle->file_to_verify);
+    version_s current_file_version __attribute__((__cleanup__(version_cleanup))) =
+        version_get(trace, &handle->current_version_json, handle->file_to_verify);
+
     if (!current_file_version.valid) {
         trace_write(trace, VersionInvalidStringParse, errno);
         goto exit;

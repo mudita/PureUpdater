@@ -11,9 +11,9 @@ extern "C"
 #endif
 
 typedef struct version_json_file_s {
-    char name[16];
-    char md5sum[33];
-    char version[8];
+    char *name;
+    char *md5sum;
+    char *version;
     bool valid;
 } version_json_file_s;
 
@@ -34,7 +34,7 @@ typedef struct version_s {
     int major;
     int minor;
     int patch;
-    char str[9];
+    char *str;
     bool valid;
 } version_s;
 
