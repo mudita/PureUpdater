@@ -13,6 +13,7 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include "common/trace.h"
+#include "common/ui_screens.h"
 #include "main_trace.h"
 
 int __attribute__((noinline, used)) main()
@@ -22,7 +23,7 @@ int __attribute__((noinline, used)) main()
     printf("System boot reason code: %s\n", system_boot_reason_str(system_boot_reason()));
 
     eink_clear_log();
-    eink_log("run updater", true);
+    printf("Run Updater\n");
 
     tl = trace_init();
     trace_t *t = trace_append("main", &tl, strerror_main, strerror_main_ext);
@@ -51,27 +52,32 @@ int __attribute__((noinline, used)) main()
     {
     case system_boot_reason_update:
     {
-        eink_log("system update ", true);
+        printf("System Update\n");
         handle.update_from = "/user/update.tar";
         handle.backup_full_path = "/backup/backup.tar";
         handle.enabled.backup = true;
         handle.enabled.check_checksum = true;
         handle.enabled.check_sign = true;
         handle.enabled.check_version = true;
+
+        show_update_in_progress_screen();
+
         if (!update_firmware(&handle, &tl))
         {
-            eink_log("update failure", true);
+            printf("update error\n");
+            show_update_error_screen();
             trace_write(t, ErrMainUpdate, 0);
             goto exit;
         }
         else
         {
-            eink_log("update success", true);
+            printf("update success\n");
+            show_update_success_screen();
         }
         if (handle.unsigned_tar)
         {
-            eink_log_printf("Warn: OS Update package");
-            eink_log_printf("is not signed by Mudita");
+            printf("Warning: OS Update package ");
+            printf("is not signed by Mudita\n");
             msleep(1000);
         }
     }
@@ -125,14 +131,13 @@ int __attribute__((noinline, used)) main()
 
 exit:
     main_status(&tl);
-    eink_log_printf("updater status %s", trace_list_ok(&tl) == true ? "OK" : "FAIL");
-    eink_log_refresh();
+    printf("updater status %s", trace_list_ok(&tl) == true ? "OK" : "FAIL");
     msleep(5000);
     err = vfs_unmount_deinit();
     printf("status %i : procedure: %i\n", err, trace_list_ok(&tl));
     system_deinitialize();
 
-    /*** Positive return code from main function 
+    /*** Positive return code from main function
      * or call exit with positive argument
      * casues a system reboot. Zero or negative value
      * only halts the system permanently
