@@ -17,7 +17,6 @@ static void _autoclose(int *f) {
 }
 
 #define UNUSED(expr) do { (void)(expr); } while (0)
-#define AUTOCLOSE(var) int var __attribute__((__cleanup__(_autoclose)))
 
 bool checksum_verify_all(trace_list_t *tl, verify_file_handle_s *handle, const char *tmp_path) {
     bool ret = true;
@@ -45,6 +44,7 @@ bool checksum_verify(trace_list_t *tl, verify_file_handle_s *handle) {
     char calculated_checksum_readable[33];
     char trace_title[30];
 
+    int file_to_verify_fd __attribute__((__cleanup__(_autoclose))) = -1;
     bool ret = false;
 
     if (tl == NULL || handle == NULL) {
@@ -65,8 +65,7 @@ bool checksum_verify(trace_list_t *tl, verify_file_handle_s *handle) {
         trace_printf(trace, handle->file_to_verify);
         goto exit;
     }
-
-    AUTOCLOSE(file_to_verify_fd) = open(handle->file_to_verify, O_RDONLY);
+    file_to_verify_fd = open(handle->file_to_verify, O_RDONLY);
     if (file_to_verify_fd <= 0) {
         trace_write(trace, ChecksumInvalidFilePaths, errno);
         trace_printf(trace, handle->file_to_verify);
