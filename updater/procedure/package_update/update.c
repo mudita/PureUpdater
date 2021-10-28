@@ -139,7 +139,7 @@ bool update_firmware(struct update_handle_s *handle, trace_list_t *tl)
                                             .backup_to = handle->backup_full_path};
     if (handle->enabled.check_sign)
     {
-        eink_log("sign check ", true);
+        printf("sign check\n");
         const int err = signature_check(handle->update_from);
         if (err)
         {
@@ -158,46 +158,53 @@ bool update_firmware(struct update_handle_s *handle, trace_list_t *tl)
 
     if (handle->enabled.backup)
     {
-        eink_log("backup", true);
+        printf("backup\n");
         if (handle->enabled.backup && !backup_previous_firmware(&backup_handle, tl))
         {
+            printf("backup error\n");
             trace_write(t, ErrorBackup, 0);
             goto exit;
         }
     }
 
+    printf("setup /tmp\n");
     if (!tmp_create_catalog(handle, tl))
     {
-        eink_log("setup /tmp", true);
+        printf("setup /tmp error\n");
         trace_write(t, ErrorBackup, 0);
         goto exit;
     }
 
+    printf("unpack\n");
     if (!unpack(handle, tl))
     {
-        eink_log("unpack", true);
+        printf("unpack error\n");
         trace_write(t, ErrorUnpack, 0);
         goto exit;
     }
 
     if (handle->enabled.check_checksum || handle->enabled.check_version)
     {
-        eink_log("verify", true);
+        printf("verify\n");
         verify_file_handle_s verify_handle __attribute__((__cleanup__(verify_file_handle_cleanup))) =
             json_get_verify_files(t, "/os/tmp/version.json", "/os/current/version.json");
 
         if (handle->enabled.check_checksum)
         {
+            printf("checksum check\n");
             if (!checksum_verify_all(tl, &verify_handle, handle->tmp_os))
             {
+                printf("checksum check error\n");
                 trace_write(t, ErrorChecksums, 0);
                 goto exit;
             }
         }
         if (handle->enabled.check_version)
         {
+            printf("version check\n");
             if (!version_check_all(tl, &verify_handle, handle->tmp_os))
             {
+                printf("version check error\n");
                 trace_write(t, ErrorVersion, 0);
                 goto exit;
             }
@@ -206,9 +213,10 @@ bool update_firmware(struct update_handle_s *handle, trace_list_t *tl)
 
     program_secure_fuses(handle, tl);
 
+    printf("finalize\n");
     if (!tmp_files_move(handle, tl))
     {
-        eink_log("finalize", true);
+        printf("finalize error\n");
         trace_write(t, ErrorMove, 0);
         goto exit;
     }
@@ -217,11 +225,13 @@ bool update_firmware(struct update_handle_s *handle, trace_list_t *tl)
     int ecoboot_package_status = ecoboot_in_package(handle->update_os, "ecoboot.bin");
     if (ecoboot_package_status == 1)
     {
+        printf("ecoboot update\n");
         const int eco_status = ecoboot_update(handle->update_os, "ecoboot.bin", tl);
         if (eco_status != error_eco_update_ok)
         {
             if (eco_status != error_eco_vfs && errno != ENOENT)
             {
+                printf("ecoboot update error\n");
                 trace_write(t, ErrorUpdateEcoboot, 0);
                 goto exit;
             }
