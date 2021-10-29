@@ -43,7 +43,7 @@ void _exit(int code);
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
 
-void _exit(int code)
+void __attribute__((noreturn,used)) _exit(int code)
 {
     printf("Program terminated by exit with code %i\n", code);
     if (code >= 0)
