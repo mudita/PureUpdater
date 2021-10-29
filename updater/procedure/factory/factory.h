@@ -11,6 +11,7 @@ extern "C"
 enum factory_error_e {
     FactoryOk,
     FactoryErrorTempWlk,
+    FactoryErrorNoUserDir,
 };
 
 struct factory_reset_handle{

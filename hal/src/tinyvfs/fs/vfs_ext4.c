@@ -20,6 +20,17 @@
 #include <ext4_super.h>
 
 
+static const char* normalize_path(const char * path, const struct vfs_mount* mountp)
+{
+    char *mnt_path = malloc(strlen(path)+2);
+    strcpy(mnt_path, path);
+    if(strcmp(path, mountp->mnt_point) == 0)
+    {
+        strcat(mnt_path, "/");
+    }
+    return mnt_path;
+}
+
 static const char* normalize_mount_point(const struct vfs_mount* mountp)
 {
     char *mnt_path = malloc(strlen(mountp->mnt_point)+2);
@@ -54,7 +65,6 @@ static int ext_mount(struct vfs_mount *mountp)
     }
     char devname[CONFIG_EXT4_MAX_BLOCKDEV_NAME];
     snprintf(devname, sizeof devname, "emmc%i", mountp->storage_dev);
-    ext4_dmask_set(DEBUG_ALL);
     err = ext4_device_register(blkdev, devname);
     if (err)
     {
@@ -352,7 +362,8 @@ static int ext_stat(struct vfs_mount *mountp, const char *path, struct stat *ent
     uint32_t inonum;
     struct ext4_inode ino;
     struct ext4_sblock *sb;
-    int err = ext4_raw_inode_fill(path, &inonum, &ino);
+    AUTO_PATH(normalized_path) = normalize_path(path, mountp);
+    int err = ext4_raw_inode_fill(normalized_path, &inonum, &ino);
     if (err)
     {
         return -err;

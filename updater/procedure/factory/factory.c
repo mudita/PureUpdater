@@ -15,6 +15,11 @@ bool factory_reset(const struct factory_reset_handle *handle, trace_list_t *tl) 
 
     struct stat data;
     int ret = stat(handle->user_dir, &data);
+    if (ret != 0) {
+        printf("factory_reset path %s", handle->user_dir);
+        trace_write(trace, FactoryErrorNoUserDir, errno);
+        goto exit;
+    }
 
     if (ret == 0 && !recursive_unlink(handle->user_dir, true, trace)) {
         trace_write(trace, FactoryErrorTempWlk, errno);

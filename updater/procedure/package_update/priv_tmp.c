@@ -52,14 +52,14 @@ int unlink_callback(const char *path, enum dir_handling_type_e what, struct dir_
                 for(size_t i = 0; i < db_extensions_list_size; ++i){
                     const char *extension = strrchr(path, '.');
                     if (strcmp(db_extensions[i], extension) == 0) {
-                        ret = unlink(path);
                         printf("rem file: %s %d\n", path, ret);
+                        ret = unlink(path);
                         break;
                     }
                 }
             }else{
-                ret = unlink(path);
                 printf("rem file: %s %d\n", path, ret);
+                ret = unlink(path);
             }
             break;
         default:
