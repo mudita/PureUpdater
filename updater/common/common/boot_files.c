@@ -16,10 +16,11 @@ const char *verify_files[] =
                 "ecoboot.bin",
         };
 
-const size_t db_extensions_list_size = 3;
+const size_t db_extensions_list_size = 4;
 const char *db_extensions[] =
         {
                 ".db",
                 ".db-journal",
                 ".db-wal",
+                ".directory_is_indexed",
         };
