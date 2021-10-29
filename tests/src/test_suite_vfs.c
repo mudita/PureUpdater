@@ -196,6 +196,7 @@ static void test_create_and_remove_files(void)
 // Tests for directory create removal and stat
 static void test_directory_create_remove_stat_base(const char *basedir)
 {
+    printf("base dir %s\n", basedir);
     char path[96];
     snprintf(path, sizeof path, "%s/dirtest", basedir);
     assert_int_equal(0, mkdir(path, 0755));
@@ -208,6 +209,8 @@ static void test_directory_create_remove_stat_base(const char *basedir)
     assert_int_equal(0, truncate(path, 16384));
     // Check stat for file and dir
     struct stat st;
+    assert_int_equal(0, stat(basedir, &st));
+    assert_true(S_ISDIR(st.st_mode));
     assert_int_equal(0, stat(path, &st));
     assert_true(S_ISREG(st.st_mode));
     assert_int_equal(16384, st.st_size);
@@ -233,12 +236,12 @@ static void test_directory_create_remove_stat_base(const char *basedir)
     assert_int_equal(ENOENT, errno);
 }
 
-static void test_directory_create_remove_stat_lfs(void)
+static void test_directory_create_remove_stat_user(void)
 {
     test_directory_create_remove_stat_base("/user");
 }
 
-static void test_directory_create_remove_stat_vfat(void)
+static void test_directory_create_remove_stat_os(void)
 {
     test_directory_create_remove_stat_base("/os");
 }
@@ -328,12 +331,12 @@ static void test_dir_traversal(const char *basedir)
     assert_int_equal(0, closedir(dirh));
 }
 
-static void test_dir_traversal_lfs(void)
+static void test_dir_traversal_user(void)
 {
     test_dir_traversal("/user");
 }
 
-static void test_dir_traversal_vfat(void)
+static void test_dir_traversal_os(void)
 {
     test_dir_traversal("/os");
 }
@@ -370,12 +373,12 @@ static void test_rename_with_base(const char *basedir)
     assert_int_equal(0, unlink(newf));
 }
 
-static void test_rename_vfat(void)
+static void test_rename_os(void)
 {
     test_rename_with_base("/os");
 }
 
-static void test_rename_lfs(void)
+static void test_rename_user(void)
 {
     test_rename_with_base("/user");
 }
@@ -625,14 +628,14 @@ void test_fixture_vfs()
     run_test(test_basic_write_files);
     run_test(test_failed_to_open_files);
     run_test(test_create_and_remove_files);
-    run_test(test_directory_create_remove_stat_lfs);
-    run_test(test_directory_create_remove_stat_vfat);
+    run_test(test_directory_create_remove_stat_user);
+    run_test(test_directory_create_remove_stat_os);
     run_test(test_dir_travesal_intervfs);
-    run_test(test_dir_traversal_lfs);
-    run_test(test_dir_traversal_vfat);
+    run_test(test_dir_traversal_user);
+    run_test(test_dir_traversal_os);
     run_test(test_statvfs);
-    run_test(test_rename_vfat);
-    run_test(test_rename_lfs);
+    run_test(test_rename_os);
+    run_test(test_rename_user);
     // run_test(test_speed_os);
     // run_test(test_speed_user);
     test_fixture_end();
