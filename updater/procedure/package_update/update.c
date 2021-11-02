@@ -61,6 +61,26 @@ static void str_clean_up(char **str)
     }
 }
 
+static void verify_file_handle_cleanup(verify_file_handle_s *handle)
+{
+    if (handle)
+    {
+        if (handle->current_version_json.boot.md5sum)
+            free(handle->current_version_json.boot.md5sum);
+        if (handle->current_version_json.boot.name)
+            free(handle->current_version_json.boot.name);
+        if (handle->current_version_json.boot.version)
+            free(handle->current_version_json.boot.version);
+
+        if (handle->version_json.boot.md5sum)
+            free(handle->version_json.boot.md5sum);
+        if (handle->version_json.boot.name)
+            free(handle->version_json.boot.name);
+        if (handle->version_json.boot.version)
+            free(handle->version_json.boot.version);
+    }
+}
+
 static int signature_check(const char *name)
 {
     if (sec_configuration_is_open())
@@ -163,7 +183,8 @@ bool update_firmware(struct update_handle_s *handle, trace_list_t *tl)
     if (handle->enabled.check_checksum || handle->enabled.check_version)
     {
         eink_log("verify", true);
-        verify_file_handle_s verify_handle = json_get_verify_files(t, "/os/tmp/version.json", "/os/current/version.json");
+        verify_file_handle_s verify_handle __attribute__((__cleanup__(verify_file_handle_cleanup))) =
+            json_get_verify_files(t, "/os/tmp/version.json", "/os/current/version.json");
 
         if (handle->enabled.check_checksum)
         {

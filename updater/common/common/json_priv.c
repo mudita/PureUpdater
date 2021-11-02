@@ -86,21 +86,21 @@ version_json_file_s json_get_file_struct(trace_t *trace, const cJSON *json, cons
 
     filename = json_get_item_from(trace, name, "filename");
     if (cJSON_IsString(filename) && filename->valuestring != NULL) {
-        strcpy(file_version.name, filename->valuestring);
+        file_version.name = strndup(filename->valuestring, strlen(filename->valuestring));
     } else {
         goto fail;
     }
 
     checksum = json_get_item_from(trace, name, "md5sum");
     if (cJSON_IsString(checksum) && checksum->valuestring != NULL) {
-        strcpy(file_version.md5sum, checksum->valuestring);
+        file_version.md5sum = strndup(checksum->valuestring, strlen(checksum->valuestring));
     } else {
         goto fail;
     }
 
     version = json_get_item_from(trace, name, "version");
     if (cJSON_IsString(version) && version->valuestring != NULL) {
-        strcpy(file_version.version, version->valuestring);
+        file_version.version = strndup(version->valuestring, strlen(version->valuestring));
     } else {
         goto fail;
     }
@@ -109,9 +109,9 @@ version_json_file_s json_get_file_struct(trace_t *trace, const cJSON *json, cons
 
     fail:
     trace_write(trace, JsonItemNotFound, errno);
-    strcpy(file_version.name, filename_arg);
-    strcpy(file_version.md5sum, "NULL");
-    strcpy(file_version.version, "NULL");
+    file_version.name = strndup(filename_arg, strlen(filename_arg));
+    file_version.md5sum = strdup("NULL");
+    file_version.version = strdup("NULL");
     file_version.valid = false;
     exit:
     return file_version;

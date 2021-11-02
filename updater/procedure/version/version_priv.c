@@ -4,6 +4,9 @@
 #include "version.h"
 #include "version_priv.h"
 
+const char* version_str_fmt = "%d.%d.%d"; // xxx.xxx.xxx\0
+#define VERSION_STR_LEN (12)
+
 version_s version_get(trace_t *trace, const version_json_s *version_json, const char *file_name) {
     version_s version;
 
@@ -27,7 +30,8 @@ version_s version_get(trace_t *trace, const version_json_s *version_json, const 
 }
 
 const char *version_get_str(version_s *version) {
-    sprintf(version->str, "%d.%d.%d", version->major, version->minor, version->patch);
+    version->str = calloc(1, VERSION_STR_LEN);
+    snprintf(version->str, (VERSION_STR_LEN - 1), version_str_fmt, version->major, version->minor, version->patch);
     return version->str;
 }
 
@@ -67,6 +71,7 @@ int version_parse_str(trace_t *trace, version_s *version, const char *version_st
     char *token = NULL;
     version_s version_temp;
     version_temp.valid = true;
+    const size_t version_str_len = strlen(version_str);
 
     if (trace == NULL) {
         printf("parse_version_str trace null error");
@@ -78,13 +83,11 @@ int version_parse_str(trace_t *trace, version_s *version, const char *version_st
         goto fail;
     }
 
-    version_str_copy = (char *) malloc(strlen(version_str) + 1);
+    version_str_copy = strndup(version_str, version_str_len);
     if (version_str_copy == NULL) {
         trace_write(trace, VersionAllocError, errno);
         goto fail;
     }
-
-    strcpy(version_str_copy, version_str);
 
     token = strtok(version_str_copy, ".");
     if (token == NULL) {
@@ -108,7 +111,7 @@ int version_parse_str(trace_t *trace, version_s *version, const char *version_st
     version_temp.patch = strtol(token, NULL, 10);
 
     if (version_validate(&version_temp)) {
-        strcpy(version->str, version_str);
+        version_temp.str = strndup(version_str, version_str_len);
         *version = version_temp;
         goto exit;
     } else {

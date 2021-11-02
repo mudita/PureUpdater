@@ -179,10 +179,8 @@ int mv_callback(const char *path, enum dir_handling_type_e what, struct dir_hand
     (void) h;
     struct mv_data_s *data = (struct mv_data_s *) (d);
 
-    char *path_to_sanitize = (char *) calloc(1, strlen(path) + 1);
-    char *dir_root = (char *) calloc(1, strlen(h->root_catalog) + 1);
-    strcpy(path_to_sanitize, path);
-    strcpy(dir_root, h->root_catalog);
+    char *path_to_sanitize = strndup(path, strlen(path));
+    char *dir_root = strndup(h->root_catalog, strlen(h->root_catalog));
     char *sanitized = path_sanitize(dir_root, path_to_sanitize);
     char *final_path = (char *) calloc(1, strlen(sanitized) + strlen(data->to) + 2);
     sprintf(final_path, "%s/%s", data->to, sanitized);
