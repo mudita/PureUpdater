@@ -124,10 +124,7 @@ function(create_signed_binary TARGET)
     add_custom_target( ${BIN_FILE} ${ARGV1}
         COMMENT "Generate signed ${TARGET}.bin (Secure Boot)"
         DEPENDS ${SREC_FILE}
-        COMMAND ${CMAKE_SOURCE_DIR}/cmake/config/elftosb_wrapper.sh "${ELFTOSB_PATH}" "${CST_PATH}" -f imx -V
-        -c ${CMAKE_BINARY_DIR}/imx_authenticated_hab.bd
-        -o ${BIN_FILE}
-        ${SREC_FILE}
+        COMMAND python3 ${SIGN_CLIENT_PATH}/signclient.py --in_file ${SREC_FILE} --out_file=${BIN_FILE} --key_store ${KEY_STORE} --key_slot ${KEY_SLOT} --server ${SERVER}
         VERBATIM
     )
 endfunction()
