@@ -124,7 +124,7 @@ function(create_signed_binary TARGET)
     add_custom_target( ${BIN_FILE} ${ARGV1}
         COMMENT "Generate signed ${TARGET}.bin (Secure Boot)"
         DEPENDS ${SREC_FILE}
-        COMMAND python3 ${SIGN_CLIENT_PATH}/signclient.py --in_file ${SREC_FILE} --out_file=${BIN_FILE} --key_store ${KEY_STORE} --key_slot ${KEY_SLOT} --server ${SERVER}
+        COMMAND python3 ${SIGN_CLIENT_PATH}/signclient.py --in_file ${SREC_FILE} --out_file=${BIN_FILE} --keystore ${KEYSTORE} --keyslot ${KEYSLOT} --server ${SERVER}
         VERBATIM
     )
 endfunction()
