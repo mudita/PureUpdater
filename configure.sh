@@ -11,7 +11,7 @@ fi
 function help() {
     echo -e "Use this script for faster configuring build types"
     echo -e "usage:"
-    echo -e "\t$0 [-dh] <product> <target> <build_type> [other cmake options]"
+    echo -e "\t$0 [-h] <product> <target> <build_type> [other cmake options]"
     echo -e "options:"
     echo -e "\t\t\th\t\t- print this help"
     echo -e "available products are:"
