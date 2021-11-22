@@ -476,21 +476,65 @@ static int ffat_closedir(struct vfs_dir *zdp)
 	return translate_error(res);
 }
 
+static int internal_stat_rootdir(const char* translated_path, struct stat* entry)
+{
+    FATFS *fs;
+    DWORD bfree;
+    FRESULT res = f_getfree(translated_path, &bfree, &fs);
+    if (res != FR_OK)
+    {
+        return -EIO;
+    }
+    entry->st_dev = 0;
+    entry->st_ino = 0;
+    entry->st_mode = (S_IFDIR | S_IXUSR | S_IXGRP | S_IXOTH | S_IWUSR | S_IWGRP | S_IWOTH);
+    entry->st_nlink = 1;
+    entry->st_uid = 0;
+    entry->st_gid = 0;
+    entry->st_rdev = 0;
+    entry->st_size = 0;
+    // TODO: Block FF_MIN_SS != FF_MAX_SS
+#if FF_MAX_SS != FF_MIN_SS
+    entry->st_blksize = fatfs->ssize;
+#else
+    entry->st_blksize = FF_MIN_SS;
+#endif
+    // TODO: Time is currently not supported
+    entry->st_blocks = fs->fsize / entry->st_blksize;
+    entry->st_atime = 0;
+    entry->st_mtime = 0;
+    entry->st_ctime = 0;
+    return 0;
+}
+
+static int internal_stat_ondir(const char* translated_path, struct stat* entry)
+{
+    FRESULT res;
+    FILINFO fno;
+    res = f_stat(translated_path, &fno);
+    if (res == FR_OK)
+    {
+        translate_filinfo_to_stat(&fno, entry);
+    }
+    return translate_error(res);
+}
+
 static int ffat_stat(struct vfs_mount *mountp, const char *path, struct stat *entry)
 {
-	FRESULT res;
-	FILINFO fno;
-	AUTO_PATH(opath) = path_translate(path, mountp);
-	if (!opath)
-	{
-		return -ERANGE;
-	}
-	res = f_stat(opath, &fno);
-	if (res == FR_OK)
-	{
-		translate_filinfo_to_stat(&fno, entry);
-	}
-	return translate_error(res);
+    AUTO_PATH(opath) = path_translate(path, mountp);
+    if (!opath)
+    {
+        return -ERANGE;
+    }
+    //NOTE: f_stat doesn't work on rootdir
+    if((opath[2]=='/' && opath[3]=='\0') || opath[2]=='\0')
+    {
+        return internal_stat_rootdir(opath,entry);
+    }
+    else
+    {
+        return internal_stat_ondir(opath,entry);
+    }
 }
 
 static int ffat_statvfs(struct vfs_mount *mountp, const char *path, struct statvfs *stat)

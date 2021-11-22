@@ -211,10 +211,13 @@ static void test_directory_create_remove_stat_base(const char *basedir)
     struct stat st;
     assert_int_equal(0, stat(basedir, &st));
     assert_true(S_ISDIR(st.st_mode));
+
     assert_int_equal(0, stat(path, &st));
     assert_true(S_ISREG(st.st_mode));
     assert_int_equal(16384, st.st_size);
+
     assert_int_equal(0, unlink(path));
+
     for (size_t d = 0; d < 20; ++d)
     {
         struct stat st;
@@ -255,16 +258,74 @@ static void test_root_directory_stat_tests(const char* base)
     assert_true(S_ISDIR(st.st_mode));
 }
 
+static void test_advanced_stats(const char* base)
+{
+    // Create directory and file in that dir
+    char sub_dir[128];
+    char file_in_dir[128];
+    struct stat st;
+    // Prepare name for directory
+    strncpy(sub_dir, base, sizeof sub_dir);
+    strncat(sub_dir, "/advdir", sizeof sub_dir);
+    // Prepare name for file
+    strncpy(file_in_dir, sub_dir, sizeof sub_dir);
+    strncat(file_in_dir , "/advfile", sizeof sub_dir);
+    printf("%s: base: %s, subdir: %s, subfile: %s\n",
+            __PRETTY_FUNCTION__, base, sub_dir, file_in_dir);
+    // Create directory and truncated file
+    assert_int_equal(0, mkdir(sub_dir, 0755));
+    assert_int_equal(0, truncate(file_in_dir, 124567));
+
+    // Now check for stat for directories and sub dirs
+    // Root dir
+    assert_int_equal(0, stat(base, &st));
+    assert_false(S_ISFIFO(st.st_mode));
+    assert_false(S_ISCHR(st.st_mode));
+    assert_true(S_ISDIR(st.st_mode));
+    assert_false(S_ISBLK(st.st_mode));
+    assert_false(S_ISLNK(st.st_mode));
+    assert_false(S_ISSOCK(st.st_mode));
+    assert_false(S_ISREG(st.st_mode));
+
+    // Sub dir
+    assert_int_equal(0, stat(sub_dir, &st));
+    assert_false(S_ISFIFO(st.st_mode));
+    assert_false(S_ISCHR(st.st_mode));
+    assert_true(S_ISDIR(st.st_mode));
+    assert_false(S_ISBLK(st.st_mode));
+    assert_false(S_ISLNK(st.st_mode));
+    assert_false(S_ISSOCK(st.st_mode));
+    assert_false(S_ISREG(st.st_mode));
+
+    // Check for file
+    assert_int_equal(0, stat(file_in_dir, &st));
+    assert_int_equal(124567, st.st_size);
+    assert_false(S_ISFIFO(st.st_mode));
+    assert_false(S_ISCHR(st.st_mode));
+    assert_false(S_ISDIR(st.st_mode));
+    assert_false(S_ISBLK(st.st_mode));
+    assert_false(S_ISLNK(st.st_mode));
+    assert_false(S_ISSOCK(st.st_mode));
+    assert_true(S_ISREG(st.st_mode));
+
+    // Final cleanup
+    assert_int_equal(0, unlink(file_in_dir));
+    assert_int_equal(0, rmdir(sub_dir));
+
+}
+
 static void test_directory_create_remove_stat_user(void)
 {
     test_directory_create_remove_stat_base("/user");
     test_root_directory_stat_tests("/user");
+    test_advanced_stats("/user");
 }
 
 static void test_directory_create_remove_stat_os(void)
 {
     test_directory_create_remove_stat_base("/os");
     test_root_directory_stat_tests("/os");
+    test_advanced_stats("/os");
 }
 
 static void test_dir_travesal_intervfs(void)
