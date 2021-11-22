@@ -236,14 +236,35 @@ static void test_directory_create_remove_stat_base(const char *basedir)
     assert_int_equal(ENOENT, errno);
 }
 
+static void test_root_directory_stat_tests(const char* base)
+{
+    struct stat st;
+    // Copy base path
+    char path[128];
+    strncpy(path, base, sizeof path);
+
+    //Check if it is a directory
+    assert_int_equal(0, stat(path, &st));
+    assert_true(S_ISDIR(st.st_mode));
+
+    // Append tailing backspace
+    strncat(path, "/", sizeof path);
+
+    // Check if it is a directory once again
+    assert_int_equal(0, stat(path, &st));
+    assert_true(S_ISDIR(st.st_mode));
+}
+
 static void test_directory_create_remove_stat_user(void)
 {
     test_directory_create_remove_stat_base("/user");
+    test_root_directory_stat_tests("/user");
 }
 
 static void test_directory_create_remove_stat_os(void)
 {
     test_directory_create_remove_stat_base("/os");
+    test_root_directory_stat_tests("/os");
 }
 
 static void test_dir_travesal_intervfs(void)
