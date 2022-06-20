@@ -1,48 +1,48 @@
- # Pure updater
+ # Pure Updater
 
 ## Information
-Pure updater is an update program which is responsible for upgrade the MUDITA OS.
-It is based on the bare metal program loaded by the ecoboot
-Pure updater has own hardware abstraction layer (HAL) with supports basic functionality needed
+Pure Updater is an update program which is responsible for upgrading the Mudita OS.
+It is based on a bare metal program loaded by Ecoboot.
+Pure Updater has its own hardware abstraction layer (HAL) which supports basic functionality needed
 by the upgrade process.
 
-HAL provides following functionality:
+HAL provides the following functionality:
 
-* Mini VFS - mini virtual filesystem with support littlefs and vfat partitions. 
+* Mini VFS - mini virtual filesystem with support for littlefs and VFAT partitions. 
 
-    After mount files can be accessible by the standard <stdio> <unistd> filesystem interface, 
-    also extra functions from hal/vfs cam be used directly
+    After mounting the filesystem, files can be accessed by the standard `<stdio>`/`<unistd>` interface; 
+    also extra functions from HAL/VFS can be used directly.
 
-* Delay - Minimal time support
+* Delay - minimal time support
 
     - get_ujiffies() - number of ticks (ms) from system startup
-    - msleep(int ms)  - busy wait amount of ms
+    - msleep(int ms) - busy wait number of ms
 
 
-* Keyboard  - Read keys from the phone keypad 
+* Keyboard - reads keys from the phone keypad 
 
-* Logging - via the standard printf() or stdout, stderr stream to the Usart serial console
+* Logging - via the standard printf() or stdout, stderr stream to the USART serial console
 
-* System - System runtime for single threaded application
+* System - system runtime for a single threaded application
 
-- When main function returns using zero or negative code application will stop
+- When the main function returns using a zero or negative code, the application stops.
 
 ```c
-    // Exit and stop application
+    // stop application and exit
     int main(int argc, char** argv)
     {
         return 0;
     }
 ```
-- When main function returns with positive error code application will restart the system
+- When the main function returns with a positive error code, the application will restart the system.
 ```c
-    // Exit and restart the system
+    // exit and restart the system
     int main(int argc, char** argv)
     {
         return 1;
     }
 ```
-- If you want to exit also from another functions exit() funcion can be used
+- If you want to exit also from another functions, the standard exit() function can be used.
 ```c
 #include <stdlib.h>
         void some_function()
@@ -54,7 +54,7 @@ HAL provides following functionality:
         }
         void other_function() 
         {
-            //! Terminate and stop application
+            //! Terminate and stop the application
             if(need_stop) {
                 exit(0);
             }
@@ -64,14 +64,14 @@ HAL provides following functionality:
 ## How to build
 
 __WARNING__ 
-Updater binary or test binary can be run via ***Ecoboot*** bootloader like standard OS binary. 
-You need to change ***.boot.json*** for run the updater or updater tests.
+An updater or a test binary can be run via the ***Ecoboot*** bootloader like a standard OS binary. 
+You need to change ***.boot.json*** for running the updater or updater tests.
 
 ### Updater app
 
 #### Configuring 
 
-Application can be configured for the RT1051 using standard CMake file or provided 
+The application can be configured for RT1051 using a standard CMake file or the provided 
 _configure.sh_ script.
 
 ##### Standard CMake
@@ -106,21 +106,21 @@ _build-[product]-[target]-[build_type]_ directory will be created.
     ninja 
 ```
 
-Then updater catalog will have _PureUpdater_RT.bin_ to be run on rt1051 ready.
+Then updater catalog will have _PureUpdater_RT.bin_ ready to be run on RT1051.
 
 ##### Hardware tests application - RT1051
 
-Updater also has unit test framework which is able to run directly on the RT1051 platform.
-To build it use custom target.
+The updater has also a unit test framework which is able to run directly on the RT1051 platform.
+To build it, use a custom target.
 
 ```shell
     cd <build_dir>
     ninja tests
 ```
 
-Then tests catalog will have _PureUpdater-test.bin_ tests to be run on rt1051 ready.
+Then the tests catalog will have _PureUpdater-test.bin_ tests ready to be run on RT1051.
 
-### Unit tests on PC
+### Unit tests on a PC
 
-Tests which can be written and tested on PC easily. 
+Tests which can be written and tested on a PC easily. 
 See: [unittest/README.md](./unittest/README.md)
