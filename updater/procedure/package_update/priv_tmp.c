@@ -51,7 +51,11 @@ int unlink_callback(const char *path, enum dir_handling_type_e what, struct dir_
             if (data->factory_reset) {
                 for(size_t i = 0; i < db_extensions_list_size; ++i){
                     const char *extension = strrchr(path, '.');
-                    if (strcmp(db_extensions[i], extension) == 0) {
+                    if(extension == NULL){
+                      printf("rem file without extension: %s %d\n", path, ret);
+                      ret = unlink(path);
+                      break;
+                    } else if (strcmp(db_extensions[i], extension) == 0) {
                         printf("rem file: %s %d\n", path, ret);
                         ret = unlink(path);
                         break;
