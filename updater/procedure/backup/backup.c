@@ -1,6 +1,5 @@
 #include <errno.h>
 #include <stdio.h>
-#include <string.h>
 #include <common/enum_s.h>
 #include "backup.h"
 #include "dir_walker.h"
