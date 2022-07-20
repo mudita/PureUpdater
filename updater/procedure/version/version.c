@@ -76,10 +76,6 @@ bool version_check(trace_list_t *tl, verify_file_handle_s *handle) {
         goto exit;
     }
 
-    if (version_is_lhs_newer(&new_file_version, &current_file_version)) {
-        ret = true;
-    }
-
     exit:
     return ret;
 }

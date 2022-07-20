@@ -125,7 +125,8 @@ int __attribute__((noinline, used)) main()
     }
     break;
     default:
-        printf("not handled %d", system_boot_reason());
+        eink_log("Unknown boot reason", true);
+        printf("not handled %d\n", system_boot_reason());
         break;
     }
 
