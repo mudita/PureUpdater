@@ -37,12 +37,12 @@ void main_status(trace_list_t *tl)
         }
         fprintf(t.file, "update status: %s\n", (trace_list_ok(tl)==true)?"OK":"FAIL");
         trace_dumps(tl, &t, _trace_file_print);
-        printf("file saved %s", fname);
+        printf("file saved %s\n", fname);
         fclose(t.file);
         free(iobuf);
     }
     else {
-        printf("cant open file %s", fname);
+        printf("cant open file %s\n", fname);
     }
 }
 

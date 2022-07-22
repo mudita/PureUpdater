@@ -202,7 +202,7 @@ bool update_firmware(struct update_handle_s *handle, trace_list_t *tl)
         if (handle->enabled.check_version)
         {
             printf("version check\n");
-            if (!version_check_all(tl, &verify_handle, handle->tmp_os))
+            if (!version_check_all(tl, &verify_handle, handle->tmp_os, handle->enabled.allow_downgrade))
             {
                 printf("version check error\n");
                 trace_write(t, ErrorVersion, 0);

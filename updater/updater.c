@@ -23,7 +23,7 @@ int __attribute__((noinline, used)) main()
     printf("System boot reason code: %s\n", system_boot_reason_str(system_boot_reason()));
 
     eink_clear_log();
-    printf("Run Updater\n");
+    printf("Starting updater\n");
 
     tl = trace_init();
     trace_t *t = trace_append("main", &tl, strerror_main, strerror_main_ext);
@@ -52,13 +52,14 @@ int __attribute__((noinline, used)) main()
     {
     case system_boot_reason_update:
     {
-        printf("System Update\n");
+        printf("System update\n");
         handle.update_from = "/user/update.tar";
         handle.backup_full_path = "/backup/backup.tar";
         handle.enabled.backup = true;
         handle.enabled.check_checksum = true;
         handle.enabled.check_sign = true;
         handle.enabled.check_version = true;
+        handle.enabled.allow_downgrade = true;
 
         show_update_in_progress_screen();
 
@@ -84,12 +85,13 @@ int __attribute__((noinline, used)) main()
     break;
     case system_boot_reason_recovery:
     {
-        eink_log("system recovery ", true);
+        eink_log("System recovery", true);
         handle.update_from = "/backup/backup.tar";
         handle.enabled.backup = false;
         handle.enabled.check_checksum = true;
         handle.enabled.check_sign = false;
         handle.enabled.check_version = false;
+        handle.enabled.allow_downgrade = false;
         if (!update_firmware(&handle, &tl))
         {
             trace_write(t, ErrMainRecovery, 0);
@@ -99,7 +101,7 @@ int __attribute__((noinline, used)) main()
     break;
     case system_boot_reason_factory:
     {
-        eink_log("factory reset", true);
+        eink_log("Factory reset", true);
         const struct factory_reset_handle frhandle = {
             .user_dir = handle.update_user};
         if (!factory_reset(&frhandle, &tl))
@@ -111,7 +113,7 @@ int __attribute__((noinline, used)) main()
     break;
     case system_boot_reason_pgm_keys:
     {
-        eink_log("burn keys", true);
+        eink_log("Burn keys", true);
         const struct program_keys_handle pghandle = {
             .srk_file = "/os/current/SRK_fuses.bin",
             .chksum_srk_file = "/os/current/SRK_fuses.bin.md5"};
@@ -131,7 +133,7 @@ int __attribute__((noinline, used)) main()
 
 exit:
     main_status(&tl);
-    printf("updater status %s", trace_list_ok(&tl) == true ? "OK" : "FAIL");
+    printf("Updater status %s\n", trace_list_ok(&tl) == true ? "OK" : "FAIL");
     msleep(5000);
     err = vfs_unmount_deinit();
     printf("status %i : procedure: %i\n", err, trace_list_ok(&tl));
