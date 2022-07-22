@@ -18,11 +18,12 @@ enum version_error_e {
     VersionInvalidVersionJson,
     VersionInvalidNumber,
     VersionAllocError,
+    VersionDowngradeNotAllowed
 };
 
-bool version_check_all(trace_list_t *tl, verify_file_handle_s *handle, const char *tmp_path);
+bool version_check_all(trace_list_t *tl, verify_file_handle_s *handle, const char *tmp_path, bool allow_downgrade);
 
-bool version_check(trace_list_t *tl, verify_file_handle_s *handle);
+bool version_check(trace_list_t *tl, verify_file_handle_s *handle, bool allow_downgrade);
 
 const char *strerror_version(int err);
 

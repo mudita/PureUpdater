@@ -43,6 +43,7 @@ extern "C"
             bool backup : 1;
             bool check_checksum : 1;
             bool check_version : 1;
+            bool allow_downgrade : 1;
         } enabled;
     };
 

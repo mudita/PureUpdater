@@ -16,7 +16,7 @@ static void version_cleanup(version_s *handle)
     }
 }
 
-bool version_check_all(trace_list_t *tl, verify_file_handle_s *handle, const char *tmp_path){
+bool version_check_all(trace_list_t *tl, verify_file_handle_s *handle, const char *tmp_path, bool allow_downgrade){
     bool ret = true;
 
     for (size_t i = 0; i < verify_files_list_size; ++i) {
@@ -28,7 +28,7 @@ bool version_check_all(trace_list_t *tl, verify_file_handle_s *handle, const cha
             break;
         }
         handle->file_to_verify = filepath;
-        ret = version_check(tl, handle);
+        ret = version_check(tl, handle, allow_downgrade);
         free(filepath);
         if(!ret){
             return ret;
@@ -38,7 +38,7 @@ bool version_check_all(trace_list_t *tl, verify_file_handle_s *handle, const cha
     return ret;
 }
 
-bool version_check(trace_list_t *tl, verify_file_handle_s *handle) {
+bool version_check(trace_list_t *tl, verify_file_handle_s *handle, bool allow_downgrade) {
     bool ret = false;
     char trace_title[30];
 
@@ -76,9 +76,12 @@ bool version_check(trace_list_t *tl, verify_file_handle_s *handle) {
         goto exit;
     }
 
-    if (version_is_lhs_newer(&new_file_version, &current_file_version)) {
-        ret = true;
+    if (!allow_downgrade && !version_is_lhs_newer(&new_file_version, &current_file_version)) {
+        trace_write(trace, VersionDowngradeNotAllowed, errno);
+        goto exit;
     }
+
+    ret = true;
 
     exit:
     return ret;
@@ -94,6 +97,8 @@ const char *strerror_version(int err) {
             return "VersionInvalidStringParse";
         case VersionAllocError:
             return "VersionAllocError";
+        case VersionDowngradeNotAllowed:
+            return "VersionDowngradeNotAllowed";
     }
     return "Unknown";
 }
