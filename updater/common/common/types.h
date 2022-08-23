@@ -3,8 +3,6 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include <common/trace.h>
-
 #ifdef __cplusplus
 extern "C"
 {

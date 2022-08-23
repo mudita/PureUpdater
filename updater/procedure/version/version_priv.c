@@ -4,35 +4,29 @@
 #include "version.h"
 #include "version_priv.h"
 
-const char* version_str_fmt = "%d.%d.%d"; // xxx.xxx.xxx\0
+const char *version_str_fmt = "%d.%d.%d"; // xxx.xxx.xxx\0
 #define VERSION_STR_LEN (12)
 
-version_s version_get(trace_t *trace, const version_json_s *version_json, const char *file_name) {
+version_s version_get(const version_json_s *version_json, const char *file_name) {
     version_s version;
+    memset(&version, 0, sizeof(version));
 
-    if (trace == NULL) {
-        printf("get_version trace/handle null error");
+    if (version_json == NULL) {
+        debug_log("Version: version handle is null");
         goto exit;
     }
 
     if (version_json->valid && file_name != NULL) {
-        if (version_parse_str(trace, &version, json_get_file_from_version(trace, version_json, file_name).version) < 0) {
-            trace_write(trace, VersionInvalidStringParse, errno);
+        if (version_parse_str(&version, json_get_file_from_version(version_json, file_name).version) < 0) {
             goto exit;
         }
     } else {
-        trace_write(trace, VersionNotFound, errno);
+        debug_log("Version: version is not valid");
         goto exit;
     }
 
     exit:
     return version;
-}
-
-const char *version_get_str(version_s *version) {
-    version->str = calloc(1, VERSION_STR_LEN);
-    snprintf(version->str, (VERSION_STR_LEN - 1), version_str_fmt, version->major, version->minor, version->patch);
-    return version->str;
 }
 
 bool version_validate(const version_s *version) {
@@ -65,7 +59,7 @@ bool version_is_lhs_newer(const version_s *version_l, const version_s *version_r
     return ret;
 }
 
-int version_parse_str(trace_t *trace, version_s *version, const char *version_str) {
+int version_parse_str(version_s *version, const char *version_str) {
     int ret = 0;
     char *version_str_copy = NULL;
     char *token = NULL;
@@ -73,39 +67,34 @@ int version_parse_str(trace_t *trace, version_s *version, const char *version_st
     version_temp.valid = true;
     const size_t version_str_len = strlen(version_str);
 
-    if (trace == NULL) {
-        printf("parse_version_str trace null error");
-        goto fail;
-    }
-
     if (version == NULL || version_str == NULL) {
-        trace_write(trace, VersionInvalidStringParse, errno);
+        debug_log("Version: version handle is null");
         goto fail;
     }
 
     version_str_copy = strndup(version_str, version_str_len);
     if (version_str_copy == NULL) {
-        trace_write(trace, VersionAllocError, errno);
+        debug_log("Version: cannot duplicate version string");
         goto fail;
     }
 
     token = strtok(version_str_copy, ".");
     if (token == NULL) {
-        trace_write(trace, VersionInvalidStringParse, errno);
+        debug_log("Version: parsing error, errno: %d", errno);
         goto fail;
     }
     version_temp.major = strtol(token, NULL, 10);
 
     token = strtok(NULL, ".");
     if (token == NULL) {
-        trace_write(trace, VersionInvalidStringParse, errno);
+        debug_log("Version: parsing error, errno: %d", errno);
         goto fail;
     }
     version_temp.minor = strtol(token, NULL, 10);
 
     token = strtok(NULL, ".");
     if (token == NULL) {
-        trace_write(trace, VersionInvalidStringParse, errno);
+        debug_log("Version: parsing error, errno: %d", errno);
         goto fail;
     }
     version_temp.patch = strtol(token, NULL, 10);
@@ -115,7 +104,7 @@ int version_parse_str(trace_t *trace, version_s *version, const char *version_st
         *version = version_temp;
         goto exit;
     } else {
-        trace_write(trace, VersionInvalidNumber, errno);
+        debug_log("Version: version is invalid");
         goto fail;
     }
 

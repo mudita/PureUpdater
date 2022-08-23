@@ -1,4 +1,3 @@
-#include "common/trace.h"
 #include "priv_tmp.h"
 #include "update.h"
 #include <boost/process/io.hpp>
@@ -21,19 +20,15 @@ BOOST_FIXTURE_TEST_CASE(unpack_success, UpdateAsset)
     handle.tmp_os      = (disk_os.drive + "/tmp").c_str();
     handle.tmp_user    = (disk_user.drive + "/tmp").c_str();
 
-    trace_list_t trace_list = trace_init();
+    create_temp_catalog(&handle);
+    BOOST_TEST(unpack(&handle));
 
-    create_temp_catalog(&handle, &trace_list);
-    BOOST_TEST(unpack(&handle, &trace_list));
-    trace_print(&trace_list);
- 
 
     BOOST_TEST(std::filesystem::exists(disk_os.drive + "boot.bin"));
     BOOST_TEST(std::filesystem::exists(disk_os.drive + "version.json"));
     BOOST_TEST(std::filesystem::exists(disk_user.drive + "country-codes.db"));
     BOOST_TEST(std::filesystem::exists(disk_user.drive + "assets/audio/sms/sms_guitar_5.mp3"));
  
-    trace_deinit(&trace_list);
 }
 
 
@@ -48,33 +43,8 @@ BOOST_FIXTURE_TEST_CASE(unpack_no_tar, UpdateEmptyAsset)
     handle.tmp_os      = (disk_os.drive + "/tmp").c_str();
     handle.tmp_user    = (disk_user.drive + "/tmp").c_str();
 
-    trace_list_t trace_list = trace_init();
 
-    create_temp_catalog(&handle,&trace_list);
-    BOOST_TEST(unpack(&handle, &trace_list));
-    trace_print(&trace_list);
- 
-    trace_deinit(&trace_list);
+    create_temp_catalog(&handle);
+    BOOST_TEST(unpack(&handle));
+
 }
-
-// // TODO
-// BOOST_FIXTURE_TEST_CASE(unpack_error_small, UpdateEmptyAsset)
-// {
-//     std::string in = image.tar_path.string() + image.tar_name;
-//     struct update_handle_s handle;
-//     handle.update_from = in.c_str();
-//     handle.update_os = disk_os.drive.c_str();
-//     handle.update_user = disk_user.drive.c_str();
-//
-//     trace_list_t trace_list = trace_init();
-//     BOOST_TEST(!unpack(&handle, &trace_list));
-//     BOOST_TEST(!trace_list_ok(&trace_list));
-//     trace_print(&trace_list);
-//
-//     trace_deinit(&trace_list);
-// }
-// BOOST_FIXTURE_TEST_CASE(unpack_fs_issue, UpdateAsset)
-// BOOST_FIXTURE_TEST_CASE(unpack_overwrite_success, UpdateAsset)
-// BOOST_FIXTURE_TEST_CASE(version_check, UpdateAsset)
-// BOOST_FIXTURE_TEST_CASE(checksum_check, UpdateAsset)
-// BOOST_FIXTURE_TEST_CASE(data_move, UpdateAsset)

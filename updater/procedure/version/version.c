@@ -6,17 +6,13 @@
 #include "version.h"
 #include "version_priv.h"
 
-#define UNUSED(expr) do { (void)(expr); } while (0)
-
-static void version_cleanup(version_s *handle)
-{
-    if (handle && handle->str)
-    {
+static void version_cleanup(version_s *handle) {
+    if (handle && handle->str) {
         free(handle->str);
     }
 }
 
-bool version_check_all(trace_list_t *tl, verify_file_handle_s *handle, const char *tmp_path, bool allow_downgrade){
+bool version_check_all(verify_file_handle_s *handle, const char *tmp_path, bool allow_downgrade) {
     bool ret = true;
 
     for (size_t i = 0; i < verify_files_list_size; ++i) {
@@ -28,9 +24,9 @@ bool version_check_all(trace_list_t *tl, verify_file_handle_s *handle, const cha
             break;
         }
         handle->file_to_verify = filepath;
-        ret = version_check(tl, handle, allow_downgrade);
+        ret = version_check(handle, allow_downgrade);
         free(filepath);
-        if(!ret){
+        if (!ret) {
             return ret;
         }
     }
@@ -38,46 +34,42 @@ bool version_check_all(trace_list_t *tl, verify_file_handle_s *handle, const cha
     return ret;
 }
 
-bool version_check(trace_list_t *tl, verify_file_handle_s *handle, bool allow_downgrade) {
+bool version_check(verify_file_handle_s *handle, bool allow_downgrade) {
     bool ret = false;
-    char trace_title[30];
 
-    if (tl == NULL || handle == NULL) {
-        printf("version_verify trace/handle null error");
+    if (handle == NULL) {
+        debug_log("Version: handle is null");
         goto exit;
     }
 
-    sprintf(trace_title, "%s:%s", __func__, handle->file_to_verify);
-    trace_t *trace = trace_append(trace_title, tl, strerror_version, NULL);
-
     if (handle->version_json.valid == false) {
-        trace_write(trace, VersionInvalidVersionJson, errno);
+        debug_log("Version: version.json is not valid");
         goto exit;
     }
 
     if (handle->file_to_verify == NULL) {
-        trace_write(trace, VersionInvalidFilePaths, errno);
+        debug_log("Version: file to verify is null");
         goto exit;
     }
 
     version_s new_file_version __attribute__((__cleanup__(version_cleanup))) =
-        version_get(trace, &handle->version_json, handle->file_to_verify);
+            version_get(&handle->version_json, handle->file_to_verify);
 
     if (!new_file_version.valid) {
-        trace_write(trace, VersionInvalidStringParse, errno);
+        debug_log("Version: version is not valid");
         goto exit;
     }
 
     version_s current_file_version __attribute__((__cleanup__(version_cleanup))) =
-        version_get(trace, &handle->current_version_json, handle->file_to_verify);
+            version_get(&handle->current_version_json, handle->file_to_verify);
 
     if (!current_file_version.valid) {
-        trace_write(trace, VersionInvalidStringParse, errno);
+        debug_log("Version: file version is not valid");
         goto exit;
     }
 
     if (!allow_downgrade && !version_is_lhs_newer(&new_file_version, &current_file_version)) {
-        trace_write(trace, VersionDowngradeNotAllowed, errno);
+        debug_log("Version: downgrade is not allowed");
         goto exit;
     }
 
@@ -85,26 +77,4 @@ bool version_check(trace_list_t *tl, verify_file_handle_s *handle, bool allow_do
 
     exit:
     return ret;
-}
-
-const char *strerror_version(int err) {
-    switch (err) {
-        case VersionOk:
-            return "VersionOk";
-        case VersionNotFound:
-            return "VersionNotFound";
-        case VersionInvalidStringParse:
-            return "VersionInvalidStringParse";
-        case VersionAllocError:
-            return "VersionAllocError";
-        case VersionDowngradeNotAllowed:
-            return "VersionDowngradeNotAllowed";
-    }
-    return "Unknown";
-}
-
-const char *strerror_version_ext(int err, int err_ext) {
-    UNUSED(err);
-    UNUSED(err_ext);
-    return "Unknown";
 }

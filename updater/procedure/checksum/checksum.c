@@ -1,4 +1,3 @@
-#include <errno.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -18,8 +17,9 @@ static void _autoclose(int *f) {
 
 #define UNUSED(expr) do { (void)(expr); } while (0)
 
-bool checksum_verify_all(trace_list_t *tl, verify_file_handle_s *handle, const char *tmp_path) {
+bool checksum_verify_all(verify_file_handle_s *handle, const char *tmp_path) {
     bool ret = true;
+    debug_log("Checksum: verifying all files");
 
     for (size_t i = 0; i < verify_files_list_size; ++i) {
         const char *filename = verify_files[i];
@@ -30,7 +30,7 @@ bool checksum_verify_all(trace_list_t *tl, verify_file_handle_s *handle, const c
             break;
         }
         handle->file_to_verify = filepath;
-        ret = checksum_verify(tl, handle);
+        ret = checksum_verify(handle);
         free(filepath);
         if (!ret) {
             return ret;
@@ -39,88 +39,51 @@ bool checksum_verify_all(trace_list_t *tl, verify_file_handle_s *handle, const c
     return ret;
 }
 
-bool checksum_verify(trace_list_t *tl, verify_file_handle_s *handle) {
+bool checksum_verify(verify_file_handle_s *handle) {
     unsigned char calculated_checksum[16];
     char calculated_checksum_readable[33];
-    char trace_title[30];
+
+    debug_log("Checksum: verifying file: %s", handle->file_to_verify);
 
     int file_to_verify_fd __attribute__((__cleanup__(_autoclose))) = -1;
     bool ret = false;
 
-    if (tl == NULL || handle == NULL) {
-        printf("checksum_verify trace/handle null error");
+    if (handle == NULL) {
+        debug_log("Checksum: failed to open file to verify checksum");
         goto exit;
     }
 
-    sprintf(trace_title, "%s:%s", __func__, handle->file_to_verify);
-    trace_t *trace = trace_append(trace_title, tl, strerror_checksum, NULL);
-
     if (handle->version_json.valid == false) {
-        trace_write(trace, ChecksumInvalidVersionJson, errno);
+        debug_log("Checksum: version.json is not valid");
         goto exit;
     }
 
     if (handle->file_to_verify == NULL) {
-        trace_write(trace, ChecksumInvalidFilePaths, errno);
-        trace_printf(trace, handle->file_to_verify);
+        debug_log("Checksum: file to verify is a NULL");
         goto exit;
     }
     file_to_verify_fd = open(handle->file_to_verify, O_RDONLY);
     if (file_to_verify_fd <= 0) {
-        trace_write(trace, ChecksumInvalidFilePaths, errno);
-        trace_printf(trace, handle->file_to_verify);
+        debug_log("Checksum: failed to open the file");
         goto exit;
     }
 
     MD5_File(calculated_checksum, handle->file_to_verify);
     checksum_get_readable(calculated_checksum, calculated_checksum_readable);
 
-    version_json_file_s file_version = json_get_file_from_version(trace, &handle->version_json, handle->file_to_verify);
+    version_json_file_s file_version = json_get_file_from_version(&handle->version_json, handle->file_to_verify);
     if (file_version.valid == false) {
-        trace_write(trace, ChecksumNotFoundInJson, errno);
+        debug_log("Checksum: checksum for file not found in version.json");
         goto exit;
     }
 
     ret = checksum_compare(file_version.md5sum, calculated_checksum_readable);
     if (!ret) {
-        char text[128];
-        snprintf(text, 128, "checksum mismatch: %s : %s", file_version.md5sum, calculated_checksum_readable);
-        trace_printf(trace, text);
-        trace_write(trace, ChecksumInvalid, errno);
+        debug_log("Checksum: checksum mismatch for file:%s (%s : %s)", handle->file_to_verify, file_version.md5sum,
+                  calculated_checksum_readable);
         goto exit;
     }
 
     exit:
     return ret;
-}
-
-const char *strerror_checksum(int err) {
-    switch (err) {
-        case ChecksumOk:
-            return "ChecksumOk";
-        case ChecksumInvalid:
-            return "ChecksumInvalid";
-        case ChecksumInvalidFilePaths:
-            return "ChecksumInvalidFilePaths";
-        case ChecksumJsonFileTooBig:
-            return "ChecksumJsonFileTooBig";
-        case ChecksumJsonReadFailed:
-            return "ChecksumJsonReadFailed";
-        case ChecksumJsonParseFailed:
-            return "ChecksumJsonParseFailed";
-        case ChecksumNotFoundInJson:
-            return "ChecksumNotFoundInJson";
-    }
-    return "Unknown";
-}
-
-const char *strerror_checksum_ext(int err, int err_ext) {
-    switch (err) {
-        case ChecksumJsonReadFailed:
-        case ChecksumJsonFileTooBig:
-        case ChecksumInvalidFilePaths:
-        case ChecksumNotFoundInJson:
-            return strerror(err_ext);
-    }
-    return "";
 }

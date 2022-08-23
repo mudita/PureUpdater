@@ -1,28 +1,25 @@
-#include <stdio.h>
 #include <errno.h>
 #include <sys/stat.h>
 #include <procedure/package_update/priv_tmp.h>
 #include "factory.h"
 
-bool factory_reset(const struct factory_reset_handle *handle, trace_list_t *tl) {
+bool factory_reset(const struct factory_reset_handle *handle) {
     bool success = false;
 
-    if (tl == NULL || handle == NULL) {
-        printf("factory_reset trace/handle null error");
+    if (handle == NULL) {
+        debug_log("Factory reset: handle is a NULL");
         goto exit;
     }
-    trace_t *trace = trace_append(__PRETTY_FUNCTION__, tl, NULL, NULL);
 
     struct stat data;
     int ret = stat(handle->user_dir, &data);
     if (ret != 0) {
-        printf("factory_reset path %s", handle->user_dir);
-        trace_write(trace, FactoryErrorNoUserDir, errno);
+        debug_log("Factory reset: failed to stat user dir:%s %d", handle->user_dir, ret);
         goto exit;
     }
 
-    if (ret == 0 && !recursive_unlink(handle->user_dir, true, trace)) {
-        trace_write(trace, FactoryErrorTempWlk, errno);
+    if (!recursive_unlink(handle->user_dir, true)) {
+        debug_log("Factory reset: failed to unlink user dir, errno: %d", errno);
         goto exit;
     }
 
