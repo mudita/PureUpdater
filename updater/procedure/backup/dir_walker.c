@@ -1,39 +1,36 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <sys/types.h>
 #include <dirent.h>
 #include <string.h>
 #include "dir_walker.h"
 
-void recursive_dir_walker_init(struct dir_handler_s *s, int (*callback)(const char *path, enum dir_handling_type_e what, struct dir_handler_s *h, void*), void* data)
-{
+void recursive_dir_walker_init(struct dir_handler_s *s,
+                               int (*callback)(const char *path, enum dir_handling_type_e what, struct dir_handler_s *h,
+                                               void *), void *data) {
     memset(s, 0, sizeof *s);
     s->not_first_call = true;
     s->callback = callback;
     s->callback_data = data;
 }
 
-void recursive_dir_walker_deinit(struct dir_handler_s *s)
-{
+void recursive_dir_walker_deinit(struct dir_handler_s *s) {
     free(s->root_catalog);
     s->root_catalog = NULL;
     s->not_first_call = false;
 }
+
 /// requires:
 /// - opendir
 /// - readdir
-void recursive_dir_walker(const char *name, struct dir_handler_s *h, unsigned int *recursion_limit)
-{
-    DIR *dir             = NULL;
+void recursive_dir_walker(const char *name, struct dir_handler_s *h, unsigned int *recursion_limit) {
+    DIR *dir = NULL;
     struct dirent *entry = NULL;
 
     if (h == NULL || recursion_limit == NULL) {
         return;
     }
-    if (h->user_break)
-    {
-        h->error = DirHanlingOk;
+    if (h->user_break) {
+        h->error = DirHandlingOk;
         return;
     }
     if (*recursion_limit == 0) {
@@ -49,9 +46,8 @@ void recursive_dir_walker(const char *name, struct dir_handler_s *h, unsigned in
         return;
     }
 
-    if (h->not_first_call) 
-    {
-        h->root_catalog = (char*)malloc(strlen(name) +1);
+    if (h->not_first_call) {
+        h->root_catalog = (char *) malloc(strlen(name) + 1);
         sprintf(h->root_catalog, "%s", name);
         h->not_first_call = false;
     }
@@ -76,8 +72,7 @@ void recursive_dir_walker(const char *name, struct dir_handler_s *h, unsigned in
                 }
             }
             recursive_dir_walker(path, h, recursion_limit);
-        }
-        else {
+        } else {
             //printf("%s\n", entry->d_name);
             if (h->callback != NULL) {
                 h->error_callback = (*h->callback)(path, DirHandlingFile, h, h->callback_data);
@@ -95,12 +90,10 @@ void recursive_dir_walker(const char *name, struct dir_handler_s *h, unsigned in
 }
 
 
-const char* dir_handling_strerror(enum dir_handling_err err)
-{
-    switch(err)
-    {
-        case DirHanlingOk:
-            return "DirHanlingOk";
+const char *dir_handling_strerror(enum dir_handling_err err) {
+    switch (err) {
+        case DirHandlingOk:
+            return "DirHandlingOk";
         case DirHandlingFS:
             return "DirHandlingFS";
         case DirHandlingRecursionLimit:

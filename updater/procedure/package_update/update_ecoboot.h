@@ -1,10 +1,10 @@
 #pragma once
 
-#include <common/trace.h>
+#include <common/log.h>
 
+extern const char* const ecoboot_filename;
 //! Error codes
-enum ecoboot_update_errors
-{
+enum ecoboot_update_errors {
     error_eco_update_ok,
     // With errno
     error_eco_vfs,    //! Errno related to vfs
@@ -16,13 +16,13 @@ enum ecoboot_update_errors
     error_eco_verify              //! Verification failed
 };
 
-/** Update the ecoboot from the seleted file
+/** Update the ecoboot from the selected file
  * @param[in] workdir Working directory
  * @param[in] filename Filename with ecoboot.bin file
  * @param[in] tl Logger object
  * @return 0 if success -errno on failure
  */
-int ecoboot_update(const char *workdir, const char *filename, trace_list_t *tl);
+int ecoboot_update(const char *workdir, const char *filename);
 
 /** Check if there is ecoboot in the package
  * @param[in] workdir Working directory

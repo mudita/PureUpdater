@@ -6,7 +6,6 @@ find_package(Boost REQUIRED COMPONENTS unit_test_framework)
 
 add_executable(
     test_backup
-
     test_file.cpp
     test_dir_walk.cpp
     test_backup.cpp
@@ -14,7 +13,6 @@ add_executable(
     test_checksum.cpp
     test_version.cpp
     test_json.cpp
-    test_trace.cpp
     test_tmp.cpp
     dir_fixture.cpp
     helper.cpp

@@ -61,7 +61,7 @@ int blk_initialize(void);
  */
 int blk_get_partitions(int device, blk_partition_t **parts);
 
-/** Get single partition on the devic
+/** Get single partition on the device
  * @param device Major device number
  * @param parts Pointer to the block partition structures
  * @return zero on success otherwise error
@@ -73,16 +73,16 @@ int blk_get_partition(int device, blk_partition_t *part);
  * @param device Device identifier
  * @param lba Logical block address
  * @param lba_count Number of LBA sectors count
- * @param buf Buffer for data reead
+ * @param buf Buffer for data to be read
  * @return 0 otherwise errno when error
  */
 int blk_read(int device, lba_t lba, blk_size_t lba_count, void *buf);
 
-/** Read block device data 
+/** Write block device data
  * @param device Device identifier
  * @param lba Logical block address
  * @param lba_count Number of LBA sectors count
- * @param buf Buffer for data reead
+ * @param buf Buffer for data to be written
  * @return 0 otherwise errno when error
  */
 int blk_write(int device, lba_t lba, blk_size_t lba_count, const void *buf);
@@ -98,7 +98,7 @@ typedef struct blk_dev_info
 /** Get block device info
  * get current block device info
  * @param device Input device id
- * @param info Info structore
+ * @param info Info structure
  * @param 0 otherwise error code
  */
 int blk_info(int device, blk_dev_info_t *info);

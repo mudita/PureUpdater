@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <common/trace.h>
 #include <common/json.h>
 #include <boost/test/unit_test.hpp>
 #include <md5/md5.h>
@@ -10,14 +9,11 @@
 
 BOOST_FIXTURE_TEST_CASE(checksum_verify_test, TestsConsts)
 {
-    trace_list_t tl = trace_init();
-
     verify_file_handle_s handle;
     handle.file_to_verify = test_checksum_file_path.c_str();
-    handle.version_json = json_get_version_struct(&tl, test_json_path.c_str());
+    handle.version_json = json_get_version_struct(test_json_path.c_str());
 
-    BOOST_TEST(checksum_verify(&tl, &handle));
-    trace_deinit(&tl);
+    BOOST_TEST(checksum_verify(&handle));
 }
 
 BOOST_FIXTURE_TEST_CASE(checksum_compare_test, TestsConsts)

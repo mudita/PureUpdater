@@ -6,19 +6,13 @@ extern "C"
 #endif
 
 #include <stdbool.h>
-#include <common/trace.h>
+#include <common/log.h>
 
-enum factory_error_e {
-    FactoryOk,
-    FactoryErrorTempWlk,
-    FactoryErrorNoUserDir,
+struct factory_reset_handle {
+    const char *user_dir;
 };
 
-struct factory_reset_handle{
-    const char * user_dir;
-};
-
-bool factory_reset(const struct factory_reset_handle *handle, trace_list_t *tl);
+bool factory_reset(const struct factory_reset_handle *handle);
 
 #ifdef __cplusplus
 }

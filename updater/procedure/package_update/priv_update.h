@@ -6,9 +6,9 @@ extern "C"
 #endif
 
 #include "update.h"
-#include "common/trace.h"
+#include "common/log.h"
 
-bool unpack(struct update_handle_s *handle, trace_list_t *tl);
+bool unpack(struct update_handle_s *handle);
 
 #ifdef __cplusplus
 }

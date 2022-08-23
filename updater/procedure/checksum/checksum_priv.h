@@ -9,7 +9,7 @@ extern "C"
 
 bool checksum_compare(const char *checksum_l, const char *checksum_r);
 
-void checksum_get_readable(const unsigned char *hex, char * readable);
+void checksum_get_readable(const unsigned char *hex, char *readable);
 
 #ifdef __cplusplus
 }
