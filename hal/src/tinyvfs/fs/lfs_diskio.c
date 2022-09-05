@@ -186,7 +186,6 @@ int vfs_lfs_append_volume(int blkdev, struct lfs_config *lfsc)
     ctx->erase_size = dinfo.erase_group;
     ctx->sector_size = dinfo.sector_size;
     ctx->disk = blkdev;
-    lfsc->context = ctx;
     lfsc->read = lfs_read;
     lfsc->prog = lfs_prog;
     lfsc->erase = lfs_erase;

@@ -5,7 +5,7 @@ target remote localhost:2331
 monitor reset 0
 monitor halt
 monitor memU32 0x401BC000 = 128;
-#load
+load
 #eval "monitor exec SetRTTAddr %p", &_SEGGER_RTT
 tb main
 b HardFault_Handler

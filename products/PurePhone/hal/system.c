@@ -16,6 +16,8 @@
 #include <hal/security.h>
 #include <stdio.h>
 
+//#define ENABLE_PRINT_SYSTEM_CLOCKS // Uncomment to print system clocks config at startup
+
 static struct hal_i2c_dev i2c_gen = {.base = (uintptr_t)BOARD_KEYBOARD_I2C_BASEADDR, .initialized = false};
 
 /** Initialize basic system setup */
@@ -26,6 +28,9 @@ void system_initialize(void)
     RTWDOG_Deinit(RTWDOG);
     BOARD_InitBootClocks();
     debug_console_init();
+#ifdef ENABLE_PRINT_SYSTEM_CLOCKS
+    printSystemClocks();
+#endif
     emmc_enable();
     SNVS_LP_Init(SNVS);
     SNVS_HP_Init(SNVS);
