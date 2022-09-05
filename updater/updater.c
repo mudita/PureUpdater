@@ -15,6 +15,8 @@
 int __attribute__((noinline, used)) main() {
     system_initialize();
 
+    printf("Updater started, log before fs init\n");
+
     eink_clear_log();
 
     static const vfs_mount_point_desc_t fstab[] = {
