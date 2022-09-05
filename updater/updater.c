@@ -28,7 +28,7 @@ int __attribute__((noinline, used)) main() {
         printf("Unable to init vfs: %d", err);
         goto exit;
     }
-    debug_log("\n\nUpdater start\n");
+    debug_log("\n\n*****************\n* Updater start *\n*****************\n");
     debug_log("System boot reason code: %s", system_boot_reason_str(system_boot_reason()));
 
     struct update_handle_s handle;
@@ -108,7 +108,8 @@ int __attribute__((noinline, used)) main() {
         }
             break;
         default:
-            debug_log("Boot reason not handled %d", system_boot_reason());
+            eink_log("Error: unknown boot reason", true);
+            debug_log("Boot reason not handled: %d", system_boot_reason());
             break;
     }
 
