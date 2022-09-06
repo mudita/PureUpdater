@@ -20,10 +20,10 @@ int __attribute__((noinline, used)) main()
 {
     trace_list_t tl;
     system_initialize();
-    printf("System boot reason code: %s\n", system_boot_reason_str(system_boot_reason()));
+//    printf("System boot reason code: %s\n", system_boot_reason_str(system_boot_reason()));
 
     eink_clear_log();
-    printf("Starting updater\n");
+//    printf("Starting updater\n");
 
     tl = trace_init();
     trace_t *t = trace_append("main", &tl, strerror_main, strerror_main_ext);
