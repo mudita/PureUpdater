@@ -6,10 +6,6 @@
 /** Get system boot reason code */
 enum system_boot_reason_code system_boot_reason(void)
 {
-    static const uint32_t eco_update_code = 0xbadc0000;
-    static const uint32_t eco_recovery_code = 0xbadc0001;
-    static const uint32_t eco_factory_rst_code = 0xbadc0002;
-    static const uint32_t eco_factory_pgm_keys = 0xbadc0003;
     static uint32_t boot_code;
     if (SNVS->LPGPR[0] != 0)
     {
@@ -24,8 +20,12 @@ enum system_boot_reason_code system_boot_reason(void)
         return system_boot_reason_recovery;
     case eco_factory_rst_code:
         return system_boot_reason_factory;
-    case eco_factory_pgm_keys:
+    case eco_factory_pgm_keys_code:
         return system_boot_reason_pgm_keys;
+    case eco_perform_backup_code:
+        return system_boot_reason_backup;
+    case eco_perform_restore_code:
+        return system_boot_reason_restore;
     default:
         return system_boot_reason_unknown;
     }
@@ -42,10 +42,14 @@ const char *system_boot_reason_str(enum system_boot_reason_code code)
         return "system_boot_reason_recovery";
     case system_boot_reason_factory:
         return "system_boot_reason_factory";
-    case system_boot_reason_unknown:
-        return "system_boot_reason_unknown";
     case system_boot_reason_pgm_keys:
         return "system_boot_reason_pgm_keys";
+    case system_boot_reason_backup:
+        return "system_boot_reason_backup";
+    case system_boot_reason_restore:
+        return "system_boot_reason_restore";
+    case system_boot_reason_unknown:
+        return "system_boot_reason_unknown";
     default:
         return "not in enum system_boot_reason_code";
     }

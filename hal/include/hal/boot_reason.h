@@ -1,5 +1,15 @@
 #pragma once
 
+//! Boot reason code from ecoboot
+enum eco_boot_reason_code {
+    eco_update_code = 0xBADC0000,
+    eco_recovery_code = 0xBADC0001,
+    eco_factory_rst_code = 0xBADC0002,
+    eco_factory_pgm_keys_code = 0xBADC0003,
+    eco_perform_backup_code = 0xBADC0004,
+    eco_perform_restore_code = 0xBADC0005
+};
+
 //! Boot reason code
 enum system_boot_reason_code
 {
@@ -7,10 +17,12 @@ enum system_boot_reason_code
     system_boot_reason_recovery, //! Restart caused by the recovery request
     system_boot_reason_factory,  //! Restart caused by the factory reset request
     system_boot_reason_pgm_keys, //! Load keys request (close configuration)
+    system_boot_reason_backup,   //! Restart caused by the backup creation request,
+    system_boot_reason_restore,  //! Restart caused by the request to perform restore
     system_boot_reason_unknown,  //! Unknown boot reason code
 };
 
-/** Get the system boot resason code
+/** Get the system boot reason code
  * @return Boot reason code
  */
 enum system_boot_reason_code system_boot_reason(void);
