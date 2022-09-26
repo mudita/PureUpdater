@@ -7,7 +7,7 @@ extern "C"
 
 #include <stdbool.h>
 #include <common/log.h>
-#include <common/json.h>
+#include <common/version_json.h>
 #include <common/types.h>
 
 bool version_check_all(verify_file_handle_s *handle, const char *tmp_path, bool allow_downgrade);

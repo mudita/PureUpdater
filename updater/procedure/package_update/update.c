@@ -82,9 +82,11 @@ static void program_secure_fuses(const struct update_handle_s *handle) {
 bool update_firmware(struct update_handle_s *handle) {
     debug_log("Starting firmware update");
     bool success = false;
-    struct backup_handle_s backup_handle = {.backup_from_os = handle->update_os,
+    struct backup_handle_s backup_handle = {
+            .backup_from_os = handle->update_os,
             .backup_from_user = handle->update_user,
-            .backup_to = handle->backup_full_path};
+            .backup_to = handle->backup_full_path
+    };
     if (handle->enabled.check_sign) {
         debug_log("Update: signature check");
         const int err = signature_check(handle->update_from);
@@ -124,7 +126,7 @@ bool update_firmware(struct update_handle_s *handle) {
     if (handle->enabled.check_checksum || handle->enabled.check_version) {
         debug_log("Update: verify files");
         verify_file_handle_s verify_handle __attribute__((__cleanup__(verify_file_handle_cleanup))) =
-                json_get_verify_files("/os/tmp/version.json", "/os/current/version.json");
+                json_get_verify_files(handle->new_version_json, handle->current_version_json);
 
         if (handle->enabled.check_checksum) {
             debug_log("Update: verify checksum");
@@ -161,15 +163,16 @@ bool update_firmware(struct update_handle_s *handle) {
         const int eco_status = ecoboot_update(handle->update_os, ecoboot_filename);
         if (eco_status != error_eco_update_ok) {
             if (eco_status != error_eco_vfs && errno != ENOENT) {
-                debug_log("Update: %s update error, errno: %d",ecoboot_filename, errno);
+                debug_log("Update: %s update error, errno: %d", ecoboot_filename, errno);
                 success = false;
                 goto exit;
             }
         } else {
-            debug_log("Update: %s updated successfully",ecoboot_filename);
+            debug_log("Update: %s updated successfully", ecoboot_filename);
         }
-    } else {
-        debug_log("Update: No %s in package",ecoboot_filename);
+    }
+    else {
+        debug_log("Update: No %s in package", ecoboot_filename);
     }
     success = true;
     exit:

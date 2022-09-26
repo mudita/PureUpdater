@@ -211,7 +211,6 @@ static bool recursive_mv(const char *what, const char *where) {
     unsigned int recursion_limit = 100;
 
     do {
-        printf("move data to: %s\n", where);
         struct mv_data_s data = {NULL};
         data.to = where;
         recursive_dir_walker_init(&handle_walk, mv_callback, &data);

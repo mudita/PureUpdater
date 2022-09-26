@@ -7,7 +7,7 @@ extern "C"
 
 #include <stdbool.h>
 #include <common/log.h>
-#include <common/json.h>
+#include <common/version_json.h>
 #include <common/types.h>
 
 
