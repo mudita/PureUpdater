@@ -6,7 +6,7 @@
 #include <fcntl.h>
 #include <memory.h>
 #include <common/log.h>
-#include "json_priv.h"
+#include "version_json_priv.h"
 
 static void _autoclose(int *f) {
     if (*f > 0) {
@@ -113,7 +113,5 @@ version_json_file_s json_get_file_struct(const cJSON *json, const char *filename
     file_version.version = strdup("NULL");
     file_version.valid = false;
     exit:
-    debug_log("version.json file:\nname:%s\nmd5sum:%s\nversion:%s", file_version.name, file_version.md5sum,
-              file_version.version);
     return file_version;
 }

@@ -11,6 +11,7 @@ target_link_libraries(common microtar klib cjson images)
 target_include_directories(microtar
     PUBLIC
     ./
+    ./../../hal/include/
     ./../../hal/src/display/
     PRIVATE
 )

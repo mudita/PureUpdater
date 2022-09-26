@@ -1,6 +1,6 @@
 #pragma once
 
-#include "json.h"
+#include "version_json.h"
 
 #ifdef __cplusplus
 extern "C"

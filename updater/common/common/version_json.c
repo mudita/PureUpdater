@@ -2,8 +2,8 @@
 #include <memory.h>
 #include <common/match.h>
 #include <common/path_opts.h>
-#include "json.h"
-#include "json_priv.h"
+#include "version_json.h"
+#include "version_json_priv.h"
 
 #define UNUSED(expr) do { (void)(expr); } while (0)
 

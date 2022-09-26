@@ -150,7 +150,7 @@ int un_tar_file(struct tar_ctx *ctx, mtar_header_t *header, const char *where) {
     AUTOFREE(out) = calloc(1, strlen(name) + strlen(where) + 2);
     sprintf(out, "%s/%s", where, name);
 
-    debug_log("Tar: unpacking archive (%d.%dkb) to %s", header->size / 1024, header->size % 1024, out);
+    debug_log("Tar: unpacking file (%d.%dkb) to %s", header->size / 1024, header->size % 1024, out);
 
     AUTOCLOSE(f) = open(out, O_WRONLY | O_CREAT);
     if (f <= 0) {
@@ -207,7 +207,7 @@ int un_tar_catalog(struct tar_ctx *ctx, mtar_header_t *header, const char *where
     struct stat data;
     ret = stat(out, &data);
     if (ret != 0 && errno == ENOENT) {
-        debug_log("Tar: path %d not found: %d", out, ret);
+        debug_log("Tar: path %s not found: %d", out, ret);
         ret = 0;
     }
     if (ret != 0 && errno != 0) {
