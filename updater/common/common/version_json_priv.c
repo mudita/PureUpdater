@@ -85,22 +85,25 @@ version_json_file_s json_get_file_struct(const cJSON *json, const char *filename
 
     filename = json_get_item_from(name, "filename");
     if (cJSON_IsString(filename) && filename->valuestring != NULL) {
-        file_version.name = strndup(filename->valuestring, strlen(filename->valuestring));
-    } else {
+        strncpy(file_version.name, filename->valuestring, sizeof(file_version.name));
+    }
+    else {
         goto fail;
     }
 
     checksum = json_get_item_from(name, "md5sum");
     if (cJSON_IsString(checksum) && checksum->valuestring != NULL) {
-        file_version.md5sum = strndup(checksum->valuestring, strlen(checksum->valuestring));
-    } else {
+        strncpy(file_version.md5sum, checksum->valuestring, sizeof(file_version.md5sum));
+    }
+    else {
         goto fail;
     }
 
     version = json_get_item_from(name, "version");
     if (cJSON_IsString(version) && version->valuestring != NULL) {
-        file_version.version = strndup(version->valuestring, strlen(version->valuestring));
-    } else {
+        strncpy(file_version.version, version->valuestring, sizeof(file_version.version));
+    }
+    else {
         goto fail;
     }
 
@@ -108,9 +111,9 @@ version_json_file_s json_get_file_struct(const cJSON *json, const char *filename
 
     fail:
     debug_log("JSON: failed to get data from version.json");
-    file_version.name = strndup(filename_arg, strlen(filename_arg));
-    file_version.md5sum = strdup("NULL");
-    file_version.version = strdup("NULL");
+    strncpy(file_version.name, filename_arg, sizeof(file_version.name));
+    strncpy(file_version.md5sum, "NULL", sizeof(file_version.md5sum));
+    strncpy(file_version.md5sum, "NULL", sizeof(file_version.md5sum));
     file_version.valid = false;
     exit:
     return file_version;

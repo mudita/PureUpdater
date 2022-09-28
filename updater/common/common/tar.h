@@ -19,6 +19,7 @@ struct tar_ctx {
     mtar_t tar;
     void *buffer;
     size_t size;
+    char mode;
 };
 
 int tar_init(struct tar_ctx *ctx, const char *name, const char *operation_mode);

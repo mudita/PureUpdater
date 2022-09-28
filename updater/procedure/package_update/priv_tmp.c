@@ -11,6 +11,13 @@
 #include <procedure/backup/dir_walker.h>
 #include "priv_tmp.h"
 
+static void _autofree(char **f) {
+    free(*f);
+}
+
+#define AUTOFREE(var) char* var __attribute__((__cleanup__(_autofree)))
+#define PATH_BUF_SIZE 128
+
 struct unlink_data_s {
     bool factory_reset;
 };
@@ -133,7 +140,7 @@ static bool create_single(const char *what, struct update_handle_s *handle) {
 
 bool tmp_create_catalog(struct update_handle_s *handle) {
     bool retval = true;
-    debug_log("TMP dir: create temp catalog");
+    debug_log("Tmp: create temp catalog");
 
     if (!create_single(handle->tmp_os, handle)) {
         retval = false;
@@ -155,28 +162,42 @@ struct mv_data_s {
 };
 
 int mv_callback(const char *path, enum dir_handling_type_e what, struct dir_handler_s *h, void *d) {
-
     int ret = 0;
     (void) h;
     struct mv_data_s *data = (struct mv_data_s *) (d);
 
-    char *path_to_sanitize = strndup(path, strlen(path));
-    char *dir_root = strndup(h->root_catalog, strlen(h->root_catalog));
-    char *sanitized_path = path_sanitize(dir_root, path_to_sanitize);
-    size_t final_path_size = strlen(sanitized_path) + strlen(data->to) + 2;
-    char *final_path = (char *) calloc(1, final_path_size);
-    snprintf(final_path,final_path_size, "%s/%s", data->to, sanitized_path);
+    AUTOFREE(path_to_sanitize) = (char *) calloc(1, strlen(path) + 1);
+    AUTOFREE(dir_root) = (char *) calloc(1, strlen(h->root_catalog) + 1);
+    if (path_to_sanitize == NULL || dir_root == NULL) {
+        debug_log("Move: failed to allocate memory for paths");
+        ret = 1;
+        goto exit;
+    }
 
-    debug_log("TMP move: path: %s", final_path);
+    strcpy(path_to_sanitize, path);
+    strcpy(dir_root, h->root_catalog);
+    char *sanitized_path = path_sanitize(dir_root, path_to_sanitize);
+
+    size_t path_length = strlen(sanitized_path) + strlen(data->to) + 2;
+
+    AUTOFREE(final_path) = (char *) calloc(1, path_length);
+    if (final_path == NULL) {
+        debug_log("Move: failed to allocate memory for final path");
+        ret = 1;
+        goto exit;
+    }
+    snprintf(final_path, path_length, "%s/%s", data->to, sanitized_path);
+
+    debug_log("Move: path: %s", final_path);
 
     switch (what) {
         case DirHandlingDir:
             ret = mkdir(final_path, 0666);
             if (ret != 0 && errno == EEXIST) {
-                debug_log("TMP dir: mkdir - directory already exists %s %d", final_path, ret);
+                debug_log("Move: mkdir - directory already exists %s %d", final_path, ret);
                 ret = 0;
             }
-            debug_log("TMP dir: created directory %s %d", final_path, ret);
+            debug_log("Move: created directory %s %d", final_path, ret);
             break;
         case DirHandlingFile: {
             struct stat data;
@@ -184,22 +205,19 @@ int mv_callback(const char *path, enum dir_handling_type_e what, struct dir_hand
             if (ret == 0) {
                 ret = unlink(final_path);
                 if (ret != 0) {
-                    debug_log("TMP move: unlinking old file failed %d", ret);
+                    debug_log("Move: unlinking old file failed %d", ret);
                     goto exit;
                 }
             }
             ret = rename(path, final_path);
             if (ret)
-                debug_log("TMP dir: rename %s -> %s failed: %d %d %s\n", path, final_path, ret, errno, strerror(errno));
+                debug_log("Move: rename %s -> %s failed: %d %d %s\n", path, final_path, ret, errno, strerror(errno));
         }
             break;
         default:
             break;
     }
     exit:
-    free(final_path);
-    free(dir_root);
-    free(path_to_sanitize);
     return ret;
 }
 
@@ -236,19 +254,41 @@ static bool recursive_mv(const char *what, const char *where) {
 
 bool tmp_files_move(struct update_handle_s *handle) {
     bool success = true;
+    char path_buf[PATH_BUF_SIZE];
 
-    debug_log("Move: move user data from tmp...");
+    debug_log("Move: move OS data from %s to %s...", handle->tmp_os, handle->update_os);
     if (!recursive_mv(handle->tmp_os, handle->update_os)) {
         success = false;
         goto exit;
     }
 
-    debug_log("Move: move os data from tmp...");
-    if (!recursive_mv(handle->tmp_user, handle->update_user)) {
-        success = false;
-        goto exit;
+    if (handle->enabled.recovery) {
+        debug_log("Move: move user data from %s to %s...", handle->tmp_user, handle->update_user);
+        if (!recursive_mv(handle->tmp_user, handle->update_user)) {
+            success = false;
+            goto exit;
+        }
+    }
+    else {
+        /*
+         * In update archive files to be placed on "/user" partition are inside folder "user".
+         * Move the contents of the folder, not the folder itself.
+         */
+        snprintf(path_buf, PATH_BUF_SIZE, "%s/user", handle->tmp_user);
+
+        debug_log("Move: move user data from %s to %s...", path_buf, handle->update_user);
+        if (!recursive_mv(path_buf, handle->update_user)) {
+            success = false;
+            goto exit;
+        }
     }
 
     exit:
+    snprintf(path_buf, PATH_BUF_SIZE, "%s/.directory_is_indexed", handle->update_user);
+    debug_log("Move: remove %s to force user partition reindexing", path_buf);
+    if (unlink(path_buf) != 0) {
+        debug_log("Move: failed to remove %s, errno: %d", path_buf, errno);
+    }
+
     return success;
 }

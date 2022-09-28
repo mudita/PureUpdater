@@ -38,6 +38,7 @@ struct update_handle_s {
     /// options to perform with update_firmware
     struct {
         bool check_sign: 1;
+        bool recovery: 1;
         bool backup: 1;
         bool check_checksum: 1;
         bool check_version: 1;

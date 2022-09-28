@@ -9,9 +9,9 @@ extern "C"
 #endif
 
 typedef struct version_json_file_s {
-    char *name;
-    char *md5sum;
-    char *version;
+    char name[32 + 1];
+    char md5sum[32 + 1];
+    char version[8 + 1]; // xx.xx.xx
     bool valid;
 } version_json_file_s;
 

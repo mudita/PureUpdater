@@ -7,6 +7,7 @@
 #include <procedure/package_update/update.h>
 #include <procedure/security/pgmkeys.h>
 #include <procedure/factory/factory.h>
+#include <procedure/backup/backup.h>
 #include <common/ui_screens.h>
 #include <common/status_json.h>
 #include <common/version_json.h>
@@ -28,7 +29,7 @@ int __attribute__((noinline, used)) main() {
     int err = vfs_mount_init(fstab, sizeof fstab);
     if (err) {
         printf("Unable to init vfs: %d", err);
-        goto exit;
+        goto exit_no_save;
     }
 
     struct update_handle_s handle;
@@ -60,9 +61,10 @@ int __attribute__((noinline, used)) main() {
 
     switch (system_boot_reason()) {
         case system_boot_reason_update: {
-            debug_log("System update");
+            debug_log("System update start");
             handle.update_from = "/user/update.tar";
-            handle.backup_full_path = "/backup/backup.tar";
+            handle.backup_full_path = "/backup/backup_fw.tar";
+            handle.enabled.recovery = false;
             handle.enabled.backup = true;
             handle.enabled.check_checksum = true;
             handle.enabled.check_sign = true;
@@ -91,7 +93,8 @@ int __attribute__((noinline, used)) main() {
             eink_log("System recovery", true);
             debug_log("System recovery start");
 
-            handle.update_from = "/backup/backup.tar";
+            handle.update_from = "/backup/backup_fw.tar";
+            handle.enabled.recovery = true;
             handle.enabled.backup = false;
             handle.enabled.check_checksum = true;
             handle.enabled.check_sign = false;
@@ -103,7 +106,8 @@ int __attribute__((noinline, used)) main() {
                 goto exit;
             }
         }
-            break;
+        break;
+
         case system_boot_reason_factory: {
             eink_log("Factory reset", true);
             debug_log("Factory reset start");
@@ -136,11 +140,29 @@ int __attribute__((noinline, used)) main() {
         }
         break;
 
-        default:
+        case system_boot_reason_backup: {
+            eink_log("Databases backup", true);
+            debug_log("Databases backup start");
+            const struct backup_handle_s bhandle = {
+                    .backup_to = "/backup/backup_db.tar",
+                    .backup_from_user = handle.update_user,
+                    .backup_from_os = handle.update_os
+            };
+
+            if (!backup_user_databases(&bhandle)) {
+                status.operation_result = OPERATION_FAILURE;
+                debug_log("Backup: backup failed");
+                goto exit;
+            }
+        }
+        break;
+
+        default: {
             eink_log("Error: unknown boot reason", true);
             debug_log("Boot reason not handled: %d", system_boot_reason());
-            goto exit_unknown;
-            break;
+            goto exit_no_save;
+        }
+        break;
     }
 
     exit:
@@ -149,7 +171,7 @@ int __attribute__((noinline, used)) main() {
         debug_log("Status file saving failed");
     }
 
-    exit_unknown:
+    exit_no_save:
     debug_log("Process finished, exiting...");
     msleep(5000);
     err = vfs_unmount_deinit();
