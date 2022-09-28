@@ -93,6 +93,8 @@ const char* status_json_boot_reason_to_operation_str(enum system_boot_reason_cod
             return "factory_reset";
         case system_boot_reason_pgm_keys:
             return "program_keys";
+        case system_boot_reason_backup:
+            return "backup";
         case system_boot_reason_unknown:
             return "unknown";
         default:

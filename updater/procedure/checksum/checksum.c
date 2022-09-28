@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <string.h>
+#include <stdio.h>
 #include <md5/md5.h>
 #include <common/boot_files.h>
 #include <common/path_opts.h>
@@ -21,10 +22,15 @@ bool checksum_verify_all(verify_file_handle_s *handle, const char *tmp_path) {
     bool ret = true;
     debug_log("Checksum: verifying all files");
 
-    for (size_t i = 0; i < verify_files_list_size; ++i) {
-        const char *filename = verify_files[i];
-        char *filepath = (char *) calloc(1, strlen(filename) + strlen(tmp_path) + 1);
-        sprintf(filepath, "%s/%s", tmp_path, filename);
+    for (size_t i = 0; i < files_to_verify_list_size; ++i) {
+        const char *filename = files_to_verify[i];
+        size_t filepath_length = strlen(filename) + strlen(tmp_path) + 2;
+        char *filepath = (char *) calloc(1, filepath_length);
+        if (filepath == NULL) {
+            debug_log("Checksum: failed to allocate memory for file path");
+            break;
+        }
+        snprintf(filepath, filepath_length, "%s/%s", tmp_path, filename);
         if (!path_check_if_exists(filepath)) {
             free(filepath);
             break;
@@ -41,7 +47,7 @@ bool checksum_verify_all(verify_file_handle_s *handle, const char *tmp_path) {
 
 bool checksum_verify(verify_file_handle_s *handle) {
     unsigned char calculated_checksum[16];
-    char calculated_checksum_readable[33];
+    char calculated_checksum_readable[32 + 1];
 
     debug_log("Checksum: verifying file: %s", handle->file_to_verify);
 
@@ -79,7 +85,7 @@ bool checksum_verify(verify_file_handle_s *handle) {
 
     ret = checksum_compare(file_version.md5sum, calculated_checksum_readable);
     if (!ret) {
-        debug_log("Checksum: checksum mismatch for file:%s (%s : %s)", handle->file_to_verify, file_version.md5sum,
+        debug_log("Checksum: checksum mismatch for file: %s (%s : %s)", handle->file_to_verify, file_version.md5sum,
                   calculated_checksum_readable);
         goto exit;
     }

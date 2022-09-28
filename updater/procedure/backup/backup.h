@@ -22,7 +22,8 @@ struct backup_handle_s {
     const char *backup_to;        /// tar file to put backup in
 };
 
-bool backup_previous_firmware(struct backup_handle_s *handle);
+bool backup_user_databases(const struct backup_handle_s *handle);
+bool backup_previous_firmware(const struct backup_handle_s *handle);
 
 #ifdef __cplusplus
 }

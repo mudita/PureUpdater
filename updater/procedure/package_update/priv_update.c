@@ -14,6 +14,8 @@ bool is_os_file(const char *file) {
             ".boot.json",
             ".boot.json.crc",
             "country-codes.db", /// WARN: this is bad, but this is how our MuditaOS works
+            "Luts.bin",
+            "checksums.txt"
     };
 
     return string_match_any_of(file, os_files, sizeof(os_files) / sizeof(os_files[0]));
@@ -22,7 +24,6 @@ bool is_os_file(const char *file) {
 /// dumb put to fat partition
 bool should_not_be_on_os_but_is(const char *file) {
     const char *os_files[] = {
-            "user",
             "assets",
     };
 

@@ -185,12 +185,11 @@ static int verify_ecoboot(const char *path) {
 // Update the ecoboot
 int ecoboot_update(const char *workdir, const char *filename) {
     int ret;
-    char *path __attribute__((__cleanup__(free_str_clean_up))) = malloc(
-            strlen(workdir) + strlen(filename) + sizeof("/"));
-    // Append path
-    strcpy(path, workdir);
-    strcat(path, "/");
-    strcat(path, filename);
+    size_t path_length = strlen(workdir) + strlen(filename) + 2;
+    char *path __attribute__((__cleanup__(free_str_clean_up))) = malloc(path_length);
+
+    snprintf(path, path_length, "%s/%s", workdir, filename);
+
     do {
         // Program flash
         ret = flash_ecoboot(path);
@@ -213,8 +212,8 @@ int ecoboot_update(const char *workdir, const char *filename) {
 }
 
 int ecoboot_in_package(const char *workdir, const char *filename) {
-    char *path __attribute__((__cleanup__(free_str_clean_up))) = malloc(
-            strlen(workdir) + strlen(filename) + sizeof("/") + 1);
+    size_t path_length = strlen(workdir) + strlen(filename) + 2;
+    char *path __attribute__((__cleanup__(free_str_clean_up))) = malloc(path_length);
 
     struct stat st;
     if (!filename) {
@@ -222,13 +221,13 @@ int ecoboot_in_package(const char *workdir, const char *filename) {
         return -EINVAL;
     }
 
-    sprintf(path, "%s/%s", workdir, filename);
+    snprintf(path, path_length, "%s/%s", workdir, filename);
 
     if (stat(path, &st)) {
         if (errno == EEXIST) {
             return 0;
         }
-        debug_log("Ecoboot update: file %s does not exists in the package!", filename);
+        debug_log("Ecoboot update: file %s does not exist in the package!", filename);
         return -errno;
     }
     return 1;

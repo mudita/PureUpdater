@@ -1,5 +1,5 @@
-#include <errno.h>
 #include <stdlib.h>
+#include <string.h>
 #include <common/boot_files.h>
 #include <common/path_opts.h>
 
@@ -15,11 +15,17 @@ static void version_cleanup(version_s *handle) {
 bool version_check_all(verify_file_handle_s *handle, const char *tmp_path, bool allow_downgrade) {
     bool ret = true;
 
-    for (size_t i = 0; i < verify_files_list_size; ++i) {
-        const char *filename = verify_files[i];
-        char *filepath = NULL;
-        asprintf(&filepath, "%s/%s", tmp_path, filename);
-        if (!filepath || !path_check_if_exists(filepath)) {
+    for (size_t i = 0; i < files_to_verify_list_size; ++i) {
+        const char *filename = files_to_verify[i];
+        size_t filepath_length = strlen(tmp_path) + strlen(filename) + 2;
+        char *filepath = (char *)calloc(1, filepath_length);
+        if (filepath == NULL) {
+            ret = false;
+            break;
+        }
+        snprintf(filepath, filepath_length, "%s/%s", tmp_path, filename);
+        if (!path_check_if_exists(filepath)) {
+            ret = false;
             free(filepath);
             break;
         }
@@ -27,7 +33,7 @@ bool version_check_all(verify_file_handle_s *handle, const char *tmp_path, bool 
         ret = version_check(handle, allow_downgrade);
         free(filepath);
         if (!ret) {
-            return ret;
+            break;
         }
     }
 

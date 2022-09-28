@@ -1,7 +1,6 @@
 #include <hal/boot_reason.h>
 
 #include <fsl_snvs_lp.h>
-#include <stdio.h>
 
 /** Get system boot reason code */
 enum system_boot_reason_code system_boot_reason(void)
@@ -22,6 +21,8 @@ enum system_boot_reason_code system_boot_reason(void)
         return system_boot_reason_factory;
     case eco_factory_pgm_keys_code:
         return system_boot_reason_pgm_keys;
+    case eco_backup_code:
+        return system_boot_reason_backup;
     default:
         return system_boot_reason_unknown;
     }
@@ -38,10 +39,12 @@ const char *system_boot_reason_str(enum system_boot_reason_code code)
         return "system_boot_reason_recovery";
     case system_boot_reason_factory:
         return "system_boot_reason_factory";
-    case system_boot_reason_unknown:
-        return "system_boot_reason_unknown";
     case system_boot_reason_pgm_keys:
         return "system_boot_reason_pgm_keys";
+    case system_boot_reason_backup:
+        return "system_boot_reason_backup";
+    case system_boot_reason_unknown:
+        return "system_boot_reason_unknown";
     default:
         return "not in enum system_boot_reason_code";
     }

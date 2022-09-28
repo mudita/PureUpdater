@@ -47,8 +47,9 @@ void recursive_dir_walker(const char *name, struct dir_handler_s *h, unsigned in
     }
 
     if (h->not_first_call) {
-        h->root_catalog = (char *) malloc(strlen(name) + 1);
-        sprintf(h->root_catalog, "%s", name);
+        size_t name_length = strlen(name) + 1;
+        h->root_catalog = (char *) malloc(name_length);
+        snprintf(h->root_catalog, name_length, "%s", name);
         h->not_first_call = false;
     }
 

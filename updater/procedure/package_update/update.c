@@ -4,37 +4,19 @@
 #include <unistd.h>
 #include <hal/security.h>
 #include <hal/hwcrypt/signature.h>
-#include "common/log.h"
+#include <procedure/checksum/checksum.h>
+#include <procedure/version/version.h>
+#include <procedure/backup/backup.h>
+#include <procedure/package_update/update_ecoboot.h>
+#include <procedure/security/pgmkeys.h>
+#include <common/log.h>
 #include "update.h"
 #include "priv_update.h"
 #include "priv_tmp.h"
-#include "procedure/checksum/checksum.h"
-#include "procedure/version/version.h"
-#include "procedure/backup/backup.h"
-#include "procedure/package_update/update_ecoboot.h"
-#include <procedure/security/pgmkeys.h>
 
 static void str_clean_up(char **str) {
     if (str) {
         free(*str);
-    }
-}
-
-static void verify_file_handle_cleanup(verify_file_handle_s *handle) {
-    if (handle) {
-        if (handle->current_version_json.boot.md5sum)
-            free(handle->current_version_json.boot.md5sum);
-        if (handle->current_version_json.boot.name)
-            free(handle->current_version_json.boot.name);
-        if (handle->current_version_json.boot.version)
-            free(handle->current_version_json.boot.version);
-
-        if (handle->version_json.boot.md5sum)
-            free(handle->version_json.boot.md5sum);
-        if (handle->version_json.boot.name)
-            free(handle->version_json.boot.name);
-        if (handle->version_json.boot.version)
-            free(handle->version_json.boot.version);
     }
 }
 
@@ -65,8 +47,7 @@ static void program_secure_fuses(const struct update_handle_s *handle) {
     strcpy(khandle.chksum_srk_file, handle->tmp_os);
     strcat(khandle.chksum_srk_file, sum_fn);
     if (program_keys_is_needed(&khandle)) {
-        debug_log("Update: keys programming is required. Key file: %s checksum: %s", khandle.srk_file,
-                  khandle.chksum_srk_file);
+        debug_log("Update: keys programming is required. Key file: %s checksum: %s", khandle.srk_file, khandle.chksum_srk_file);
         if (program_keys(&khandle)) {
             debug_log("Update: failed to program keys");
         }
@@ -80,7 +61,6 @@ static void program_secure_fuses(const struct update_handle_s *handle) {
 }
 
 bool update_firmware(struct update_handle_s *handle) {
-    debug_log("Starting firmware update");
     bool success = false;
     struct backup_handle_s backup_handle = {
             .backup_from_os = handle->update_os,
@@ -95,7 +75,7 @@ bool update_firmware(struct update_handle_s *handle) {
         } else {
             handle->unsigned_tar = false;
         }
-        debug_log("Update: package is signed: %s", handle->unsigned_tar ? "FALSE" : "TRUE");
+        debug_log("Update: package is signed: %s", handle->unsigned_tar ? "No" : "Yes");
     } else {
         debug_log("Update: package signature check skipped");
     }
@@ -125,8 +105,7 @@ bool update_firmware(struct update_handle_s *handle) {
 
     if (handle->enabled.check_checksum || handle->enabled.check_version) {
         debug_log("Update: verify files");
-        verify_file_handle_s verify_handle __attribute__((__cleanup__(verify_file_handle_cleanup))) =
-                json_get_verify_files(handle->new_version_json, handle->current_version_json);
+        verify_file_handle_s verify_handle = json_get_verify_files(handle->new_version_json, handle->current_version_json);
 
         if (handle->enabled.check_checksum) {
             debug_log("Update: verify checksum");
