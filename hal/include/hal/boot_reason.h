@@ -6,7 +6,8 @@ enum eco_boot_reason_code
    eco_recovery_code = 0xBADC0001,
    eco_factory_rst_code = 0xBADC0002,
    eco_factory_pgm_keys_code = 0xBADC0003,
-   eco_backup_code = 0xBADC0004
+   // Code 0xBADC0004 is reserved for MSC mode
+   eco_backup_code = 0xBADC0005
 };
 
 //! Boot reason code
