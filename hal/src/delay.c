@@ -1,18 +1,17 @@
 #include <hal/delay.h>
 #include <drivers/fsl_pit.h>
 #include <drivers/fsl_clock.h>
+#include <drivers/fsl_common.h>
 
 static volatile uint32_t PITCounter = 0;
-#define USEC_TO_COUNT(us, clockFreqInHz) (uint64_t)((uint64_t)us * clockFreqInHz / 1000000U)
 
 void delay_init(void)
 {
 	pit_config_t config;
 	PIT_GetDefaultConfig(&config);
 	PIT_Init(PIT, &config);
-	PIT_SetTimerPeriod(PIT, kPIT_Chnl_0, USEC_TO_COUNT(1000, CLOCK_GetFreq(kCLOCK_IpgClk)));
-	// Before enabling IRQs clear pending irqs status register
-	PIT_ClearStatusFlags(PIT, kPIT_Chnl_0, UINT32_MAX);
+	PIT_SetTimerPeriod(PIT, kPIT_Chnl_0, MSEC_TO_COUNT(1U, CLOCK_GetFreq(kCLOCK_OscClk)));
+	PIT_ClearStatusFlags(PIT, kPIT_Chnl_0, UINT32_MAX); // Before enabling IRQs clear pending IRQs status register
 	PIT_EnableInterrupts(PIT, kPIT_Chnl_0, kPIT_TimerInterruptEnable);
 	NVIC_EnableIRQ(PIT_IRQn);
 	PIT_StartTimer(PIT, kPIT_Chnl_0);
@@ -20,8 +19,10 @@ void delay_init(void)
 
 void __attribute__((used)) PIT_DriverIRQHandler(void)
 {
+    PITCounter++;
 	PIT_ClearStatusFlags(PIT, kPIT_Chnl_0, kPIT_TimerFlag);
-	PITCounter++;
+    /* Wait until the flag has been cleared, so that the PIT interrupt won't trigger twice */
+    while (PIT_GetStatusFlags(PIT, kPIT_Chnl_0) & kPIT_TimerFlag);
 }
 
 uint32_t get_jiffiess(void)
