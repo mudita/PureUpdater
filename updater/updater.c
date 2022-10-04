@@ -11,6 +11,7 @@
 #include <common/ui_screens.h>
 #include <common/status_json.h>
 #include <common/version_json.h>
+#include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
 #include <unistd.h>
@@ -64,7 +65,6 @@ int __attribute__((noinline, used)) main() {
             debug_log("System update start");
             handle.update_from = "/user/update.tar";
             handle.backup_full_path = "/backup/backup_fw.tar";
-            handle.enabled.recovery = false;
             handle.enabled.backup = true;
             handle.enabled.check_checksum = true;
             handle.enabled.check_sign = true;
@@ -94,7 +94,6 @@ int __attribute__((noinline, used)) main() {
             debug_log("System recovery start");
 
             handle.update_from = "/backup/backup_fw.tar";
-            handle.enabled.recovery = true;
             handle.enabled.backup = false;
             handle.enabled.check_checksum = true;
             handle.enabled.check_sign = false;

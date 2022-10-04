@@ -4,14 +4,14 @@
 void path_remove_dup_slash(char *from) {
     for (size_t i = 0; i < strlen(from) - 1; ++i) {
         if (from[i] == '/' && from[i + 1] == '/') {
-            memcpy(from + i, from + i + 1, strlen(from + i + 1) + 1);
+            memmove(from + i, from + i + 1, strlen(from + i + 1) + 1);
         }
     }
 }
 
 void path_remove_cwd(char *from) {
     if (strlen(from) >= 2 && strncmp(from, "./", 2) == 0) {
-        memcpy(from, from + 2, strlen(from) + 1);
+        memmove(from, from + 2, strlen(from + 2) + 1);
     }
 }
 
@@ -30,14 +30,14 @@ char *path_sanitize(char *from, char *path) {
 }
 
 void path_remove_trailing_slash(char *out) {
-    if (out == NULL) {
-        return;
-    }
-    if (strlen(out) < 2) {
-        return;
-    }
-    if (out[strlen(out) - 1] == '/') {
+    if (out != NULL && strlen(out) >= 2 && out[strlen(out) - 1] == '/') {
         out[strlen(out) - 1] = 0;
+    }
+}
+
+void path_remove_leading_slash(char *out) {
+    if (out != NULL && strlen(out) >= 2 && out[0] == '/') {
+        memmove(out, out + 1, strlen(out + 1) + 1);
     }
 }
 

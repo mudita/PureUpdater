@@ -37,7 +37,11 @@ bool backup_previous_firmware(const struct backup_handle_s *handle) {
         return false;
     }
 
-    if (!backup_user_data(handle)) {
+    if (!backup_databases(handle)) {
+        return false;
+    }
+
+    if (!backup_logs(handle)) {
         return false;
     }
 

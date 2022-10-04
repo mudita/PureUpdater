@@ -16,6 +16,7 @@ static void _autofree(char **f) {
 }
 
 #define AUTOFREE(var) char* var __attribute__((__cleanup__(_autofree)))
+#define UNUSED(expr) do { (void)(expr); } while (0)
 #define PATH_BUF_SIZE 128
 
 struct unlink_data_s {
@@ -43,16 +44,16 @@ int unlink_callback(const char *path, enum dir_handling_type_e what, struct dir_
                     const char *extension = strrchr(path, '.');
                     if (extension == NULL) {
                         ret = unlink(path);
-                        debug_log("Unlink: removed file without extension: %s %d", path, ret);
+                        debug_log("Unlink: removed file without extension: %s", path);
                         break;
                     } else if (strcmp(db_extensions[i], extension) == 0) {
-                        debug_log("Unlink: removing file: %s %d", path, ret);
+                        debug_log("Unlink: removing file: %s", path);
                         ret = unlink(path);
                         break;
                     }
                 }
             } else {
-                debug_log("Unlink: removing file: %s %d", path, ret);
+                debug_log("Unlink: removing file: %s", path);
                 ret = unlink(path);
             }
             break;
@@ -61,14 +62,13 @@ int unlink_callback(const char *path, enum dir_handling_type_e what, struct dir_
             break;
     }
     if (ret != 0) {
-        debug_log("Unlink: unlink error: %d", ret);
-
+        debug_log("Unlink: unlink error, errno %d", errno);
     }
     return ret;
 }
 
 static int remove_dir_callback(const char *path, struct dir_handler_s *h, void *d) {
-    (void) h;
+    UNUSED(h);
     struct unlink_data_s *data = (struct unlink_data_s *) (d);
     int ret = 0;
 
@@ -78,9 +78,9 @@ static int remove_dir_callback(const char *path, struct dir_handler_s *h, void *
 
     ret = rmdir(path);
     if (ret != 0) {
-        debug_log("Rmdir: rmdir error: %d", ret);
+        debug_log("Rmdir: rmdir error, errno %d", errno);
     }
-    debug_log("Rmdir: removed catalog: %s %d", path, ret);
+    debug_log("Rmdir: removed catalog: %s", path);
 
     exit:
     return ret;
@@ -100,7 +100,7 @@ bool recursive_unlink(const char *what, bool factory_reset) {
         recursive_dir_walker_deinit(&handle_walk);
 
         if (handle_walk.error) {
-            debug_log("Unlink: walker error. errno: %d", errno);
+            debug_log("Unlink: walker error, errno: %d", errno);
             success = false;
             break;
         }
@@ -129,7 +129,7 @@ static bool create_single(const char *what, struct update_handle_s *handle) {
     }
 
     if (mkdir(what, 0666) != 0) {
-        debug_log("Create dir: failed to create a directory: %s : %d", what, errno);
+        debug_log("Create dir: failed to create a directory %s, errno %d", what, errno);
         success = false;
         goto exit;
     }
@@ -194,10 +194,10 @@ int mv_callback(const char *path, enum dir_handling_type_e what, struct dir_hand
         case DirHandlingDir:
             ret = mkdir(final_path, 0666);
             if (ret != 0 && errno == EEXIST) {
-                debug_log("Move: mkdir - directory already exists %s %d", final_path, ret);
+                debug_log("Move: mkdir - directory already exists %s", final_path);
                 ret = 0;
             }
-            debug_log("Move: created directory %s %d", final_path, ret);
+            debug_log("Move: created directory %s", final_path);
             break;
         case DirHandlingFile: {
             struct stat data;
@@ -205,13 +205,14 @@ int mv_callback(const char *path, enum dir_handling_type_e what, struct dir_hand
             if (ret == 0) {
                 ret = unlink(final_path);
                 if (ret != 0) {
-                    debug_log("Move: unlinking old file failed %d", ret);
+                    debug_log("Move: unlinking old file failed, errno %d", errno);
                     goto exit;
                 }
             }
             ret = rename(path, final_path);
-            if (ret)
-                debug_log("Move: rename %s -> %s failed: %d %d %s\n", path, final_path, ret, errno, strerror(errno));
+            if (ret) {
+                debug_log("Move: rename %s -> %s failed, errno %d (%s)\n", path, final_path, errno, strerror(errno));
+            }
         }
             break;
         default:
@@ -236,7 +237,7 @@ static bool recursive_mv(const char *what, const char *where) {
         recursive_dir_walker_deinit(&handle_walk);
 
         if (handle_walk.error) {
-            debug_log("Move: walker error. errno: %d", errno);
+            debug_log("Move: walker error, errno: %d", errno);
             success = false;
             break;
         }
@@ -257,33 +258,26 @@ bool tmp_files_move(struct update_handle_s *handle) {
     char path_buf[PATH_BUF_SIZE];
 
     debug_log("Move: move OS data from %s to %s...", handle->tmp_os, handle->update_os);
-    if (!recursive_mv(handle->tmp_os, handle->update_os)) {
-        success = false;
-        goto exit;
-    }
-
-    if (handle->enabled.recovery) {
-        debug_log("Move: move user data from %s to %s...", handle->tmp_user, handle->update_user);
-        if (!recursive_mv(handle->tmp_user, handle->update_user)) {
+    do
+    {
+        if (!recursive_mv(handle->tmp_os, handle->update_os)) {
             success = false;
-            goto exit;
+            break;
         }
-    }
-    else {
-        /*
-         * In update archive files to be placed on "/user" partition are inside folder "user".
-         * Move the contents of the folder, not the folder itself.
-         */
+
+        /* In both update and recovery archive the files to be placed
+         * on "/user" partition are inside folder "user".
+         * Move the contents of the folder, not the folder itself. */
         snprintf(path_buf, PATH_BUF_SIZE, "%s/user", handle->tmp_user);
 
         debug_log("Move: move user data from %s to %s...", path_buf, handle->update_user);
         if (!recursive_mv(path_buf, handle->update_user)) {
             success = false;
-            goto exit;
+            break;
         }
-    }
 
-    exit:
+    } while (0);
+
     snprintf(path_buf, PATH_BUF_SIZE, "%s/.directory_is_indexed", handle->update_user);
     debug_log("Move: remove %s to force user partition reindexing", path_buf);
     if (unlink(path_buf) != 0) {

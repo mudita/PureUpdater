@@ -18,10 +18,10 @@ static void _autofree(char **f) {
 
 #define AUTOFREE(var) char* var __attribute__((__cleanup__(_autofree)))
 
-static const char *user_file_types[] =
+static const char *log_file_types[] =
 {
-    ".db",
-    ".log"
+    ".log",
+    ".json"
 };
 
 static const char *db_file_types[] =
@@ -29,7 +29,7 @@ static const char *db_file_types[] =
     ".db"
 };
 
-static const size_t user_file_types_size = ARRAY_SIZE(user_file_types);
+static const size_t log_file_types_size = ARRAY_SIZE(log_file_types);
 static const size_t db_file_types_size = ARRAY_SIZE(db_file_types);
 
 struct list_node_t {
@@ -160,27 +160,31 @@ static int tar_callback(const char *path, enum dir_handling_type_e what, struct 
     return ret;
 }
 
-static bool backup_files_by_types(const char *src_path, const char *tar_name, const char **file_types, size_t file_types_cnt) {
-    bool success = true;
+static bool backup_files_by_types(const char *src_path, const char *dst_path, const char *tar_name, const char **file_types, size_t file_types_cnt) {
+    bool operation_succeded = false;
     struct tar_ctx ctx;
     do {
         if (0 != tar_init(&ctx, tar_name, "a")) {
             debug_log("Backup: unable to init tar archive: %s", tar_name);
-            success = false;
             break;
+        }
+
+        if (dst_path[0] != '\0') {
+            if (tar_nested_mkdir(&ctx, dst_path) != 0) {
+                debug_log("Backup: failed to create destination directory tree %s", dst_path);
+                break;
+            }
         }
 
         struct list_node_t *nodes = list_create();
         if (nodes == NULL) {
            debug_log("Backup: failed to allocate memory for files list");
-           success = false;
            break;
         }
 
         int ret = get_files_flat(src_path, file_types, file_types_cnt, nodes);
         if (ret != 0) {
             debug_log("Backup: failed to get files list: %d", ret);
-            success = false;
             break;
         }
 
@@ -191,42 +195,48 @@ static bool backup_files_by_types(const char *src_path, const char *tar_name, co
                 continue;
             }
             size_t filename_from_length = strlen(node->data) + strlen(src_path) + 2;
+            size_t filename_to_length = strlen(node->data) + strlen(dst_path) + 2;
             char *filename_from = (char *) calloc(1, filename_from_length);
-            if (filename_from == NULL) {
-                debug_log("Backup: failed to allocate memory for filename string");
-                success = false;
+            char *filename_to = (char *) calloc(1, filename_to_length);
+            if (filename_from == NULL || filename_to == NULL) {
+                debug_log("Backup: failed to allocate memory for filename");
                 break;
             }
             snprintf(filename_from, filename_from_length, "%s/%s", src_path, node->data);
             path_remove_dup_slash(filename_from);
-            if (0 != tar_file(&ctx, filename_from, node->data)) {
+            snprintf(filename_to, filename_to_length, "%s/%s", dst_path, node->data);
+            path_remove_leading_slash(filename_to);
+            path_remove_dup_slash(filename_to);
+            if (0 != tar_file(&ctx, filename_from, filename_to)) {
                 free(filename_from);
-                debug_log("Backup: backing up file %s failed", filename_from);
-                success = false;
+                free(filename_to);
+                debug_log("Backup: backing up file %s to %s failed", filename_from, filename_to);
                 break;
             }
             node = node->next;
             free(filename_from);
+            free(filename_to);
         }
         list_free(&nodes);
+        operation_succeded = true;
 
     } while (0);
 
     if (0 != tar_deinit(&ctx)) {
         debug_log("Backup: tar deinit failed");
-        success = false;
+        operation_succeded = false;
     }
-    return success;
+    return operation_succeded;
 }
 
 bool backup_boot_files(const struct backup_handle_s *handle) {
-    bool success = true;
+    bool operation_succeeded = true;
     struct tar_ctx ctx;
     debug_log("Backup: backing up boot files to %s", handle->backup_to);
     do {
         if (0 != tar_init(&ctx, handle->backup_to, "a")) {
             debug_log("Backup: unable to init tar archive: %s", handle->backup_to);
-            success = false;
+            operation_succeeded = false;
             break;
         }
 
@@ -235,15 +245,15 @@ bool backup_boot_files(const struct backup_handle_s *handle) {
             size_t filename_from_length = strlen(filename) + strlen(handle->backup_from_os) + 2;
             char *filename_from = (char *) calloc(1, filename_from_length);
             if (filename_from == NULL) {
-                debug_log("Backup: failed to allocate memory for filename string");
-                success = false;
+                debug_log("Backup: failed to allocate memory for filename");
+                operation_succeeded = false;
                 break;
             }
             snprintf(filename_from, filename_from_length, "%s/%s", handle->backup_from_os, filename);
             path_remove_dup_slash(filename_from);
             if (0 != tar_file(&ctx, filename_from, filename)) {
                 free(filename_from);
-                success = false;
+                operation_succeeded = false;
                 debug_log("Backup: backing up file %s failed", filename);
                 break;
             }
@@ -254,20 +264,42 @@ bool backup_boot_files(const struct backup_handle_s *handle) {
 
     if (0 != tar_deinit(&ctx)) {
         debug_log("Backup: tar deinit failed");
-        success = false;
+        operation_succeeded = false;
     }
 
-    return success;
-}
-
-bool backup_user_data(const struct backup_handle_s *handle) {
-    debug_log("Backup: backing up user data to %s", handle->backup_to);
-    return backup_files_by_types(handle->backup_from_user, handle->backup_to, user_file_types, user_file_types_size);
+    return operation_succeeded;
 }
 
 bool backup_databases(const struct backup_handle_s *handle) {
+    const char *const dst_db_path = "user/db";
+    const char *const db_path_in_user = "db";
+    bool operation_succeeded = false;
+
     debug_log("Backup: backing up databases to %s", handle->backup_to);
-    return backup_files_by_types(handle->backup_from_user, handle->backup_to, db_file_types, db_file_types_size);
+    const size_t src_db_path_length = strlen(handle->backup_from_user) + strlen(db_path_in_user) + 2;
+    AUTOFREE(src_db_path) = (char *) calloc(1, src_db_path_length);
+    do
+    {
+        if (src_db_path == NULL) {
+            debug_log("Backup: failed to allocate memory for database path");
+            break;
+        }
+        snprintf(src_db_path, src_db_path_length, "%s/%s", handle->backup_from_user, db_path_in_user);
+
+        if (!backup_files_by_types(src_db_path, dst_db_path, handle->backup_to, db_file_types, db_file_types_size)) {
+            debug_log("Backup: failed to backup *.db files");
+            break;
+        }
+        operation_succeeded = true;
+
+    } while (0);
+
+    return operation_succeeded;
+}
+
+bool backup_logs(const struct backup_handle_s *handle) {
+    debug_log("Backup: backing up log files to %s", handle->backup_to);
+    return backup_files_by_types(handle->backup_from_user, "", handle->backup_to, log_file_types, log_file_types_size);
 }
 
 bool check_backup_entries(const struct backup_handle_s *handle) {
@@ -284,7 +316,7 @@ bool check_backup_entries(const struct backup_handle_s *handle) {
 }
 
 bool backup_whole_directory(const struct backup_handle_s *handle) {
-    bool success = true;
+    bool operation_succeeded = true;
 
     debug_log("Backup: backing up whole directory");
     struct dir_handler_s handle_walk;
@@ -295,7 +327,7 @@ bool backup_whole_directory(const struct backup_handle_s *handle) {
     do {
         if (0 != tar_init(&ctx, handle->backup_to, "w")) {
             debug_log("Backup: unable to init tar archive: %s", handle->backup_to);
-            success = false;
+            operation_succeeded = false;
             break;
         }
 
@@ -306,7 +338,7 @@ bool backup_whole_directory(const struct backup_handle_s *handle) {
 
         if (handle_walk.error) {
             debug_log("Backup: walker error: %d", handle_walk.error);
-            success = false;
+            operation_succeeded = false;
             break;
         }
 
@@ -314,7 +346,7 @@ bool backup_whole_directory(const struct backup_handle_s *handle) {
 
     if (tar_deinit(&ctx) != 0) {
         debug_log("Backup: tar deinit failed");
-        success = false;
+        operation_succeeded = false;
     }
-    return success;
+    return operation_succeeded;
 }

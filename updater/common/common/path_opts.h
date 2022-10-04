@@ -19,6 +19,8 @@ char *path_sanitize(char *from, char *path);
 
 void path_remove_trailing_slash(char *out);
 
+void path_remove_leading_slash(char *out);
+
 const char *path_basename_const(const char *path);
 
 bool path_check_if_exists(const char *path);

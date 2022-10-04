@@ -18,12 +18,12 @@ bool check_backup_entries(const struct backup_handle_s *handle);
 bool backup_boot_files(const struct backup_handle_s *handle);
 
 /// backup only required data stored on 3:/ (user) partition
-/// all *.db files
+/// in 'db' folder
 bool backup_databases(const struct backup_handle_s *handle);
 
 /// backup only required data stored on 3:/ (user) partition
-/// all *.db and *.log files
-bool backup_user_data(const struct backup_handle_s *handle);
+/// all *.log and *.json files
+bool backup_logs(const struct backup_handle_s *handle);
 
 /// UNUSED:
 

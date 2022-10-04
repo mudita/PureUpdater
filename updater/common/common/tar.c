@@ -45,9 +45,9 @@ int tar_init(struct tar_ctx *ctx, const char *name, const char *operation_mode) 
             break;
         }
 
-        int ret = mtar_open(&ctx->tar, name, operation_mode);
+        ret = mtar_open(&ctx->tar, name, operation_mode);
         if (ret != MTAR_ESUCCESS) {
-            debug_log("Tar: unable to open tar archive: %s in mode %s: %d", name, operation_mode, ret);
+            debug_log("Tar: unable to open tar archive: %s in mode %s, retcode %d", name, operation_mode, ret);
             break;
         }
 
@@ -67,7 +67,7 @@ int tar_init(struct tar_ctx *ctx, const char *name, const char *operation_mode) 
                 int fd = fileno(ctx->tar.stream);
                 ret = ftruncate(fd, record_pos);
                 if (ret != 0) {
-                    debug_log("Tar: failed to truncate closing record, errno: %d", errno);
+                    debug_log("Tar: failed to truncate closing record, errno %d", errno);
                 }
 
                 /* Synchronize microtar internal cursor with current position */
@@ -91,14 +91,14 @@ int tar_deinit(struct tar_ctx *ctx) {
         if (ctx->mode != 'r') {
             ret = mtar_finalize(&ctx->tar);
             if (ret != MTAR_ESUCCESS) {
-                debug_log("Tar: unable to finalize archive: %d", ret);
+                debug_log("Tar: unable to finalize archive, retcode %d", ret);
                 // No break here as mtar_close has to be called even if finalize has failed
             }
         }
 
         ret = mtar_close(&ctx->tar);
         if (ret != MTAR_ESUCCESS) {
-            debug_log("Tar: unable to close archive: %d", ret);
+            debug_log("Tar: unable to close archive, retcode %d", ret);
             break;
         }
 
@@ -107,33 +107,33 @@ int tar_deinit(struct tar_ctx *ctx) {
     return ret;
 }
 
-int tar_catalog(struct tar_ctx *ctx, const char *sanitized_name) {
-    if (sanitized_name == NULL) {
+int tar_catalog(struct tar_ctx *ctx, const char *name) {
+    if (name == NULL) {
         return 0;
     }
-    int ret = mtar_write_dir_header(&ctx->tar, sanitized_name);
+    int ret = mtar_write_dir_header(&ctx->tar, name);
     if (ret != MTAR_ESUCCESS) {
-        debug_log("Tar: unable to write dir header for file %s : %d", sanitized_name, ret);
+        debug_log("Tar: unable to write dir header for %s, retcode %d", name, ret);
     }
     return ret;
 }
 
-int tar_file(struct tar_ctx *ctx, const char *path, const char *sanitized_name) {
+int tar_file(struct tar_ctx *ctx, const char *path, const char *name) {
     int ret = 0;
     off_t file_size = 0;
     off_t yet_to_write = 0;
     int bytes_read = 0;
 
-    debug_log("Tar: appending file %s", path);
+    debug_log("Tar: appending file %s to %s", path, name);
 
     AUTOCLOSE(f) = open(path, O_RDONLY);
     if (f <= 0 && errno == ENOENT) {
-        debug_log("Tar: ignored non existing file: %s", path);
+        debug_log("Tar: ignored nonexistent file: %s", path);
         ret = 0;
         goto exit;
     }
     if (f <= 0) {
-        debug_log("Tar: failed to open file: %s", sanitized_name);
+        debug_log("Tar: failed to open file: %s", name);
         ret = ErrorTarStd;
         goto exit;
     }
@@ -141,7 +141,7 @@ int tar_file(struct tar_ctx *ctx, const char *path, const char *sanitized_name) 
     struct stat buf;
     ret = stat(path, &buf);
     if (ret != 0) {
-        debug_log("Tar: can't get stat info from file: %s : %d", sanitized_name, ret);
+        debug_log("Tar: can't get stat info from file: %s, errno %d", name, errno);
         ret = ErrorTarStd;
         goto exit;
     }
@@ -149,9 +149,9 @@ int tar_file(struct tar_ctx *ctx, const char *path, const char *sanitized_name) 
     file_size = buf.st_size;
     yet_to_write = buf.st_size;
 
-    ret = mtar_write_file_header(&ctx->tar, sanitized_name, file_size);
+    ret = mtar_write_file_header(&ctx->tar, name, file_size);
     if (ret != MTAR_ESUCCESS) {
-        debug_log("Tar: unable to write file header for file %s, file size: %d : %d", sanitized_name, file_size, ret);
+        debug_log("Tar: unable to write file header for file %s, file size: %d, retcode %d", name, file_size, ret);
         ret = ErrorTarLib;
         goto exit;
     }
@@ -161,7 +161,7 @@ int tar_file(struct tar_ctx *ctx, const char *path, const char *sanitized_name) 
         bytes_read = read(f, ctx->buffer, ctx->size);
         ret = mtar_write_data(&ctx->tar, ctx->buffer, bytes_read);
         if (ret != MTAR_ESUCCESS) {
-            debug_log("Tar: data write (%d bytes) to archive failed: %d", bytes_read, ret);
+            debug_log("Tar: data write (%d bytes) to archive failed, retcode %d", bytes_read, ret);
             ret = ErrorTarLib;
             goto exit;
         }
@@ -172,6 +172,52 @@ int tar_file(struct tar_ctx *ctx, const char *path, const char *sanitized_name) 
         }
         yet_to_write -= bytes_read;
     } while (bytes_read > 0 && yet_to_write);
+
+    exit:
+    return ret;
+}
+
+int tar_nested_mkdir(struct tar_ctx *ctx, const char *path) {
+    int ret = 0;
+    const char *remaining_path = NULL;
+    const size_t path_length = strlen(path) + 1;
+    const size_t path_fixed_length = path_length + 1;
+
+    AUTOFREE(path_fixed) = (char *) calloc(1, path_fixed_length);
+    if (path_fixed == NULL) {
+        debug_log("Tar: failed to allocate memory for path string");
+        ret = 1;
+        goto exit;
+    }
+    strncpy(path_fixed, path, path_fixed_length);
+    if (path_fixed[path_length - 1] != '/') {
+        path_fixed[path_length - 1] = '/'; // Append slash at the end to properly handle the most nested dir
+    }
+    path_remove_leading_slash(path_fixed);
+    remaining_path = path_fixed;
+
+    while ((remaining_path = strchr(remaining_path, '/')) != NULL) {
+        const size_t current_path_length = remaining_path - path_fixed + 2;
+        char *current_path = (char *) calloc(1, current_path_length);
+        if (current_path == NULL) {
+            debug_log("Tar: failed to allocate memory for current path string");
+            ret = 1;
+            break;
+        }
+        strncpy(current_path, path_fixed, current_path_length);
+        current_path[current_path_length - 1] = '\0';
+
+        debug_log("Tar: creating directory %s", current_path);
+        ret = tar_catalog(ctx, current_path);
+        if (ret != MTAR_ESUCCESS) {
+            free(current_path);
+            debug_log("Tar: failed to create directory %s in tar archive", current_path);
+            break;
+        }
+
+        remaining_path++; // Skip leading slash before next iteration
+        free(current_path);
+    }
 
     exit:
     return ret;
@@ -258,11 +304,11 @@ int un_tar_catalog(struct tar_ctx *ctx, mtar_header_t *header, const char *where
     struct stat data;
     ret = stat(out, &data);
     if (ret != 0 && errno == ENOENT) {
-        debug_log("Tar: path %s not found: %d", out, ret);
+        debug_log("Tar: path %s not found", out);
         ret = 0;
     }
     if (ret != 0 && errno != 0) {
-        debug_log("Tar: path stat info error: %d:%d", ret, errno);
+        debug_log("Tar: path stat info error, errno %d", errno);
         goto exit;
     }
 
@@ -273,7 +319,7 @@ int un_tar_catalog(struct tar_ctx *ctx, mtar_header_t *header, const char *where
         ret = 0;
     }
     if (ret != 0) {
-        debug_log("Tar: can't create path: %d", ret);
+        debug_log("Tar: can't create path, errno", errno);
         goto exit;
     }
 

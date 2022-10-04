@@ -62,11 +62,7 @@ static void program_secure_fuses(const struct update_handle_s *handle) {
 
 bool update_firmware(struct update_handle_s *handle) {
     bool success = false;
-    struct backup_handle_s backup_handle = {
-            .backup_from_os = handle->update_os,
-            .backup_from_user = handle->update_user,
-            .backup_to = handle->backup_full_path
-    };
+
     if (handle->enabled.check_sign) {
         debug_log("Update: signature check");
         const int err = signature_check(handle->update_from);
@@ -81,8 +77,14 @@ bool update_firmware(struct update_handle_s *handle) {
     }
 
     if (handle->enabled.backup) {
+        struct backup_handle_s backup_handle = {
+                .backup_from_os = handle->update_os,
+                .backup_from_user = handle->update_user,
+                .backup_to = handle->backup_full_path
+        };
+        
         debug_log("Update: performing backup");
-        if (handle->enabled.backup && !backup_previous_firmware(&backup_handle)) {
+        if (!backup_previous_firmware(&backup_handle)) {
             debug_log("Update: backup error");
             success = false;
             goto exit;

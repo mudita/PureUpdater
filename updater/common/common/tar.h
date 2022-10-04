@@ -32,6 +32,9 @@ int tar_file(struct tar_ctx *ctx, const char *path, const char *sanitized_name);
 /// append catalog to opened tar
 int tar_catalog(struct tar_ctx *ctx, const char *sanitized_name);
 
+/// create empty directory tree in tar
+int tar_nested_mkdir(struct tar_ctx *ctx, const char *path);
+
 /// overwrite file if exists
 int un_tar_file(struct tar_ctx *ctx, mtar_header_t *header, const char *where);
 

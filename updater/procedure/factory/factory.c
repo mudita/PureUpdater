@@ -14,12 +14,12 @@ bool factory_reset(const struct factory_reset_handle *handle) {
     struct stat data;
     int ret = stat(handle->user_dir, &data);
     if (ret != 0) {
-        debug_log("Factory reset: failed to stat user dir:%s %d", handle->user_dir, ret);
+        debug_log("Factory reset: failed to stat user dir %s, errno %d", handle->user_dir, errno);
         goto exit;
     }
 
     if (!recursive_unlink(handle->user_dir, true)) {
-        debug_log("Factory reset: failed to unlink user dir, errno: %d", errno);
+        debug_log("Factory reset: failed to unlink user dir %s, errno: %d", handle->user_dir, errno);
         goto exit;
     }
 
