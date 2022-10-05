@@ -1,5 +1,5 @@
 #include "ui_screens.h"
-#include "ED028TC1.h"
+#include <ED028TC1.h>
 
 #include "ui_update_in_progress.h"
 #include "ui_update_success.h"
