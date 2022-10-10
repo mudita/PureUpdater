@@ -8,12 +8,12 @@
 #include <hal/delay.h>
 #include <hal/console.h>
 #include <hal/emmc.h>
-#include <hal/display.h>
 #include <hal/i2c_host.h>
-#include <prv/hal/i2c_dev.h>
+#include <hal/ED028TC1.h>
 #include <hal/keyboard.h>
-#include <boot/board.h>
 #include <hal/security.h>
+#include <prv/hal/i2c_dev.h>
+#include <boot/board.h>
 #include <stdio.h>
 
 //#define ENABLE_PRINT_SYSTEM_CLOCKS // Uncomment to print system clocks config at startup
@@ -42,7 +42,7 @@ void system_initialize(void)
     }
 
     //Initialize Eink display
-    eink_init();
+    EinkInitialize(Eink1Bpp);
 
     // Initialize the I2c controller
     if (!get_i2c_controller())

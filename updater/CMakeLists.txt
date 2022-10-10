@@ -35,6 +35,7 @@ target_link_libraries(
     lua
     lualibs
     luamodules
+    gui
 )
 
 target_include_directories(

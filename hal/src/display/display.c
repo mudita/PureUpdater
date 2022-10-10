@@ -8,7 +8,7 @@
  */
 
 #include <hal/display.h>
-#include "ED028TC1.h"
+#include <hal/ED028TC1.h>
 #include "fonts.h"
 #include <hal/delay.h>
 #include <boot/board.h>

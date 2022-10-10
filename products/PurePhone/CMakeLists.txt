@@ -1,2 +1,2 @@
 add_subdirectory(hal)
-add_subdirectory(images)
+add_subdirectory(gui)
