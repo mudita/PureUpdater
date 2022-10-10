@@ -8,12 +8,12 @@
 #include <hal/delay.h>
 #include <hal/console.h>
 #include <hal/emmc.h>
-#include <hal/display.h>
 #include <hal/i2c_host.h>
-#include <prv/hal/i2c_dev.h>
+#include <hal/ED028TC1.h>
 #include <hal/keyboard.h>
-#include <boot/board.h>
 #include <hal/security.h>
+#include <prv/hal/i2c_dev.h>
+#include <boot/board.h>
 #include <stdio.h>
 
 static struct hal_i2c_dev i2c_gen = {.base = (uintptr_t)BOARD_KEYBOARD_I2C_BASEADDR, .initialized = false};
@@ -37,7 +37,7 @@ void system_initialize(void)
     }
 
     //Initialize Eink display
-    eink_init();
+    EinkInitialize(Eink1Bpp);
 
     // Initialize the I2c controller
     if (!get_i2c_controller())

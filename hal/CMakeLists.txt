@@ -20,7 +20,7 @@ PRIVATE
 )
 
 # Includes
-target_include_directories( ${LIB_NAME} 
+target_include_directories( ${LIB_NAME}
 PUBLIC
     include
 )

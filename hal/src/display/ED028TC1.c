@@ -7,7 +7,7 @@
  * @details This is hardware specific electronic paper display ED028TC1 driver.
  */
 
-#include "ED028TC1.h"
+#include <hal/ED028TC1.h>
 #include "LUT.h"
 #include <stdbool.h>
 #include <boot/board.h>

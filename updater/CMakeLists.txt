@@ -31,6 +31,7 @@ target_link_libraries(
     common
     cjson
     md5
+    gui
 )
 
 target_include_directories(

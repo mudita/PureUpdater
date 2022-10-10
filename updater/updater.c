@@ -1,23 +1,23 @@
 #include <hal/system.h>
 #include <hal/boot_reason.h>
 #include <hal/delay.h>
-#include <hal/display.h>
 #include <hal/tinyvfs.h>
 #include <hal/blk_dev.h>
 #include <procedure/package_update/update.h>
 #include <procedure/security/pgmkeys.h>
 #include <procedure/factory/factory.h>
-#include <common/ui_screens.h>
 #include <common/status_json.h>
 #include <common/version_json.h>
+#include <gui/gui.h>
 #include <string.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <stdio.h>
 
 int __attribute__((noinline, used)) main() {
     system_initialize();
 
-    eink_clear_log();
+    gui_clear_display();
 
     static const vfs_mount_point_desc_t fstab[] = {
             {.disk = blkdev_emmc_user, .partition = 1, .type = vfs_fs_fat, .mount_point = "/os"},
@@ -28,7 +28,7 @@ int __attribute__((noinline, used)) main() {
     int err = vfs_mount_init(fstab, sizeof fstab);
     if (err) {
         printf("Unable to init vfs: %d", err);
-        goto exit;
+        goto exit_no_save;
     }
 
     struct update_handle_s handle;
@@ -60,7 +60,9 @@ int __attribute__((noinline, used)) main() {
 
     switch (system_boot_reason()) {
         case system_boot_reason_update: {
-            debug_log("System update");
+            debug_log("System update start");
+            gui_show_screen(ScreenUpdateInProgress);
+
             handle.update_from = "/user/update.tar";
             handle.backup_full_path = "/backup/backup.tar";
             handle.enabled.backup = true;
@@ -69,27 +71,24 @@ int __attribute__((noinline, used)) main() {
             handle.enabled.check_version = true;
             handle.enabled.allow_downgrade = false;
 
-            show_update_in_progress_screen();
-
             if (!update_firmware(&handle)) {
                 status.operation_result = OPERATION_FAILURE;
                 debug_log("Update: update failed");
-                show_update_error_screen();
+                gui_show_screen(ScreenUpdateFailed);
                 goto exit;
-            } else {
-                debug_log("Update: update success");
-                show_update_success_screen();
             }
+
+            debug_log("Update: update success");
+            gui_show_screen(ScreenUpdateSuccess);
             if (handle.unsigned_tar) {
                 debug_log("\n\nWarning: OS Update package is not signed by Mudita\n");
-                msleep(1000);
             }
         }
         break;
 
         case system_boot_reason_recovery: {
-            eink_log("System recovery", true);
             debug_log("System recovery start");
+            gui_show_screen(ScreenRecoveryInProgress);
 
             handle.update_from = "/backup/backup.tar";
             handle.enabled.backup = false;
@@ -97,30 +96,41 @@ int __attribute__((noinline, used)) main() {
             handle.enabled.check_sign = false;
             handle.enabled.check_version = false;
             handle.enabled.allow_downgrade = false;
+
             if (!update_firmware(&handle)) {
                 status.operation_result = OPERATION_FAILURE;
                 debug_log("Recovery: recovery failed");
+                gui_show_screen(ScreenRecoveryFailed);
                 goto exit;
             }
+
+            debug_log("Recovery: recovery success");
+            gui_show_screen(ScreenRecoverySuccess);
         }
-            break;
+        break;
+
         case system_boot_reason_factory: {
-            eink_log("Factory reset", true);
             debug_log("Factory reset start");
+            gui_show_screen(ScreenFactoryResetInProgress);
+
             const struct factory_reset_handle frhandle = {
                     .user_dir = handle.update_user
             };
             if (!factory_reset(&frhandle)) {
                 status.operation_result = OPERATION_FAILURE;
                 debug_log("Factory reset: factory reset failed");
+                gui_show_screen(ScreenFactoryResetFailed);
                 goto exit;
             }
+
+            debug_log("Factory reset: factory reset success");
+            gui_show_screen(ScreenFactoryResetSuccess);
         }
         break;
 
         case system_boot_reason_pgm_keys: {
-            eink_log("Burn keys", true);
-            debug_log("Burn keys start");
+            debug_log("Keys programming start");
+            gui_show_screen(ScreenKeysInProgress);
 
             const struct program_keys_handle pghandle = {
                     .srk_file = "/os/current/SRK_fuses.bin",
@@ -129,18 +139,23 @@ int __attribute__((noinline, used)) main() {
             if (program_keys(&pghandle)) {
                 status.operation_result = OPERATION_FAILURE;
                 debug_log("Keys: burning keys failed");
+                gui_show_screen(ScreenKeysFailed);
             }
+            else {
+                debug_log("Keys: burning keys success");
+                gui_show_screen(ScreenKeysSuccess);
+            }
+
             unlink(pghandle.srk_file);
             unlink(pghandle.chksum_srk_file);
-            goto exit;
         }
         break;
 
-        default:
-            eink_log("Error: unknown boot reason", true);
+        default: {
             debug_log("Boot reason not handled: %d", system_boot_reason());
-            goto exit_unknown;
-            break;
+            goto exit_no_save;
+        }
+        break;
     }
 
     exit:
@@ -149,9 +164,10 @@ int __attribute__((noinline, used)) main() {
         debug_log("Status file saving failed");
     }
 
-    exit_unknown:
+    exit_no_save:
     debug_log("Process finished, exiting...");
     msleep(5000);
+    gui_clear_display();
     err = vfs_unmount_deinit();
     system_deinitialize();
 
