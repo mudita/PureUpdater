@@ -5,7 +5,7 @@ target_compile_features(${UPDATER} PRIVATE
     c_std_11
 )
 
-target_compile_options(${UPDATER} PRIVATE -Wall -Wextra -Werror)
+target_compile_options(${UPDATER} PRIVATE -Wall -Wextra)
 
 file(GLOB_RECURSE SRC_FILES CONFIGURE_DEPENDS
     "**/*.c*"
@@ -32,6 +32,9 @@ target_link_libraries(
     common
     cjson
     md5
+    lua
+    lualibs
+    luamodules
 )
 
 target_include_directories(
@@ -40,10 +43,23 @@ target_include_directories(
     ${CMAKE_CURRENT_LIST_DIR}
 )
 
+add_subdirectory(luamodules)
+
 option (ENABLE_SECURE_BOOT "Build signed binary for Secure Boot" OFF)
 set(SIGN_CLIENT_PATH "${CMAKE_SOURCE_DIR}/../sign_server/key_client" CACHE PATH "signclient.py path")
 set(SERVER "https://172.17.0.1:4430" CACHE STRING "sign server address")
 set(BIN_FILE ${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}_RT.bin)
+
+# Define where LUA should search for the external modules:
+# /os/lua/share
+# /os/lua
+target_compile_definitions(lua
+        PRIVATE
+        LUA_PATH_DEFAULT="/os/lua/share/?.lua\\\;?/init.lua\\\;/os/lua/?.lua\\\;/os/lua/?/init.lua"
+        LUA_CPATH_DEFAULT=""
+        )
+# 'luafilesystem' library needs custom syscalls definitions
+target_link_libraries(luafilesystem PRIVATE system)
 
 # Create binary format
 print_section_sizes(${UPDATER})

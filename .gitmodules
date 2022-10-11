@@ -23,3 +23,9 @@
 	path = thirdparty/lwext4/src
 	url = ../lwext4.git
 	branch = mudita
+[submodule "thirdparty/lua/src"]
+	path = thirdparty/lua/src
+	url = https://github.com/lua/lua
+[submodule "thirdparty/lualibs/luafilesystem/src"]
+	path = thirdparty/lualibs/luafilesystem/src
+	url = https://github.com/lunarmodules/luafilesystem

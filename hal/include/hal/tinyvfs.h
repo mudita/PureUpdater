@@ -190,3 +190,14 @@ int vfs_statvfs(const char *abs_path, struct statvfs *stat);
  * @error errno or 0 if success
  */
 int vfs_readmount(int *index, const char **name);
+
+/** VFS chdir
+ * @see man chdir
+ */
+int vfs_chdir(const char *path);
+
+/** VFS getcwd
+ * @see man getcwd
+ */
+int vfs_getcwd(char *buffer, size_t size);
+
