@@ -14,6 +14,69 @@
 #include <unistd.h>
 #include <stdio.h>
 
+#include <sqlite3.h>
+#include <lauxlib.h>
+#include <lua.h>
+#include <lualib.h>
+#include <lsqlite3/lsqlite3.h>
+#include <luafilesystem/src/src/lfs.h>
+#include <ltar/src/lmicrotar.h>
+#include <luamodules/lsysboot/lsysboot.h>
+#include <luamodules/lsyspaths/lsyspaths.h>
+
+int __attribute__((noinline, used)) main() {
+    system_initialize();
+
+    static const vfs_mount_point_desc_t fstab[] = {
+            {.disk = blkdev_emmc_user, .partition = 1, .type = vfs_fs_fat, .mount_point = "/os"},
+            {.disk = blkdev_emmc_user, .partition = 2, .type = vfs_fs_auto, .mount_point = "/backup"},
+            {.disk = blkdev_emmc_user, .partition = 3, .type = vfs_fs_auto, .mount_point = "/user"},
+    };
+
+    int err = vfs_mount_init(fstab, sizeof fstab);
+    if (err) {
+        printf("Unable to init vfs: %d", err);
+        return err;
+    }
+    sqlite3_initialize();
+
+    lua_State *L = luaL_newstate();
+    luaL_openlibs(L);
+    luaL_requiref(L, "lsqlite3complete", luaopen_lsqlite3, 1);
+    luaL_requiref(L, "lfs", luaopen_lfs, 1);
+    luaL_requiref(L, "lsysboot", luaopen_lsysboot, 1);
+    luaL_requiref(L, "lsyspaths", luaopen_lsyspaths, 1);
+    luaL_requiref(L, "lmicrotar", luaopen_lmicrotar, 1);
+
+    chdir("/os/lua/migration_test");
+    int ret = luaL_dofile(L, "/os/lua/migration_test/db_migration.lua");
+    if (ret) {
+        printf("Error occurs when calling luaL_dofile() Hint Machine 0x%x\n", ret);
+        printf("Error: %s", lua_tostring(L, -1));
+    }
+    chdir("/os/lua/tar_tests");
+    ret = luaL_dofile(L, "/os/lua/tar_tests/test.lua");
+    if (ret) {
+        printf("Error occurs when calling luaL_dofile() Hint Machine 0x%x\n", ret);
+        printf("Error: %s", lua_tostring(L, -1));
+    }
+
+    chdir("/os/lua");
+    ret = luaL_dofile(L, "/os/lua/main.lua");
+    if (ret) {
+        printf("Error occurs when calling luaL_dofile() Hint Machine 0x%x\n", ret);
+        printf("Error: %s", lua_tostring(L, -1));
+    }
+
+    debug_log("Process finished, exiting...");
+    msleep(5000);
+    sqlite3_shutdown();
+    err = vfs_unmount_deinit();
+    system_deinitialize();
+    return err;
+}
+
+#if 0
 int __attribute__((noinline, used)) main() {
     system_initialize();
 
@@ -178,3 +241,5 @@ int __attribute__((noinline, used)) main() {
      */
     return err;
 }
+
+#endif
