@@ -21,6 +21,8 @@
 #include <ltar/src/lmicrotar.h>
 #include <luamodules/lsysboot/lsysboot.h>
 #include <luamodules/lsyspaths/lsyspaths.h>
+#include <luamodules/lgui/lgui.h>
+#include <luamodules/ldelay/ldelay.h>
 
 int __attribute__((noinline, used)) main() {
     system_initialize();
@@ -45,26 +47,34 @@ int __attribute__((noinline, used)) main() {
     luaL_requiref(L, "lsysboot", luaopen_lsysboot, 1);
     luaL_requiref(L, "lsyspaths", luaopen_lsyspaths, 1);
     luaL_requiref(L, "lmicrotar", luaopen_lmicrotar, 1);
+    luaL_requiref(L, "lgui", luaopen_lgui, 1);
+    luaL_requiref(L, "ldelay", luaopen_ldelay, 1);
 
-    chdir("/os/lua/migration_test");
-    int ret = luaL_dofile(L, "/os/lua/migration_test/db_migration.lua");
-    if (ret) {
-        printf("Error occurs when calling luaL_dofile() Hint Machine 0x%x\n", ret);
-        printf("Error: %s", lua_tostring(L, -1));
-    }
-    chdir("/os/lua/tar_tests");
-    ret = luaL_dofile(L, "/os/lua/tar_tests/test.lua");
-    if (ret) {
-        printf("Error occurs when calling luaL_dofile() Hint Machine 0x%x\n", ret);
+    err = luaL_dofile(L, "/os/lua/gui_test.lua");
+    if (err) {
+        printf("Error occurs when calling luaL_dofile() Hint Machine 0x%x\n", err);
         printf("Error: %s", lua_tostring(L, -1));
     }
 
-    chdir("/os/lua");
-    ret = luaL_dofile(L, "/os/lua/main.lua");
-    if (ret) {
-        printf("Error occurs when calling luaL_dofile() Hint Machine 0x%x\n", ret);
-        printf("Error: %s", lua_tostring(L, -1));
-    }
+//    chdir("/os/lua/migration_test");
+//    int ret = luaL_dofile(L, "/os/lua/migration_test/db_migration.lua");
+//    if (ret) {
+//        printf("Error occurs when calling luaL_dofile() Hint Machine 0x%x\n", ret);
+//        printf("Error: %s", lua_tostring(L, -1));
+//    }
+//    chdir("/os/lua/tar_tests");
+//    ret = luaL_dofile(L, "/os/lua/tar_tests/test.lua");
+//    if (ret) {
+//        printf("Error occurs when calling luaL_dofile() Hint Machine 0x%x\n", ret);
+//        printf("Error: %s", lua_tostring(L, -1));
+//    }
+//
+//    chdir("/os/lua");
+//    ret = luaL_dofile(L, "/os/lua/main.lua");
+//    if (ret) {
+//        printf("Error occurs when calling luaL_dofile() Hint Machine 0x%x\n", ret);
+//        printf("Error: %s", lua_tostring(L, -1));
+//    }
 
     debug_log("Process finished, exiting...");
     msleep(5000);
