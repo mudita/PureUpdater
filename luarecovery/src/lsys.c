@@ -34,8 +34,11 @@ static const module_consts_t consts[] = {
 static const module_consts_t boot_reason_code[] = {
         SC(update)
         SC(recovery)
-        SC(factory)
-        SC(update)
+        SC(pgm_keys)
+        SC(usb_mc_mode)
+        SC(backup)
+        SC(restore)
+        SC(os)
         SC(unknown)
         {NULL, 0}
 };
