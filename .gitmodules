@@ -26,3 +26,6 @@
 [submodule "thirdparty/lualibs/luafilesystem/src"]
 	path = thirdparty/lualibs/luafilesystem/src
 	url = https://github.com/lunarmodules/luafilesystem
+[submodule "thirdparty/lualibs/ltar/src"]
+	path = thirdparty/lualibs/ltar/src
+	url = git@github.com:mudita/ltar.git
