@@ -2,6 +2,7 @@
 #include <hal/delay.h>
 #include <hal/tinyvfs.h>
 #include <hal/blk_dev.h>
+#include <hal/boot_control.h>
 
 #include <database.h>
 #include <log.h>
@@ -28,7 +29,7 @@ static lua_State *prepare_lua_context() {
     luaL_requiref(L, "lsqlite3complete", luaopen_lsqlite3, 1);
     luaL_requiref(L, "lfs", luaopen_lfs, 1);
     luaL_requiref(L, "lmicrotar", luaopen_lmicrotar, 1);
-    luaL_requiref(L, "lrecovery", luaopen_lrecovery, 1);
+    luaL_requiref(L, "recovery", luaopen_lrecovery, 1);
     return L;
 }
 
@@ -93,6 +94,7 @@ static int prepare_environment() {
 }
 
 int destroy_environment() {
+    boot_control_deinit();
     flush_logs();
     database_deinitialize();
     int err = vfs_unmount_deinit();

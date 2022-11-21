@@ -12,6 +12,7 @@
 #include <hal/boot_control.h>
 #include <flash_bootloader.h>
 #include <convert_fs.h>
+#include <common/mount_points.h>
 
 static const module_consts_t consts[] = {
         {NULL, 0}
@@ -39,6 +40,7 @@ static const module_consts_t boot_reason_code[] = {
         SC(backup)
         SC(restore)
         SC(os)
+        SC(factory)
         SC(unknown)
         {NULL, 0}
 };
@@ -115,8 +117,7 @@ static int _target_slot(lua_State *L) {
  */
 static int _source_slot(lua_State *L) {
     UNUSED(L);
-    const char *slot = get_prefix(get_current_slot());
-    lua_pushstring(L, slot);
+    lua_pushstring(L, get_system_mount_point());
     return 1;
 }
 
@@ -127,7 +128,7 @@ static int _source_slot(lua_State *L) {
  */
 static int _user(lua_State *L) {
     UNUSED(L);
-    lua_pushstring(L, "/user");
+    lua_pushstring(L, get_user_mount_point());
     return 1;
 }
 
