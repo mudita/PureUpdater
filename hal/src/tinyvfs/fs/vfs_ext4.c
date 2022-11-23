@@ -174,7 +174,7 @@ static ssize_t ext_write(struct vfs_file *fp, const void *ptr, size_t len)
 
 static ssize_t ext_lseek(struct vfs_file *fp, off_t off, int whence)
 {
-    int ret = ext4_fseek(fp->filep, off, whence);
+    int ret = ext4_fseek(fp->filep, abs(off), whence);
     if (ret)
     {
         return -ret;
