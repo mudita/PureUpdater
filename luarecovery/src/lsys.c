@@ -7,9 +7,11 @@
 #include "lsys.h"
 #include "lauxlib.h"
 #include "common.h"
+#include <sys/statvfs.h>
 #include <hal/boot_reason.h>
 #include <hal/delay.h>
 #include <hal/boot_control.h>
+#include <hal/tinyvfs.h>
 #include <flash_bootloader.h>
 #include <convert_fs.h>
 #include <common/mount_points.h>
@@ -133,6 +135,24 @@ static int _user(lua_State *L) {
 }
 
 /***
+ Get the available disk space
+ @function free_space
+ @return available disk space in bytes
+ */
+static int _free_space(lua_State *L) {
+    UNUSED(L);
+    struct statvfs stat = {};
+    const char *disk = luaL_checkstring(L, 1);
+    const int ret = vfs_statvfs(luaL_checkstring(L, 1), &stat);
+    if (ret != 0) {
+        luaL_error(L, "Failed to stat disk %s code:%d", disk, ret);
+    }
+    const uint64_t free_space = (uint64_t) stat.f_bfree * (uint64_t) stat.f_bsize;
+    lua_pushinteger(L, free_space);
+    return 1;
+}
+
+/***
  Flash bootloader image into the boot partition
  @function flash_bootloader
  @param path path to the bootloader image
@@ -170,6 +190,7 @@ static const struct luaL_Reg functions[] = {
         {"target_slot",      _target_slot},
         {"source_slot",      _source_slot},
         {"user",             _user},
+        {"free_space",       _free_space},
         {"flash_bootloader", _flash_bootloader},
         {"repartition_fs",   _repartition_fs},
         {NULL, NULL},

@@ -10,7 +10,7 @@ target_sources(luarecovery PRIVATE
         )
 
 target_include_directories(luarecovery PUBLIC include PRIVATE ${CMAKE_BINARY_DIR})
-target_link_libraries(luarecovery PRIVATE lua hal-common pure-core recovery)
+target_link_libraries(luarecovery PRIVATE lua hal-common pure-core recovery system)
 
 # Define where LUA should search for the external modules:
 # /system/scripts/share
