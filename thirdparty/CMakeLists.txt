@@ -14,7 +14,7 @@ include(FetchContent)
 
 FetchContent_Declare(
         pure-core
-        GIT_REPOSITORY git@github.com:mudita/pure-core.git
+        GIT_REPOSITORY https://github.com/mudita/pure-core.git
 )
 FetchContent_MakeAvailable(pure-core)
 
