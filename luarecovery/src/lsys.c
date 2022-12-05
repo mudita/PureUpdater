@@ -181,18 +181,30 @@ static int _repartition_fs(lua_State *L) {
     return 1;
 }
 
+/***
+ Set OS boot status
+ @function set_os_boot_status
+ @param status true or false
+ */
+static int _set_os_boot_status(lua_State *L) {
+    const int status = lua_toboolean(L, 1);
+    set_os_boot_status(status);
+    return 1;
+}
+
 static const struct luaL_Reg functions[] = {
-        {"boot_reason",      _get_reason},
-        {"boot_reason_str",  _get_reason_str},
-        {"set_boot_reason",  _set_boot_reason},
-        {"sleep",            _sleep},
-        {"uptime",           _uptime},
-        {"target_slot",      _target_slot},
-        {"source_slot",      _source_slot},
-        {"user",             _user},
-        {"free_space",       _free_space},
-        {"flash_bootloader", _flash_bootloader},
-        {"repartition_fs",   _repartition_fs},
+        {"boot_reason",        _get_reason},
+        {"boot_reason_str",    _get_reason_str},
+        {"set_boot_reason",    _set_boot_reason},
+        {"sleep",              _sleep},
+        {"uptime",             _uptime},
+        {"target_slot",        _target_slot},
+        {"source_slot",        _source_slot},
+        {"user",               _user},
+        {"free_space",         _free_space},
+        {"flash_bootloader",   _flash_bootloader},
+        {"repartition_fs",     _repartition_fs},
+        {"set_os_boot_status", _set_os_boot_status},
         {NULL, NULL},
 };
 

@@ -77,6 +77,19 @@ static int _mark_as_active(lua_State *L) {
 }
 
 /**
+ * Marks the slot passed in parameter as bootable.
+ * @function mark_as_bootable
+ * @param slot @{slot}
+ */
+static int _mark_as_bootable(lua_State *L) {
+    const int ret = mark_as_bootable(luaL_checkinteger(L, 1));
+    if (ret != 0) {
+        luaL_error(L, "mark_as_bootable failed with code:%d", ret);
+    }
+    return 1;
+}
+
+/**
  * Marks the slot passed in parameter as
  * an unbootable. This can be used while updating the contents of the slot's
  * partitions, so that the system will not attempt to boot a known bad set up.
@@ -205,6 +218,7 @@ static const struct luaL_Reg functions[] = {
         {"get_current_slot",       _get_current_slot},
         {"mark_as_successful",     _mark_as_successful},
         {"mark_as_active",         _mark_as_active},
+        {"mark_as_bootable",       _mark_as_bootable},
         {"mark_as_unbootable",     _mark_as_unbootable},
         {"decrease_boot_attempt",  _decrease_boot_attempt},
         {"get_boot_attempts_left", _get_boot_attempts_left},
@@ -220,7 +234,7 @@ static const struct luaL_Reg functions[] = {
 };
 
 LUALIB_API int luaopen_lbootctrl(lua_State *L) {
-    register_module(L, functions, consts, "lbootctrl");
+    register_module(L, functions, consts, "bootctrl");
     register_consts(L, system_slot, "slot");
     return 1;
 }
