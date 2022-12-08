@@ -3,6 +3,7 @@
 #include <hal/tinyvfs.h>
 #include <hal/blk_dev.h>
 #include <hal/boot_control.h>
+#include <hal/boot_reason.h>
 
 #include <database.h>
 #include <log.h>
@@ -20,7 +21,6 @@
 #include <string.h>
 #include <errno.h>
 
-static const char *working_dir = "/system/scripts";
 static const char *entry_point = "entry.lua";
 
 static lua_State *prepare_lua_context() {
@@ -33,8 +33,29 @@ static lua_State *prepare_lua_context() {
     return L;
 }
 
+static const char *get_working_directory() {
+    static const char *working_dir = "/system/scripts";
+    if (boot_reason() == boot_reason_code_update) {
+        static char path[256] = {};
+        snprintf(path, sizeof(path), "%s/%s", get_update_dir(), "scripts");
+        return path;
+    }
+    return working_dir;
+}
+
+static void set_package_path(lua_State *L, const char *working_dir) {
+    static char package[256] = {};
+    snprintf(package, sizeof(package),
+             "package.path='%s/?.lua;%s/share/?.lua;%s/share/?/?.lua;%s/share/?/init.lua'",
+             working_dir, working_dir, working_dir, working_dir);
+    (void) luaL_dostring(L, package);
+}
+
+
 static int invoke_entry_point(lua_State *L, const char *entry) {
     char path[256] = {};
+    const char *working_dir = get_working_directory();
+    set_package_path(L, working_dir);
     chdir(working_dir);
     snprintf(path, sizeof(path), "%s/%s", working_dir, entry);
     return luaL_dofile(L, path);

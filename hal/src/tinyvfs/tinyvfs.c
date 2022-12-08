@@ -305,7 +305,7 @@ int vfs_open(struct vfs_file *filp, const char *file_name, int flags, mode_t mod
 {
     struct vfs_mount *mp;
 
-    /* COpy flags to zfp for use with other fs_ API calls */
+    /* Copy flags to zfp for use with other fs_ API calls */
     filp->flags = flags;
     filp->mode = mode;
 

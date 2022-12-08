@@ -179,7 +179,7 @@ static enum convert_fs_state_e convert_fs(const struct convert_fs_config_s *conf
             break;
         }
 
-        /* Backup all the files. Since now, we have no file logs */
+        /* Backup all the files, since now, we have no file logs */
         debug_log("Creating partition backup");
         flush_logs();
         if (!copy_data(config->mount_point, config->tmp_dir_path)) {
@@ -188,7 +188,7 @@ static enum convert_fs_state_e convert_fs(const struct convert_fs_config_s *conf
             break;
         }
 
-        /* Unmount partitions */
+        /* Unmount partitions*/
         debug_log("Unmounting partitions");
         err = vfs_unmount_deinit();
         if (err) {
@@ -413,7 +413,7 @@ enum convert_fs_state_e repartition_fs(void) {
     }
 
     enum convert_fs_state_e err = convert_fs(&cfsconfig);
-    if (err != CONVERSION_SUCCESS) {
+    if (err == CONVERSION_FAILED) {
         debug_log("Failed to convert MUDITAOS from FAT to ext4");
         return err;
     }
